@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.commonjava</groupId>
+    <artifactId>commonjava</artifactId>
+    <version>2</version>
+  </parent>
+
+  <groupId>org.commonjava.maven.cartographer</groupId>
+  <artifactId>cartographer</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+
+  <name>Cartographer Project-Discovery API</name>
+  
+  <scm>
+    <connection>scm:git:http://jdcasey@github.com/jdcasey/cartographer.git</connection>
+    <developerConnection>scm:git:git@github.com:jdcasey/cartographer.git</developerConnection>
+    <url>http://github.com/jdcasey/cartographer</url>
+  </scm>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-identities</artifactId>
+        <version>0.9.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-relationships-api</artifactId>
+        <version>0.9.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-driver-jung</artifactId>
+        <version>0.9.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-core</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>logging</artifactId>
+        <version>1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.6.1</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>logging</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-identities</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-relationships-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-core</artifactId>
+    </dependency>
+  </dependencies>
+  
+  <modules>
+    <module>core</module>
+  </modules>
+</project>
