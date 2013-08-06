@@ -31,7 +31,7 @@ public final class DiscoveryUtils
 
         try
         {
-            GraphWorkspace ws = dataManager.getWorkspace();
+            GraphWorkspace ws = dataManager.getCurrentWorkspace();
             if ( ws == null )
             {
                 ws = dataManager.getGraphManager()
@@ -58,7 +58,7 @@ public final class DiscoveryUtils
 
         try
         {
-            GraphWorkspace ws = dataManager.getWorkspace();
+            GraphWorkspace ws = dataManager.getCurrentWorkspace();
             if ( ws == null )
             {
                 ws = dataManager.getGraphManager()

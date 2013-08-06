@@ -1,5 +1,6 @@
 package org.commonjava.maven.cartographer.data;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
@@ -134,11 +136,33 @@ public interface CartoDataManager
                                        ProjectVersionRef... roots )
         throws CartoDataException;
 
+    GraphWorkspace createWorkspace( URI sourceUri )
+        throws CartoDataException;
+
+    GraphWorkspace createWorkspace( GraphWorkspaceConfiguration config )
+        throws CartoDataException;
+
+    GraphWorkspace createTemporaryWorkspace( GraphWorkspaceConfiguration config )
+        throws CartoDataException;
+
+    GraphWorkspace setCurrentWorkspace( String sessionId )
+        throws CartoDataException;
+
     Set<ProjectVersionRef> getMatchingGAVs( ProjectRef projectRef )
+        throws CartoDataException;
+
+    boolean deleteWorkspace( String id );
+
+    Set<GraphWorkspace> getAllWorkspaces();
+
+    GraphWorkspace getCurrentWorkspace();
+
+    void clearCurrentWorkspace()
         throws CartoDataException;
 
     EGraphManager getGraphManager();
 
-    GraphWorkspace getWorkspace();
+    GraphWorkspace getWorkspace( String id )
+        throws CartoDataException;
 
 }

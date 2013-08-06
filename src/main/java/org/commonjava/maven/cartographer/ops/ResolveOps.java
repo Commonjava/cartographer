@@ -51,7 +51,7 @@ public class ResolveOps
                                           sourceManager.getFormatHint() );
         }
 
-        sourceManager.activateWorkspaceSources( data.getWorkspace(), fromUri );
+        sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), fromUri );
 
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
         final Set<ProjectVersionRef> results = new HashSet<>();
@@ -71,7 +71,7 @@ public class ResolveOps
 
                 if ( filter != null && ( filter instanceof WorkspaceRecorder ) )
                 {
-                    ( (WorkspaceRecorder) filter ).save( data.getWorkspace() );
+                    ( (WorkspaceRecorder) filter ).save( data.getCurrentWorkspace() );
                 }
 
                 results.add( result.getSelectedRef() );
@@ -92,7 +92,7 @@ public class ResolveOps
                                           sourceManager.getFormatHint() );
         }
 
-        sourceManager.activateWorkspaceSources( data.getWorkspace(), fromUri );
+        sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), fromUri );
 
         final Set<ProjectVersionRef> seen = new HashSet<>();
         final Set<ProjectVersionRef> resolved = new HashSet<>();

@@ -20,6 +20,7 @@ import static org.apache.commons.lang.StringUtils.join;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,8 +43,11 @@ import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
+import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceListener;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.ErrorKey;
 import org.commonjava.maven.cartographer.event.MissingRelationshipsEvent;
@@ -51,27 +55,27 @@ import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
 import org.commonjava.util.logging.Logger;
 
 public class DefaultCartoDataManager
-    implements CartoDataManager
+    implements CartoDataManager, GraphWorkspaceListener
 {
 
     private final Logger logger = new Logger( getClass() );
 
     private EGraphManager graphs;
 
-    private CartoEventManager events;
+    private GraphWorkspaceHolder workspaceHolder;
 
-    private GraphWorkspace workspace;
+    private CartoEventManager funnel;
 
     public DefaultCartoDataManager()
     {
     }
 
-    public DefaultCartoDataManager( final EGraphManager graphs, final GraphWorkspace workspace,
+    public DefaultCartoDataManager( final EGraphManager graphs, final GraphWorkspaceHolder workspaceHolder,
                                     final CartoEventManager funnel )
     {
         this.graphs = graphs;
-        this.workspace = workspace;
-        this.events = funnel;
+        this.workspaceHolder = workspaceHolder;
+        this.funnel = funnel;
     }
 
     /* (non-Javadoc)
@@ -129,7 +133,7 @@ public class DefaultCartoDataManager
 
     private void fireMissingEvents( final Set<ProjectRelationship<?>> stored )
     {
-        if ( events == null )
+        if ( funnel == null )
         {
             return;
         }
@@ -140,16 +144,16 @@ public class DefaultCartoDataManager
                                              .asProjectVersionRef();
 
             // TODO: If the sessionManager.getCurrentSession() is restricted by source-uri, this may produce weird results from that session's POV
-            if ( !graphs.containsGraph( workspace, ref ) )
+            if ( !graphs.containsGraph( workspaceHolder.getCurrentWorkspace(), ref ) )
             {
-                events.fireMissing( new MissingRelationshipsEvent( ref, workspace ) );
+                funnel.fireMissing( new MissingRelationshipsEvent( ref, workspaceHolder.getCurrentWorkspace() ) );
             }
         }
     }
 
     private void fireErrorEvent( final ProjectVersionRef ref, final Throwable error )
     {
-        events.unlockOnRelationshipsErrorEvent( new ProjectRelationshipsErrorEvent(
+        funnel.unlockOnRelationshipsErrorEvent( new ProjectRelationshipsErrorEvent(
                                                                                     new ErrorKey(
                                                                                                   ref.getGroupId(),
                                                                                                   ref.getArtifactId(),
@@ -161,14 +165,14 @@ public class DefaultCartoDataManager
     public synchronized EProjectGraph getProjectGraph( final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getGraph( workspace, ref );
+        return graphs.getGraph( workspaceHolder.getCurrentWorkspace(), ref );
     }
 
     @Override
     public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final ProjectVersionRef discovered )
         throws CartoDataException
     {
-        return graphs.getGraph( workspace, filter, discovered );
+        return graphs.getGraph( workspaceHolder.getCurrentWorkspace(), filter, discovered );
     }
 
     /* (non-Javadoc)
@@ -178,7 +182,7 @@ public class DefaultCartoDataManager
     public List<ProjectVersionRef> getAncestry( final ProjectVersionRef source )
         throws CartoDataException
     {
-        final EProjectGraph graph = graphs.getGraph( workspace, source );
+        final EProjectGraph graph = graphs.getGraph( workspaceHolder.getCurrentWorkspace(), source );
         final AncestryTraversal ancestryTraversal = new AncestryTraversal();
 
         try
@@ -202,7 +206,8 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> matches =
-            graphs.findDirectRelationshipsFrom( workspace, source, false, RelationshipType.PARENT );
+            graphs.findDirectRelationshipsFrom( workspaceHolder.getCurrentWorkspace(), source, false,
+                                                RelationshipType.PARENT );
         if ( matches != null && !matches.isEmpty() )
         {
             final ParentRelationship parent = (ParentRelationship) matches.iterator()
@@ -221,7 +226,8 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> matches =
-            graphs.findDirectRelationshipsTo( workspace, parent, false, RelationshipType.PARENT );
+            graphs.findDirectRelationshipsTo( workspaceHolder.getCurrentWorkspace(), parent, false,
+                                              RelationshipType.PARENT );
 
         final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
         for ( final ProjectRelationship<?> rel : matches )
@@ -240,7 +246,7 @@ public class DefaultCartoDataManager
                                                                                  final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        final GraphView view = new GraphView( workspace, filter );
+        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
         return graphs.findDirectRelationshipsFrom( view, source, false,
@@ -255,7 +261,7 @@ public class DefaultCartoDataManager
                                                                                  final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        final GraphView view = new GraphView( workspace, filter );
+        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
         return graphs.findDirectRelationshipsTo( view, target, false,
@@ -312,7 +318,7 @@ public class DefaultCartoDataManager
     @Override
     public boolean contains( final ProjectVersionRef ref )
     {
-        return graphs.containsGraph( workspace, ref );
+        return graphs.containsGraph( workspaceHolder.getCurrentWorkspace(), ref );
     }
 
     /* (non-Javadoc)
@@ -348,7 +354,7 @@ public class DefaultCartoDataManager
     public Set<ProjectVersionRef> getIncompleteSubgraphsFor( final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( new GraphView( workspace, ref ) );
+        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), ref ) );
     }
 
     @Override
@@ -356,28 +362,28 @@ public class DefaultCartoDataManager
                                                              final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( new GraphView( workspace, filter, ref ) );
+        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
     }
 
     @Override
     public Set<ProjectVersionRef> getAllIncompleteSubgraphs()
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( workspace );
+        return graphs.getAllIncompleteSubgraphs( workspaceHolder.getCurrentWorkspace() );
     }
 
     @Override
     public Set<ProjectVersionRef> getAllIncompleteSubgraphs( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( new GraphView( workspace, filter ) );
+        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter ) );
     }
 
     @Override
     public Set<ProjectVersionRef> getVariableSubgraphsFor( final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( new GraphView( workspace, ref ) );
+        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), ref ) );
     }
 
     @Override
@@ -385,21 +391,21 @@ public class DefaultCartoDataManager
                                                            final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( new GraphView( workspace, filter, ref ) );
+        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
     }
 
     @Override
     public Set<ProjectVersionRef> getAllVariableSubgraphs()
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( workspace );
+        return graphs.getAllVariableSubgraphs( workspaceHolder.getCurrentWorkspace() );
     }
 
     @Override
     public Set<ProjectVersionRef> getAllVariableSubgraphs( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( new GraphView( workspace, filter ) );
+        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter ) );
     }
 
     @Override
@@ -471,7 +477,7 @@ public class DefaultCartoDataManager
             serialized += ERROR_SEPARATOR + errorStr;
         }
 
-        addMetadata( key.getProject(), MODEL_ERRORS, serialized );
+        addMetadata( ref, MODEL_ERRORS, serialized );
         fireErrorEvent( ref, error );
     }
 
@@ -506,7 +512,7 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         logger.info( "Looking up graph for: %s", ref );
-        final EProjectGraph graph = graphs.getGraph( workspace, ref );
+        final EProjectGraph graph = graphs.getGraph( workspaceHolder.getCurrentWorkspace(), ref );
 
         logger.info( "Querying graph: %s for projects with errors.", graph );
 
@@ -538,7 +544,7 @@ public class DefaultCartoDataManager
     public void reindex( final ProjectVersionRef ref )
         throws CartoDataException
     {
-        final EProjectGraph graph = graphs.getGraph( workspace, ref );
+        final EProjectGraph graph = graphs.getGraph( workspaceHolder.getCurrentWorkspace(), ref );
 
         if ( graph == null )
         {
@@ -573,21 +579,21 @@ public class DefaultCartoDataManager
     public EProjectWeb getProjectWeb( final ProjectVersionRef... refs )
         throws CartoDataException
     {
-        return graphs.getWeb( workspace, refs );
+        return graphs.getWeb( workspaceHolder.getCurrentWorkspace(), refs );
     }
 
     @Override
     public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
         throws CartoDataException
     {
-        return graphs.getWeb( workspace, filter, refs );
+        return graphs.getWeb( workspaceHolder.getCurrentWorkspace(), filter, refs );
     }
 
     @Override
     public Set<ProjectVersionRef> getMatchingGAVs( final ProjectRef projectRef )
         throws CartoDataException
     {
-        return graphs.getProjectsMatching( projectRef, workspace );
+        return graphs.getProjectsMatching( projectRef, workspaceHolder.getCurrentWorkspace() );
     }
 
     @Override
@@ -647,6 +653,172 @@ public class DefaultCartoDataManager
         return result;
     }
 
+    public void closeCurrentWorkspace()
+        throws CartoDataException
+    {
+        final GraphWorkspace ws = workspaceHolder.getCurrentWorkspace();
+        if ( ws != null )
+        {
+            ws.close();
+        }
+    }
+
+    @Override
+    public GraphWorkspace setCurrentWorkspace( final String id )
+        throws CartoDataException
+    {
+        try
+        {
+            final GraphWorkspace ws = graphs.getWorkspace( id );
+
+            if ( ws != null )
+            {
+                ws.addListener( this );
+                workspaceHolder.setCurrentWorkspace( ws, true );
+            }
+
+            return ws;
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to retrieve workspace: %s. Error: %s", e, id, e.getMessage() );
+        }
+    }
+
+    @Override
+    public GraphWorkspace createWorkspace( final URI sourceUri )
+        throws CartoDataException
+    {
+        return createWorkspace( new GraphWorkspaceConfiguration().withSource( sourceUri ) );
+    }
+
+    private void checkForCurrentWorkspace()
+        throws CartoDataException
+    {
+        if ( workspaceHolder.getCurrentWorkspace() != null )
+        {
+            throw new CartoDataException(
+                                          "You already have an active workspace! Close that one before creating a new one." );
+        }
+    }
+
+    @Override
+    public GraphWorkspace createWorkspace( final GraphWorkspaceConfiguration config )
+        throws CartoDataException
+    {
+        checkForCurrentWorkspace();
+
+        GraphWorkspace workspace;
+        try
+        {
+            workspace = graphs.createWorkspace( config )
+                              .addListener( this );
+
+            workspaceHolder.setCurrentWorkspace( workspace, true );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config,
+                                          e.getMessage() );
+        }
+
+        return workspace;
+    }
+
+    @Override
+    public void selectionAdded( final GraphWorkspace session, final ProjectVersionRef ref, final SingleVersion version )
+        throws GraphDriverException
+    {
+    }
+
+    @Override
+    public void wildcardSelectionAdded( final GraphWorkspace graphWorkspace, final ProjectRef ref,
+                                        final SingleVersion version )
+        throws GraphDriverException
+    {
+    }
+
+    @Override
+    public void selectionsCleared( final GraphWorkspace session )
+    {
+    }
+
+    @Override
+    public void closed( final GraphWorkspace ws )
+    {
+        if ( workspaceHolder.getCurrentWorkspace() == ws )
+        {
+            workspaceHolder.clearCurrentWorkspace();
+        }
+    }
+
+    @Override
+    public void accessed( final GraphWorkspace ws )
+    {
+    }
+
+    @Override
+    public boolean deleteWorkspace( final String id )
+    {
+        return graphs.deleteWorkspace( id );
+    }
+
+    @Override
+    public Set<GraphWorkspace> getAllWorkspaces()
+    {
+        return graphs.getAllWorkspaces();
+    }
+
+    @Override
+    public GraphWorkspace getCurrentWorkspace()
+    {
+        return workspaceHolder.getCurrentWorkspace();
+    }
+
+    @Override
+    public GraphWorkspace createTemporaryWorkspace( final GraphWorkspaceConfiguration config )
+        throws CartoDataException
+    {
+        checkForCurrentWorkspace();
+
+        GraphWorkspace workspace;
+        try
+        {
+            workspace = graphs.createTemporaryWorkspace( config )
+                              .addListener( this );
+
+            workspaceHolder.setCurrentWorkspace( workspace, true );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config,
+                                          e.getMessage() );
+        }
+
+        return workspace;
+    }
+
+    @Override
+    public void clearCurrentWorkspace()
+        throws CartoDataException
+    {
+        final GraphWorkspace ws = workspaceHolder.getCurrentWorkspace();
+        workspaceHolder.clearCurrentWorkspace();
+
+        if ( ws != null )
+        {
+            try
+            {
+                graphs.storeWorkspace( ws );
+            }
+            catch ( final GraphDriverException e )
+            {
+                throw new CartoDataException( "Failed to store workspace %s on detach. Reason: %s", e, ws.getId(),
+                                              e.getMessage() );
+            }
+        }
+    }
+
     @Override
     public EGraphManager getGraphManager()
     {
@@ -654,9 +826,17 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public GraphWorkspace getWorkspace()
+    public GraphWorkspace getWorkspace( final String id )
+        throws CartoDataException
     {
-        return workspace;
+        try
+        {
+            return graphs.getWorkspace( id );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to load workspace: %s. Reason: %s", e, id, e.getMessage() );
+        }
     }
 
 }

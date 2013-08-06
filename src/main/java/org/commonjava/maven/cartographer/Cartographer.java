@@ -6,12 +6,12 @@ import java.util.concurrent.Executors;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4JEGraphDriver;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
+import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.discover.SimpleDiscoverer;
@@ -82,10 +82,10 @@ public class Cartographer
 
         final DiscoverySourceManager sourceFactory = new SimpleSourceManager();
 
-        this.workspaces = new WorkspaceOps( graphs, sourceFactory );
+        final GraphWorkspaceHolder wsHolder = new GraphWorkspaceHolder();
 
-        final GraphWorkspace ws = workspaces.get( workspaceId );
-        final CartoDataManager data = new DefaultCartoDataManager( graphs, ws, events );
+        final CartoDataManager data = new DefaultCartoDataManager( graphs, wsHolder, events );
+        this.workspaces = new WorkspaceOps( data, sourceFactory );
 
         this.calculator = new CalculationOps( data );
         this.grapher = new GraphOps( data );
