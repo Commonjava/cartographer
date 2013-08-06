@@ -72,6 +72,41 @@
         <version>1.6.1</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-model</artifactId>
+        <version>3.0.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-interpolation</artifactId>
+        <version>1.16</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cdmckay.coffeedom</groupId>
+        <artifactId>coffeedom</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-repository-metadata</artifactId>
+        <version>3.0.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-driver-neo4j-embedded</artifactId>
+        <version>0.9.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-transport-httpclient</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-transport-filearc</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   
@@ -100,9 +135,33 @@
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interpolation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.cdmckay.coffeedom</groupId>
+      <artifactId>coffeedom</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-repository-metadata</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-driver-neo4j-embedded</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-transport-filearc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-transport-httpclient</artifactId>
+    </dependency>
   </dependencies>
-  
-  <modules>
-    <module>core</module>
-  </modules>
 </project>
