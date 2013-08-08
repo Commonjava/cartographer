@@ -1,7 +1,10 @@
 package org.commonjava.maven.cartographer.data;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 
+@ApplicationScoped
 public class GraphWorkspaceHolder
 {
 

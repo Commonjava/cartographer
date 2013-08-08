@@ -1,26 +1,39 @@
 package org.commonjava.maven.cartographer.ops;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.util.ProjectVersionRefComparator;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
 public class GraphOps
 {
 
     private final Logger logger = new Logger( getClass() );
 
-    private final CartoDataManager data;
+    @Inject
+    private CartoDataManager data;
+
+    protected GraphOps()
+    {
+    }
 
     public GraphOps( final CartoDataManager data )
     {
@@ -141,6 +154,74 @@ public class GraphOps
         throws CartoDataException
     {
         return data.getProjectWeb( filter, refs );
+    }
+
+    public Set<String> getProjectErrors( final ProjectVersionRef ref )
+        throws CartoDataException
+    {
+        return data.getErrors( ref );
+    }
+
+    public List<ProjectVersionRef> listProjects( final String groupIdPattern, final String artifactIdPattern )
+        throws CartoDataException
+    {
+        final Set<ProjectVersionRef> all = data.getAllStoredProjectRefs();
+        final List<ProjectVersionRef> matching = new ArrayList<ProjectVersionRef>();
+        if ( all != null )
+        {
+            if ( groupIdPattern != null || artifactIdPattern != null )
+            {
+                final String gip = groupIdPattern == null ? ".*" : groupIdPattern.replaceAll( "\\*", ".*" );
+                final String aip = artifactIdPattern == null ? ".*" : artifactIdPattern.replaceAll( "\\*", ".*" );
+
+                logger.info( "Filtering %d projects using groupId pattern: '%s' and artifactId pattern: '%s'",
+                             all.size(), gip, aip );
+
+                for ( final ProjectVersionRef ref : all )
+                {
+                    if ( ref.getGroupId()
+                            .matches( gip ) && ref.getArtifactId()
+                                                  .matches( aip ) )
+                    {
+                        matching.add( ref );
+                    }
+                }
+            }
+            else
+            {
+                logger.info( "Returning all %d projects", all.size() );
+                matching.addAll( all );
+            }
+
+        }
+
+        if ( !matching.isEmpty() )
+        {
+            Collections.sort( matching, new ProjectVersionRefComparator() );
+
+        }
+
+        return matching;
+    }
+
+    public ProjectVersionRef getProjectParent( final ProjectVersionRef projectVersionRef )
+        throws CartoDataException
+    {
+        return data.getParent( projectVersionRef );
+    }
+
+    public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref,
+                                                                   final ProjectRelationshipFilter filter )
+        throws CartoDataException
+    {
+        return data.getAllDirectRelationshipsWithExactSource( ref, filter );
+    }
+
+    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref,
+                                                                 final ProjectRelationshipFilter filter )
+        throws CartoDataException
+    {
+        return data.getAllDirectRelationshipsWithExactTarget( ref, filter );
     }
 
 }

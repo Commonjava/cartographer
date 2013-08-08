@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
@@ -54,6 +56,7 @@ import org.commonjava.maven.cartographer.event.MissingRelationshipsEvent;
 import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
 public class DefaultCartoDataManager
     implements CartoDataManager, GraphWorkspaceListener
 {

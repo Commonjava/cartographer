@@ -4,8 +4,11 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4JEGraphDriver;
+import org.commonjava.maven.atlas.graph.spi.jung.JungEGraphDriver;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -14,8 +17,8 @@ import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.maven.cartographer.discover.SimpleDiscoverer;
-import org.commonjava.maven.cartographer.discover.SimpleSourceManager;
+import org.commonjava.maven.cartographer.discover.DiscovererImpl;
+import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
@@ -28,36 +31,47 @@ import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
-import org.commonjava.maven.galley.cache.CacheProvider;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
-import org.commonjava.maven.galley.event.FileEventManager;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.filearc.FileTransport;
 import org.commonjava.maven.galley.filearc.ZipJarTransport;
-import org.commonjava.maven.galley.io.HashPerRepoPathGenerator;
+import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
-import org.commonjava.maven.galley.io.TransferDecorator;
-import org.commonjava.maven.galley.transport.SimpleTransportManager;
-import org.commonjava.maven.galley.transport.TransportManager;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.transport.TransportManager;
+import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
+import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.maven.galley.transport.htcli.internal.HttpImpl;
 
+@ApplicationScoped
 public class Cartographer
 {
 
-    private final CalculationOps calculator;
+    @Inject
+    private CalculationOps calculator;
 
-    private final GraphOps grapher;
+    @Inject
+    private GraphOps grapher;
 
-    private final GraphRenderingOps renderer;
+    @Inject
+    private GraphRenderingOps renderer;
 
-    private final MetadataOps metadata;
+    @Inject
+    private MetadataOps metadata;
 
-    private final ResolveOps resolver;
+    @Inject
+    private ResolveOps resolver;
 
-    private final WorkspaceOps workspaces;
+    @Inject
+    private WorkspaceOps workspaces;
+
+    protected Cartographer()
+    {
+    }
 
     public Cartographer( final CalculationOps calculator, final GraphOps grapher, final GraphRenderingOps renderer,
                          final MetadataOps metadata, final ResolveOps resolver, final WorkspaceOps workspace )
@@ -70,17 +84,15 @@ public class Cartographer
         this.workspaces = workspace;
     }
 
-    public Cartographer( final String workspaceId, final File depgraphDbDir, final File resolverCacheDir,
-                         final int resolverThreads )
+    public Cartographer( final String workspaceId, final File resolverCacheDir, final int resolverThreads )
         throws CartoDataException
     {
-        // FIXME: Neo4J driver prevents ASL2.0!!!
-        final EGraphManager graphs = new EGraphManager( new FileNeo4JEGraphDriver( depgraphDbDir ) );
+        final EGraphManager graphs = new EGraphManager( new JungEGraphDriver() );
 
         // TODO: This needs to be replaced with a real implementation.
         final CartoEventManager events = new NoOpCartoEventManager();
 
-        final DiscoverySourceManager sourceFactory = new SimpleSourceManager();
+        final DiscoverySourceManager sourceFactory = new SourceManagerImpl();
 
         final GraphWorkspaceHolder wsHolder = new GraphWorkspaceHolder();
 
@@ -99,10 +111,10 @@ public class Cartographer
         final GlobalHttpConfiguration globalConfig = new GlobalHttpConfiguration();
 
         final TransportManager transport =
-            new SimpleTransportManager( new HttpClientTransport( http, globalConfig ), new FileTransport(),
-                                        new ZipJarTransport() );
+            new TransportManagerImpl( new HttpClientTransport( http, globalConfig ), new FileTransport(),
+                                      new ZipJarTransport() );
 
-        final CacheProvider cache = new FileCacheProvider( resolverCacheDir, new HashPerRepoPathGenerator() );
+        final CacheProvider cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator() );
 
         // TODO: This needs a real implementation, to make the system respond to resolver events.
         final FileEventManager fileEvents = new NoOpFileEventManager();
@@ -114,7 +126,7 @@ public class Cartographer
 
         final TransferManager xferMgr = new TransferManagerImpl( transport, cache, fileEvents, decorator, executor );
 
-        final ProjectRelationshipDiscoverer discoverer = new SimpleDiscoverer( data, mmp, xferMgr );
+        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( data, mmp, xferMgr );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, executor );
         this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator );
     }

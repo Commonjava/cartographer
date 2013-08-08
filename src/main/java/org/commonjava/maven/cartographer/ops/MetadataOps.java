@@ -4,17 +4,26 @@ import static org.apache.commons.lang.StringUtils.join;
 
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
 public class MetadataOps
 {
 
     private final Logger logger = new Logger( getClass() );
 
-    private final CartoDataManager data;
+    @Inject
+    private CartoDataManager data;
+
+    protected MetadataOps()
+    {
+    }
 
     public MetadataOps( final CartoDataManager data )
     {

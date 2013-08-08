@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -18,18 +21,27 @@ import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
 public class ResolveOps
 {
 
     private final Logger logger = new Logger( getClass() );
 
-    private final CartoDataManager data;
+    @Inject
+    private DiscoverySourceManager sourceManager;
 
-    private final DiscoverySourceManager sourceManager;
+    @Inject
+    private ProjectRelationshipDiscoverer discoverer;
 
-    private final ProjectRelationshipDiscoverer discoverer;
+    @Inject
+    private GraphAggregator aggregator;
 
-    private final GraphAggregator aggregator;
+    @Inject
+    private CartoDataManager data;
+
+    protected ResolveOps()
+    {
+    }
 
     public ResolveOps( final CartoDataManager data, final DiscoverySourceManager sourceManager,
                        final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator )

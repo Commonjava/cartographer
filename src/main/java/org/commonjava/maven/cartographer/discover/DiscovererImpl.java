@@ -10,6 +10,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
@@ -30,20 +34,29 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
 
-public class SimpleDiscoverer
+@ApplicationScoped
+@Named( "default" )
+public class DiscovererImpl
     implements ProjectRelationshipDiscoverer
 {
 
     private final Logger logger = new Logger( getClass() );
 
-    private final TransferManager transferManager;
+    @Inject
+    private TransferManager transferManager;
 
-    private final MavenModelProcessor modelProcessor;
+    @Inject
+    private MavenModelProcessor modelProcessor;
 
-    private final CartoDataManager dataManager;
+    @Inject
+    private CartoDataManager dataManager;
 
-    public SimpleDiscoverer( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor,
-                             final TransferManager transferManager )
+    protected DiscovererImpl()
+    {
+    }
+
+    public DiscovererImpl( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor,
+                           final TransferManager transferManager )
     {
         this.dataManager = dataManager;
         this.modelProcessor = modelProcessor;
@@ -135,7 +148,7 @@ public class SimpleDiscoverer
         catch ( final TransferException e )
         {
             throw new CartoDataException( "Failed to retrieve: %s from: %s. Reason: %s", e, path,
-                                           discoveryConfig.getDiscoverySource(), e.getMessage() );
+                                          discoveryConfig.getDiscoverySource(), e.getMessage() );
         }
 
         return transfer;

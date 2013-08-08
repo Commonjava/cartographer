@@ -3,11 +3,16 @@ package org.commonjava.maven.cartographer.discover;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.util.logging.Logger;
 
-public class SimpleSourceManager
+@ApplicationScoped
+@Named( "default" )
+public class SourceManagerImpl
     implements DiscoverySourceManager
 {
 

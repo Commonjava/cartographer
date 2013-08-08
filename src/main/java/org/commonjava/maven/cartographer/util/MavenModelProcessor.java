@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.apache.maven.model.Build;
 import org.apache.maven.model.BuildBase;
 import org.apache.maven.model.Dependency;
@@ -66,6 +69,7 @@ import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.util.logging.Logger;
 
 // FIXME: Need a method to create the relationships BUT NOT STORE THEM
+@ApplicationScoped
 public class MavenModelProcessor
 {
 
@@ -73,6 +77,7 @@ public class MavenModelProcessor
 
     private static final Logger logger = new Logger( MavenModelProcessor.class );
 
+    @Inject
     private CartoDataManager dataManager;
 
     protected MavenModelProcessor()
@@ -152,7 +157,7 @@ public class MavenModelProcessor
         catch ( final InvalidVersionSpecificationException e )
         {
             throw new CartoDataException( "Failed to parse version string: '%s' for model: %s. Reason: %s", e,
-                                           model.getVersion(), model, e.getMessage() );
+                                          model.getVersion(), model, e.getMessage() );
         }
     }
 
@@ -182,8 +187,8 @@ public class MavenModelProcessor
             catch ( final InterpolationException e )
             {
                 throw new CartoDataException(
-                                               "Failed to resolve expression from model.\nRaw string: '%s'\nModel: %s\nError: %s",
-                                               e, raw, model, e.getMessage() );
+                                              "Failed to resolve expression from model.\nRaw string: '%s'\nModel: %s\nError: %s",
+                                              e, raw, model, e.getMessage() );
             }
         }
 

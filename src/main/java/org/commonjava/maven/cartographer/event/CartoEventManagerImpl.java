@@ -3,30 +3,24 @@ package org.commonjava.maven.cartographer.event;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.util.logging.Logger;
 
-public abstract class AbstractCartoEventManager
+@ApplicationScoped
+@Named( "default" )
+public class CartoEventManagerImpl
     implements CartoEventManager
 {
 
     protected final Logger logger = new Logger( getClass() );
 
     private final Map<ProjectVersionRef, LockState> locks = new HashMap<ProjectVersionRef, LockState>();
-
-    private CartoDataManager dataManager;
-
-    protected AbstractCartoEventManager()
-    {
-    }
-
-    protected AbstractCartoEventManager( final CartoDataManager dataManager )
-    {
-        this.dataManager = dataManager;
-    }
 
     @Override
     public void unlockOnNewRelationshipsEvent( final NewRelationshipsEvent evt )
@@ -57,7 +51,7 @@ public abstract class AbstractCartoEventManager
      * lock, unlock it, and wait a little while for the waitFor() method to run,
      * before removing it and exiting.
      */
-    protected void notifyOfGraph( final ProjectVersionRef ref )
+    public void notifyOfGraph( final ProjectVersionRef ref )
     {
         logger.info( "\n\nLooking up lock for: %s\n\n", ref );
         LockState lock;
@@ -121,7 +115,7 @@ public abstract class AbstractCartoEventManager
     }
 
     @Override
-    public void waitForGraph( final ProjectVersionRef ref, final long timeoutMillis )
+    public void waitForGraph( final ProjectVersionRef ref, final CartoDataManager dataManager, final long timeoutMillis )
         throws CartoDataException
     {
         if ( ref == null )
@@ -194,5 +188,10 @@ public abstract class AbstractCartoEventManager
         {
             return locked;
         }
+    }
+
+    @Override
+    public void fireMissing( final MissingRelationshipsEvent missingRelationshipsEvent )
+    {
     }
 }

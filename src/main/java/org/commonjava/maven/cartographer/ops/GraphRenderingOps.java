@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
@@ -36,10 +39,16 @@ import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 
+@ApplicationScoped
 public class GraphRenderingOps
 {
 
-    private final CartoDataManager data;
+    @Inject
+    private CartoDataManager data;
+
+    protected GraphRenderingOps()
+    {
+    }
 
     public GraphRenderingOps( final CartoDataManager data )
     {

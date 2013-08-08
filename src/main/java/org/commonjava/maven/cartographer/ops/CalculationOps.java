@@ -3,6 +3,9 @@ package org.commonjava.maven.cartographer.ops;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -12,10 +15,16 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphDifference;
 
+@ApplicationScoped
 public class CalculationOps
 {
 
-    private final CartoDataManager data;
+    @Inject
+    private CartoDataManager data;
+
+    protected CalculationOps()
+    {
+    }
 
     public CalculationOps( final CartoDataManager data )
     {

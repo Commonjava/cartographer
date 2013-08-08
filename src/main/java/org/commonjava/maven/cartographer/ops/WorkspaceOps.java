@@ -5,18 +5,28 @@ import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.profileLoc
 import java.net.URI;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 
+@ApplicationScoped
 public class WorkspaceOps
 {
 
-    private final CartoDataManager data;
+    @Inject
+    private CartoDataManager data;
 
-    private final DiscoverySourceManager sourceFactory;
+    @Inject
+    private DiscoverySourceManager sourceFactory;
+
+    protected WorkspaceOps()
+    {
+    }
 
     public WorkspaceOps( final CartoDataManager data, final DiscoverySourceManager sourceFactory )
     {
