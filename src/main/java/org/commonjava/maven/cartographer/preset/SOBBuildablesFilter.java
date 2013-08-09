@@ -19,13 +19,10 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.util.logging.Logger;
 
 public class SOBBuildablesFilter
     implements ProjectRelationshipFilter, WorkspaceRecorder
 {
-
-    private final Logger logger = new Logger( getClass() );
 
     private final ProjectRelationshipFilter filter;
 

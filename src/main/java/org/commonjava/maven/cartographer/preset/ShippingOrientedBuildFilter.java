@@ -16,14 +16,11 @@ import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
-import org.commonjava.util.logging.Logger;
 
 //FIXME: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
 public class ShippingOrientedBuildFilter
     implements ProjectRelationshipFilter
 {
-
-    private final Logger logger = new Logger( getClass() );
 
     private final boolean runtimeOnly;
 
