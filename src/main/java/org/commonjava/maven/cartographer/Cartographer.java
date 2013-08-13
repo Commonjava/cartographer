@@ -8,16 +8,16 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.jung.JungEGraphDriver;
+import org.commonjava.maven.atlas.graph.spi.EGraphDriver;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
+import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
@@ -84,10 +84,11 @@ public class Cartographer
         this.workspaces = workspace;
     }
 
-    public Cartographer( final String workspaceId, final File resolverCacheDir, final int resolverThreads )
+    public Cartographer( final String workspaceId, final File resolverCacheDir, final int resolverThreads,
+                         final EGraphDriver graphDriver )
         throws CartoDataException
     {
-        final EGraphManager graphs = new EGraphManager( new JungEGraphDriver() );
+        final EGraphManager graphs = new EGraphManager( graphDriver );
 
         // TODO: This needs to be replaced with a real implementation.
         final CartoEventManager events = new NoOpCartoEventManager();
