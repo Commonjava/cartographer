@@ -11,7 +11,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectCycle;
@@ -33,10 +35,14 @@ public class DefaultGraphAggregator
 
     private final Logger logger = new Logger( getClass() );
 
+    @Inject
     private CartoDataManager dataManager;
 
+    @Inject
     private ProjectRelationshipDiscoverer discoverer;
 
+    @Inject
+    @ExecutorConfig( daemon = true, named = "carto-aggregator", priority = 9, threads = 2 )
     private ExecutorService executor;
 
     protected DefaultGraphAggregator()

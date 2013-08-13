@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
@@ -63,10 +64,13 @@ public class DefaultCartoDataManager
 
     private final Logger logger = new Logger( getClass() );
 
+    @Inject
     private EGraphManager graphs;
 
+    @Inject
     private GraphWorkspaceHolder workspaceHolder;
 
+    @Inject
     private CartoEventManager funnel;
 
     public DefaultCartoDataManager()
