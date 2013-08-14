@@ -1,6 +1,7 @@
 package org.commonjava.maven.cartographer.event;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -9,6 +10,7 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 
 @ApplicationScoped
 @Named( "no-op" )
+@Alternative
 public class NoOpCartoEventManager
     implements CartoEventManager
 {

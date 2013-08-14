@@ -13,7 +13,7 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
-@Named( "default" )
+@Named( "default-carto-event-mgr" )
 public class CartoEventManagerImpl
     implements CartoEventManager
 {

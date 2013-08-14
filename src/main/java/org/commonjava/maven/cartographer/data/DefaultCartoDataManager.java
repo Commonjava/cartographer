@@ -73,7 +73,7 @@ public class DefaultCartoDataManager
     @Inject
     private CartoEventManager funnel;
 
-    public DefaultCartoDataManager()
+    protected DefaultCartoDataManager()
     {
     }
 

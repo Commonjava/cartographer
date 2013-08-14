@@ -11,7 +11,7 @@ import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
-@Named( "default" )
+@Named( "default-carto-source-mgr" )
 public class SourceManagerImpl
     implements DiscoverySourceManager
 {

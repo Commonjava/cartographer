@@ -35,7 +35,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
-@Named( "default" )
+@Named( "default-carto-discoverer" )
 public class DiscovererImpl
     implements ProjectRelationshipDiscoverer
 {

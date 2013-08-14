@@ -34,7 +34,7 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
-        <artifactId>atlas-driver-jung</artifactId>
+        <artifactId>atlas-driver-neo4j-embedded</artifactId>
         <version>0.9.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
@@ -112,6 +112,12 @@
         <artifactId>maven-repository-metadata</artifactId>
         <version>3.0.4</version>
       </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.14</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   
@@ -157,10 +163,6 @@
       <artifactId>maven-repository-metadata</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-jung</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-transport-filearc</artifactId>
     </dependency>
@@ -175,6 +177,26 @@
     <dependency>
       <groupId>org.commonjava.cdi.util</groupId>
       <artifactId>weft</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.weld.se</groupId>
+      <artifactId>weld-se-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-driver-neo4j-embedded</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
   </dependencies>
 </project>
