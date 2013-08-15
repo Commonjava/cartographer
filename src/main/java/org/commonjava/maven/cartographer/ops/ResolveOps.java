@@ -1,7 +1,9 @@
 package org.commonjava.maven.cartographer.ops;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -52,8 +54,8 @@ public class ResolveOps
         this.aggregator = aggregator;
     }
 
-    public ProjectVersionRef resolveGraph( final String fromUri, final AggregationOptions options,
-                                           final ProjectVersionRef... roots )
+    public List<ProjectVersionRef> resolveGraph( final String fromUri, final AggregationOptions options,
+                                                 final ProjectVersionRef... roots )
         throws CartoDataException
     {
         final URI source = sourceManager.createSourceURI( fromUri );
@@ -66,7 +68,7 @@ public class ResolveOps
         sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), fromUri );
 
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
-        final Set<ProjectVersionRef> results = new HashSet<>();
+        final List<ProjectVersionRef> results = new ArrayList<>();
         for ( final ProjectVersionRef root : roots )
         {
             final DiscoveryResult result = discoverer.discoverRelationships( root, config );
@@ -90,7 +92,7 @@ public class ResolveOps
             }
         }
 
-        return null;
+        return results;
     }
 
     public Set<ProjectVersionRef> resolveIncomplete( final String fromUri, final AggregationOptions options,
