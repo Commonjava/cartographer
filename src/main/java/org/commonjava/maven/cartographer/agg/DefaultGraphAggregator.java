@@ -209,6 +209,11 @@ public class DefaultGraphAggregator
                 pathFilters.add( f );
             }
 
+            if ( pathFilters.isEmpty() )
+            {
+                continue;
+            }
+
             todo.setFilter( new OrFilter( pathFilters ) );
             initialPending.add( todo );
         }
