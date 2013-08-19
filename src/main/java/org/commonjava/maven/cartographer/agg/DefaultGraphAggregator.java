@@ -61,19 +61,17 @@ public class DefaultGraphAggregator
     public EProjectGraph connectIncomplete( final EProjectGraph graph, final AggregationOptions config )
         throws CartoDataException
     {
-        return connect( graph, config, graph.getRoot() );
+        return connect( graph, config );
     }
 
     @Override
-    public EProjectWeb connectIncomplete( final EProjectWeb web, final AggregationOptions config,
-                                          final ProjectVersionRef... roots )
+    public EProjectWeb connectIncomplete( final EProjectWeb web, final AggregationOptions config )
         throws CartoDataException
     {
-        return connect( web, config, roots );
+        return connect( web, config );
     }
 
-    private <T extends EProjectNet> T connect( final T net, final AggregationOptions config,
-                                               final ProjectVersionRef... roots )
+    private <T extends EProjectNet> T connect( final T net, final AggregationOptions config )
         throws CartoDataException
     {
         if ( net != null )

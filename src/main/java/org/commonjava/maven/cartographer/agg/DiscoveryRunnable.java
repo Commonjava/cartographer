@@ -82,28 +82,35 @@ public class DiscoveryRunnable
                 // then, wait for the event funnel to capture something telling us to re-check
                 // for the project graph.
                 final DiscoveryResult result = discoverer.discoverRelationships( ref, discoveryConfig );
-                final ProjectVersionRef newRef = result.getSelectedRef();
-
-                addToCycleParticipants( result.getRejectedRelationships() );
-
-                if ( newRef.isVariableVersion() || !data.contains( newRef ) )
+                if ( result != null )
                 {
-                    markMissing( newRef );
+                    final ProjectVersionRef newRef = result.getSelectedRef();
+
+                    addToCycleParticipants( result.getRejectedRelationships() );
+
+                    if ( newRef.isVariableVersion() || !data.contains( newRef ) )
+                    {
+                        markMissing( newRef );
+                    }
+                    else
+                    {
+                        final ProjectRelationshipFilter filter = todo.getFilter();
+
+                        final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
+
+                        for ( final ProjectRelationship<?> rel : newRels )
+                        {
+                            if ( !data.contains( newRef ) && filter.accept( rel ) )
+                            {
+                                final ProjectRelationshipFilter childFilter = filter.getChildFilter( rel );
+                                newTodos.add( new DiscoveryTodo( newRef, childFilter ) );
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    final ProjectRelationshipFilter filter = todo.getFilter();
-
-                    final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-
-                    for ( final ProjectRelationship<?> rel : newRels )
-                    {
-                        if ( !data.contains( newRef ) && filter.accept( rel ) )
-                        {
-                            final ProjectRelationshipFilter childFilter = filter.getChildFilter( rel );
-                            newTodos.add( new DiscoveryTodo( newRef, childFilter ) );
-                        }
-                    }
+                    markMissing( ref );
                 }
             }
         }
