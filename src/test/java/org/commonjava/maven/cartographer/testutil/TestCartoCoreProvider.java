@@ -22,6 +22,8 @@ import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.util.logging.Logger;
@@ -42,6 +44,8 @@ public class TestCartoCoreProvider
     private NoOpFileEventManager fileEvents;
 
     private NoOpTransferDecorator transferDecorator;
+
+    private NoOpLocationExpander locationExpander;
 
     private PasswordManager passwords;
 
@@ -77,6 +81,7 @@ public class TestCartoCoreProvider
         graphs = new EGraphManager( driver );
         fileEvents = new NoOpFileEventManager();
         transferDecorator = new NoOpTransferDecorator();
+        locationExpander = new NoOpLocationExpander();
 
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
@@ -107,6 +112,14 @@ public class TestCartoCoreProvider
     public PasswordManager getPasswordManager()
     {
         return passwords;
+    }
+
+    @Produces
+    @Default
+    @TestData
+    public LocationExpander getLocationExpander()
+    {
+        return locationExpander;
     }
 
     @Produces
