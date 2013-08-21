@@ -114,7 +114,11 @@ public class ResolveOps
         }
 
         final ProjectRelationshipFilter filter = options.getFilter();
-        final EProjectWeb web = data.getProjectWeb( filter, results.toArray( new ProjectVersionRef[results.size()] ) );
+        final ProjectVersionRef[] resultsArray = results.toArray( new ProjectVersionRef[results.size()] );
+
+        logger.info( "Retrieving web for roots: %s with filter: %s", resultsArray, filter );
+
+        final EProjectWeb web = data.getProjectWeb( filter, resultsArray );
         if ( options.isDiscoveryEnabled() )
         {
             aggregator.connectIncomplete( web, options );

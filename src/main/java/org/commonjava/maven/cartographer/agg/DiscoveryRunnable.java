@@ -94,16 +94,27 @@ public class DiscoveryRunnable
                     }
                     else
                     {
-                        final ProjectRelationshipFilter filter = todo.getFilter();
+                        final Set<ProjectRelationshipFilter> filters = todo.getFilters();
 
                         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
 
                         for ( final ProjectRelationship<?> rel : newRels )
                         {
-                            if ( !data.contains( newRef ) && filter.accept( rel ) )
+                            if ( !data.contains( newRef ) )
                             {
-                                final ProjectRelationshipFilter childFilter = filter.getChildFilter( rel );
-                                newTodos.add( new DiscoveryTodo( newRef, childFilter ) );
+                                final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                                for ( final ProjectRelationshipFilter filter : filters )
+                                {
+                                    if ( filter.accept( rel ) )
+                                    {
+                                        acceptingChildren.add( filter.getChildFilter( rel ) );
+                                    }
+                                }
+
+                                if ( !acceptingChildren.isEmpty() )
+                                {
+                                    newTodos.add( new DiscoveryTodo( newRef, acceptingChildren ) );
+                                }
                             }
                         }
                     }

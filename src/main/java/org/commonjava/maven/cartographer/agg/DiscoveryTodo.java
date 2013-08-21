@@ -1,5 +1,7 @@
 package org.commonjava.maven.cartographer.agg;
 
+import java.util.Set;
+
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
@@ -7,17 +9,17 @@ final class DiscoveryTodo
 {
     private final ProjectVersionRef ref;
 
-    private ProjectRelationshipFilter filter;
+    private Set<ProjectRelationshipFilter> filters;
 
     DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
 
-    public DiscoveryTodo( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
+    public DiscoveryTodo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> filters )
     {
         this.ref = ref;
-        this.filter = filter;
+        this.filters = filters;
     }
 
     ProjectVersionRef getRef()
@@ -25,14 +27,14 @@ final class DiscoveryTodo
         return ref;
     }
 
-    ProjectRelationshipFilter getFilter()
+    Set<ProjectRelationshipFilter> getFilters()
     {
-        return filter;
+        return filters;
     }
 
-    void setFilter( final ProjectRelationshipFilter filter )
+    void setFilters( final Set<ProjectRelationshipFilter> filters )
     {
-        this.filter = filter;
+        this.filters = filters;
     }
 
     @Override
@@ -77,7 +79,7 @@ final class DiscoveryTodo
     @Override
     public String toString()
     {
-        return String.format( "DiscoveryTodo [ref=%s, filter=%s]", ref, filter );
+        return String.format( "DiscoveryTodo [ref=%s, filters=%s]", ref, filters );
     }
 
 }

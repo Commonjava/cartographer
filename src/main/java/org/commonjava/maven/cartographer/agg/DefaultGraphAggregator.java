@@ -3,9 +3,12 @@ package org.commonjava.maven.cartographer.agg;
 import static org.apache.commons.lang.StringUtils.join;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +17,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
-import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectCycle;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
@@ -82,20 +84,26 @@ public class DefaultGraphAggregator
                 nets.add( net );
 
                 final Set<ProjectVersionRef> missing = new HashSet<ProjectVersionRef>();
+
+                logger.info( "Loading existing cycle participants..." );
                 final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
 
+                logger.info( "Loading initial set of GAVs to be resolved..." );
                 final LinkedList<DiscoveryTodo> pending = loadInitialPending( net );
+
                 while ( !pending.isEmpty() )
                 {
                     final HashSet<DiscoveryTodo> current = new HashSet<>( pending );
+                    logger.info( "Next batch of TODOs: %s", current );
                     pending.clear();
 
                     final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing );
-
-                    for ( final DiscoveryTodo newTodo : newTodos )
+                    if ( newTodos != null )
                     {
-                        if ( !pending.contains( newTodo ) )
+                        logger.info( "Uncovered new batch of TODOs: %s", newTodos );
+                        for ( final DiscoveryTodo newTodo : newTodos )
                         {
+                            // don't have to check contains for this new todo, since we cleared the pending list above...
                             pending.addLast( newTodo );
                         }
                     }
@@ -122,14 +130,25 @@ public class DefaultGraphAggregator
         {
             final ProjectVersionRef todoRef = todo.getRef();
 
-            if ( missing.contains( todoRef ) || cycleParticipants.contains( todoRef ) || dataManager.contains( todoRef ) )
+            if ( missing.contains( todoRef ) )
             {
+                logger.info( "Skipping missing reference: %s", todoRef );
+                continue;
+            }
+            else if ( cycleParticipants.contains( todoRef ) )
+            {
+                logger.info( "Skipping cycle-participant reference: %s", todoRef );
+                continue;
+            }
+            else if ( dataManager.contains( todoRef ) )
+            {
+                logger.info( "Skipping already-discovered reference: %s", todoRef );
                 continue;
             }
 
             logger.info( "Creating discovery runnable for: %s", todo );
-            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, /*graph, graphs, cycleBuilders,*/config, /*cycleParticipants,*/
-            roMissing, discoverer, dataManager, latch );
+            final DiscoveryRunnable runnable =
+                new DiscoveryRunnable( todo, config, roMissing, discoverer, dataManager, latch );
 
             executor.execute( runnable );
             runnables.add( runnable );
@@ -179,40 +198,66 @@ public class DefaultGraphAggregator
         final GraphView view = net.getView();
         final ProjectRelationshipFilter topFilter = view.getFilter();
 
-        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<>();
         final Set<ProjectVersionRef> initialIncomplete = net.getIncompleteSubgraphs();
-        for ( final ProjectVersionRef ref : initialIncomplete )
+
+        logger.info( "Finding paths from: %s to: %s", net.getView()
+                                                         .getRoots(), initialIncomplete );
+
+        final Set<List<ProjectRelationship<?>>> paths =
+            net.getPathsTo( initialIncomplete.toArray( new ProjectVersionRef[initialIncomplete.size()] ) );
+
+        if ( paths == null || paths.isEmpty() )
         {
-            final DiscoveryTodo todo = new DiscoveryTodo( ref );
-            if ( initialPending.contains( todo ) )
+            return new LinkedList<>();
+        }
+
+        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<>();
+        nextPath: for ( final List<ProjectRelationship<?>> path : paths )
+        {
+            if ( path == null || path.size() < 1 )
             {
                 continue;
             }
 
-            final Set<ProjectRelationshipFilter> pathFilters = new HashSet<>();
-            final Set<List<ProjectRelationship<?>>> paths = net.getPathsTo( ref );
-            nextPath: for ( final List<ProjectRelationship<?>> path : paths )
+            final ProjectVersionRef ref = path.get( path.size() - 1 )
+                                              .getTarget()
+                                              .asProjectVersionRef();
+            Set<ProjectRelationshipFilter> pathFilters = filtersByRef.get( ref );
+            if ( pathFilters == null )
             {
-                ProjectRelationshipFilter f = topFilter;
-                for ( final ProjectRelationship<?> rel : path )
-                {
-                    if ( !f.accept( rel ) )
-                    {
-                        continue nextPath;
-                    }
+                pathFilters = new HashSet<>();
+                filtersByRef.put( ref, pathFilters );
+            }
 
-                    f = f.getChildFilter( rel );
+            ProjectRelationshipFilter f = topFilter;
+            for ( final ProjectRelationship<?> rel : path )
+            {
+                if ( !f.accept( rel ) )
+                {
+                    continue nextPath;
                 }
 
-                pathFilters.add( f );
+                f = f.getChildFilter( rel );
             }
+
+            logger.info( "Adding todo: %s via filter: %s", ref, f );
+            pathFilters.add( f );
+        }
+
+        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<>();
+        for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : filtersByRef.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final Set<ProjectRelationshipFilter> pathFilters = entry.getValue();
+
+            final DiscoveryTodo todo = new DiscoveryTodo( ref );
 
             if ( pathFilters.isEmpty() )
             {
                 continue;
             }
 
-            todo.setFilter( new OrFilter( pathFilters ) );
+            todo.setFilters( pathFilters );
             initialPending.add( todo );
         }
 
