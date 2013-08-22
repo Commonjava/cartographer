@@ -140,6 +140,7 @@ public class DefaultGraphAggregator
                 logger.info( "Skipping cycle-participant reference: %s", todoRef );
                 continue;
             }
+            // TODO: .contains() is EXPENSIVE due to path-membership analysis!!!
             else if ( dataManager.contains( todoRef ) )
             {
                 logger.info( "Skipping already-discovered reference: %s", todoRef );

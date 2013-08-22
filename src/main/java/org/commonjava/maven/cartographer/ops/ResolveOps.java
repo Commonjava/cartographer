@@ -206,7 +206,6 @@ public class ResolveOps
             for ( ArtifactRef ar : refs.getArtifactRefs() )
             {
                 final Map<ArtifactRef, Transfer> items = new HashMap<>();
-                itemMap.put( ar.asProjectVersionRef(), items );
 
                 logger.info( "Including: %s", ar );
 
@@ -314,6 +313,11 @@ public class ResolveOps
                             }
                         }
                     }
+                }
+
+                if ( !items.isEmpty() )
+                {
+                    itemMap.put( ar.asProjectVersionRef(), items );
                 }
             }
         }
