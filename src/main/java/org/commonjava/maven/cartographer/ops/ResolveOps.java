@@ -183,6 +183,13 @@ public class ResolveOps
 
         final Set<ArtifactRef> seen = new HashSet<>();
         final Location location = recipe.getSourceLocation();
+        final Set<Location> excluded = recipe.getExcludedSourceLocations();
+
+        if ( excluded != null && excluded.contains( location ) )
+        {
+            // no sense in going through all the rest if everything is excluded...
+            throw new CartoDataException( "RepositoryContentRecipe is insane! Source location is among those excluded!" );
+        }
 
         final Map<ProjectVersionRef, Map<ArtifactRef, Transfer>> itemMap = new HashMap<>();
         for ( final ProjectRefCollection refs : refMap.values() )
@@ -210,7 +217,7 @@ public class ResolveOps
 
                     if ( !seen.contains( pomAR ) )
                     {
-                        final Transfer item = resolve( pomAR, location );
+                        final Transfer item = resolve( pomAR, location, excluded );
                         if ( item != null )
                         {
                             logger.info( "+ %s", pomAR );
@@ -226,7 +233,7 @@ public class ResolveOps
 
                 if ( !seen.contains( ar ) )
                 {
-                    final Transfer item = resolve( ar, location );
+                    final Transfer item = resolve( ar, location, excluded );
                     if ( item != null )
                     {
                         logger.info( "+ %s", ar );
@@ -249,7 +256,7 @@ public class ResolveOps
 
                         if ( !seen.contains( extAR ) )
                         {
-                            final Transfer item = resolve( extAR, location );
+                            final Transfer item = resolve( extAR, location, excluded );
                             if ( item != null )
                             {
                                 logger.info( "+ %s", extAR );
@@ -276,7 +283,7 @@ public class ResolveOps
                             final ArtifactRef metaAR =
                                 ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
-                            final Transfer metaItem = resolve( metaAR, location );
+                            final Transfer metaItem = resolve( metaAR, location, excluded );
                             if ( metaItem != null )
                             {
                                 logger.info( "+ %s", metaAR );
@@ -313,7 +320,7 @@ public class ResolveOps
         return options;
     }
 
-    private Transfer resolve( final ArtifactRef ar, final Location location )
+    private Transfer resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded )
         throws CartoDataException
     {
         final String version = ar.getVersionString();
@@ -354,6 +361,11 @@ public class ResolveOps
         if ( item == null )
         {
             logger.warn( "NOT FOUND: %s", ar );
+        }
+        else if ( excluded != null && excluded.contains( item.getLocation() ) )
+        {
+            logger.info( "EXCLUDED: %s (Location was: %s)", ar, item.getLocation() );
+            return null;
         }
 
         return item;

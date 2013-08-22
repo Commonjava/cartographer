@@ -31,6 +31,8 @@ public class RepositoryContentRecipe
 
     private Location sourceLocation;
 
+    private Set<Location> excludedSourceLocations;
+
     private boolean resolve;
 
     private Integer timeoutSecs;
@@ -138,5 +140,15 @@ public class RepositoryContentRecipe
     public void setFilter( final ProjectRelationshipFilter filter )
     {
         this.filter = filter;
+    }
+
+    public Set<Location> getExcludedSourceLocations()
+    {
+        return excludedSourceLocations;
+    }
+
+    public void setExcludedSourceLocations( final Set<Location> excludedSourceLocations )
+    {
+        this.excludedSourceLocations = excludedSourceLocations;
     }
 }
