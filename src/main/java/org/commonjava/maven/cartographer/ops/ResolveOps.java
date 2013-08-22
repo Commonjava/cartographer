@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -159,6 +160,14 @@ public class ResolveOps
         data.setCurrentWorkspace( recipe.getWorkspaceId() );
 
         Collection<ProjectVersionRef> roots = recipe.getRoots();
+        for ( final Iterator<ProjectVersionRef> it = roots.iterator(); it.hasNext(); )
+        {
+            if ( it.next() == null )
+            {
+                it.remove();
+            }
+        }
+
         ProjectVersionRef[] rootsArray = roots.toArray( new ProjectVersionRef[roots.size()] );
 
         final AggregationOptions options = createAggregationOptions( recipe, sourceUri );
@@ -250,6 +259,11 @@ public class ResolveOps
                 {
                     for ( final ExtraCT extraCT : extras )
                     {
+                        if ( extraCT == null )
+                        {
+                            continue;
+                        }
+
                         final ArtifactRef extAR =
                             new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(),
                                              extraCT.getType(), extraCT.getClassifier(), false );
@@ -280,6 +294,11 @@ public class ResolveOps
 
                         for ( final String meta : metas )
                         {
+                            if ( meta == null )
+                            {
+                                continue;
+                            }
+
                             final ArtifactRef metaAR =
                                 ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
