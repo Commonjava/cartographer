@@ -19,9 +19,11 @@ import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -46,6 +48,8 @@ public class TestCartoCoreProvider
     private NoOpTransferDecorator transferDecorator;
 
     private NoOpLocationExpander locationExpander;
+
+    private NoOpNotFoundCache nfc;
 
     private PasswordManager passwords;
 
@@ -82,6 +86,7 @@ public class TestCartoCoreProvider
         fileEvents = new NoOpFileEventManager();
         transferDecorator = new NoOpTransferDecorator();
         locationExpander = new NoOpLocationExpander();
+        nfc = new NoOpNotFoundCache();
 
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
@@ -96,6 +101,14 @@ public class TestCartoCoreProvider
 
         toDelete.add( dir );
         return dir;
+    }
+
+    @Produces
+    @Default
+    @TestData
+    public NotFoundCache getNotFoundCache()
+    {
+        return nfc;
     }
 
     @Produces

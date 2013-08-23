@@ -37,9 +37,11 @@ import org.commonjava.maven.galley.filearc.FileTransport;
 import org.commonjava.maven.galley.filearc.ZipJarTransport;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -123,9 +125,12 @@ public class Cartographer
         // TODO: Probably need something here to verify checksums AT A MINIMUM
         final TransferDecorator decorator = new NoOpTransferDecorator();
 
+        final NotFoundCache nfc = new MemoryNotFoundCache();
+
         final ExecutorService executor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
 
-        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, fileEvents, decorator, executor );
+        final TransferManager xferMgr =
+            new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, executor );
 
         final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( data, mmp, xferMgr );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, executor );

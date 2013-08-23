@@ -30,6 +30,7 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -142,8 +143,9 @@ public class DiscovererImpl
         Transfer transfer;
         try
         {
-            transfer = transferManager.retrieve( new SimpleLocation( discoveryConfig.getDiscoverySource()
-                                                                                    .toString() ), path );
+            transfer =
+                transferManager.retrieve( new Resource( new SimpleLocation( discoveryConfig.getDiscoverySource()
+                                                                                           .toString() ), path ) );
         }
         catch ( final TransferException e )
         {

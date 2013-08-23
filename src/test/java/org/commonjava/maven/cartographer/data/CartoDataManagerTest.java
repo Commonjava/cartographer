@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
@@ -54,6 +55,8 @@ public class CartoDataManagerTest
 
     private GraphWorkspaceHolder sessionManager;
 
+    private MemoryNotFoundCache nfc;
+
     @After
     public void teardown()
         throws Exception
@@ -75,11 +78,13 @@ public class CartoDataManagerTest
         // TODO: Do we need to flesh this out??
         final TransportManager transportManager = new TransportManagerImpl();
 
+        nfc = new MemoryNotFoundCache();
+
         final CacheProvider cacheProvider =
             new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
 
         final TransferManager transferManager =
-            new TransferManagerImpl( transportManager, cacheProvider, new NoOpFileEventManager(),
+            new TransferManagerImpl( transportManager, cacheProvider, nfc, new NoOpFileEventManager(),
                                      new NoOpTransferDecorator(), Executors.newFixedThreadPool( 2 ) );
 
         discoverer = new DiscovererImpl( dataManager, processor, transferManager );

@@ -28,15 +28,27 @@ public class SOBBuildablesFilter
 
     private final Map<ProjectRef, SingleVersion> selected;
 
+    private final boolean acceptManaged;
+
     public SOBBuildablesFilter()
     {
         this( new HashMap<ProjectRef, SingleVersion>(), null );
+    }
+
+    public SOBBuildablesFilter( final boolean acceptManaged )
+    {
+        this.acceptManaged = acceptManaged;
+        this.selected = new HashMap<>();
+        this.filter =
+            new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
+                                                                    false, true, true, null ) );
     }
 
     private SOBBuildablesFilter( final Map<ProjectRef, SingleVersion> selected,
                                  final ProjectRelationshipFilter childFilter )
     {
         this.selected = selected;
+        this.acceptManaged = false;
         this.filter =
             childFilter == null ? new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime,
                                                                                           ScopeTransitivity.maven,
@@ -49,7 +61,7 @@ public class SOBBuildablesFilter
     {
         boolean result = false;
 
-        if ( rel.isManaged() )
+        if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }

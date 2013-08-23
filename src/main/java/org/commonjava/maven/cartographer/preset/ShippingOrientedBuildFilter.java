@@ -30,8 +30,19 @@ public class ShippingOrientedBuildFilter
 
     private final Map<ProjectRef, SingleVersion> selected;
 
+    private final boolean acceptManaged;
+
     public ShippingOrientedBuildFilter()
     {
+        this.runtimeOnly = false;
+        this.acceptManaged = false;
+        this.filter = null;
+        this.selected = new HashMap<>();
+    }
+
+    public ShippingOrientedBuildFilter( final boolean acceptManaged )
+    {
+        this.acceptManaged = acceptManaged;
         this.runtimeOnly = false;
         this.filter = null;
         this.selected = new HashMap<>();
@@ -44,6 +55,7 @@ public class ShippingOrientedBuildFilter
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
         //                                     : "for any artifact" );
         this.runtimeOnly = runtimeOnly;
+        this.acceptManaged = false;
         this.selected = selected;
         this.filter =
             runtimeOnly ? new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes )
@@ -56,7 +68,7 @@ public class ShippingOrientedBuildFilter
     {
         boolean result = false;
 
-        if ( rel.isManaged() )
+        if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }
