@@ -151,4 +151,21 @@ public class RepositoryContentRecipe
     {
         this.excludedSourceLocations = excludedSourceLocations;
     }
+
+    public boolean hasWildcardExtras()
+    {
+        if ( extras != null )
+        {
+            for ( final ExtraCT extra : extras )
+            {
+                if ( ExtraCT.WILDCARD.equals( extra.getClassifier() ) || ExtraCT.WILDCARD.equals( extra.getType() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }

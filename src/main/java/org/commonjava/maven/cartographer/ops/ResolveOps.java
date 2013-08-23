@@ -23,6 +23,7 @@ import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
@@ -223,64 +224,55 @@ public class ResolveOps
                     final ArtifactRef pomAR =
                         new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
-                    if ( !seen.contains( pomAR ) )
-                    {
-                        final Transfer item = resolve( pomAR, location, excluded );
-                        if ( item != null )
-                        {
-                            logger.info( "+ %s", pomAR );
-                            items.put( pomAR, item );
-                        }
-                        else
-                        {
-                            logger.info( "- %s", pomAR );
-                        }
-                        seen.add( pomAR );
-                    }
+                    addToContent( pomAR, items, location, excluded, seen );
                 }
 
-                if ( !seen.contains( ar ) )
-                {
-                    final Transfer item = resolve( ar, location, excluded );
-                    if ( item != null )
-                    {
-                        logger.info( "+ %s", ar );
-                        items.put( ar, item );
-                    }
-                    else
-                    {
-                        logger.info( "- %s", ar );
-                    }
-                    seen.add( ar );
-                }
+                addToContent( ar, items, location, excluded, seen );
 
                 if ( extras != null )
                 {
-                    for ( final ExtraCT extraCT : extras )
+                    if ( recipe.hasWildcardExtras() )
                     {
-                        if ( extraCT == null )
+                        // 1. scan for all classifier/type for the GAV
+                        TypeAndClassifier[] tcs;
+                        try
                         {
-                            continue;
+                            tcs = artifacts.listAvailableArtifacts( location, ar );
+                        }
+                        catch ( final TransferException e )
+                        {
+                            throw new CartoDataException(
+                                                          "Failed to list available type-classifier combinations for: %s from: %s. Reason: %s",
+                                                          e, ar, location, e.getMessage() );
                         }
 
-                        final ArtifactRef extAR =
-                            new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(),
-                                             extraCT.getType(), extraCT.getClassifier(), false );
-
-                        if ( !seen.contains( extAR ) )
+                        // 2. match up the resulting list against the extras we have
+                        for ( final TypeAndClassifier tc : tcs )
                         {
-                            final Transfer item = resolve( extAR, location, excluded );
-                            if ( item != null )
+                            for ( final ExtraCT extra : extras )
                             {
-                                logger.info( "+ %s", extAR );
-                                items.put( extAR, item );
+                                if ( extra.matches( tc ) )
+                                {
+                                    final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
+                                    addToContent( extAR, items, location, excluded, seen );
+                                }
                             }
-                            else
+                        }
+                    }
+                    else
+                    {
+                        for ( final ExtraCT extraCT : extras )
+                        {
+                            if ( extraCT == null )
                             {
-                                logger.info( "- %s", extAR );
+                                continue;
                             }
 
-                            seen.add( extAR );
+                            final ArtifactRef extAR =
+                                new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(),
+                                                 extraCT.getType(), extraCT.getClassifier(), false );
+
+                            addToContent( extAR, items, location, excluded, seen );
                         }
                     }
                 }
@@ -301,16 +293,7 @@ public class ResolveOps
                             final ArtifactRef metaAR =
                                 ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
-                            final Transfer metaItem = resolve( metaAR, location, excluded );
-                            if ( metaItem != null )
-                            {
-                                logger.info( "+ %s", metaAR );
-                                items.put( metaAR, metaItem );
-                            }
-                            else
-                            {
-                                logger.info( "- %s", metaAR );
-                            }
+                            addToContent( metaAR, items, location, excluded, seen );
                         }
                     }
                 }
@@ -323,6 +306,27 @@ public class ResolveOps
         }
 
         return itemMap;
+    }
+
+    private void addToContent( final ArtifactRef extAR, final Map<ArtifactRef, Transfer> items,
+                               final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
+        throws CartoDataException
+    {
+        if ( !seen.contains( extAR ) )
+        {
+            final Transfer item = resolve( extAR, location, excluded );
+            if ( item != null )
+            {
+                logger.info( "+ %s", extAR );
+                items.put( extAR, item );
+            }
+            else
+            {
+                logger.info( "- %s", extAR );
+            }
+
+            seen.add( extAR );
+        }
     }
 
     private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final URI sourceUri )
