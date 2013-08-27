@@ -40,20 +40,16 @@ public class SOBBuildablesFilter
         this.acceptManaged = acceptManaged;
         this.selected = new HashMap<>();
         this.filter =
-            new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
-                                                                    false, true, true, null ) );
+            new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
-    private SOBBuildablesFilter( final Map<ProjectRef, SingleVersion> selected,
-                                 final ProjectRelationshipFilter childFilter )
+    private SOBBuildablesFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
     {
         this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime,
-                                                                                          ScopeTransitivity.maven,
-                                                                                          false, true, true, null ) )
-                            : childFilter;
+            childFilter == null ? new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
+                                                                                          true, true, null ) ) : childFilter;
     }
 
     @Override
@@ -138,7 +134,9 @@ public class SOBBuildablesFilter
             filter.render( sb );
         }
 
-        sb.append( ")" );
+        sb.append( " [acceptManaged=" )
+          .append( acceptManaged )
+          .append( "])" );
     }
 
     @Override
@@ -149,7 +147,6 @@ public class SOBBuildablesFilter
         return sb.toString();
     }
 
-    // FIXME: This is not yet used anywhere!
     @Override
     public void save( final GraphWorkspace workspace )
         throws CartoDataException
@@ -165,8 +162,7 @@ public class SOBBuildablesFilter
             }
             catch ( final GraphDriverException e )
             {
-                throw new CartoDataException( "Failed to select: %s for project: %s. Reason: %s", e, value, key,
-                                              e.getMessage() );
+                throw new CartoDataException( "Failed to select: %s for project: %s. Reason: %s", e, value, key, e.getMessage() );
             }
         }
     }

@@ -68,8 +68,8 @@ public class ResolveOps
     {
     }
 
-    public ResolveOps( final CartoDataManager data, final DiscoverySourceManager sourceManager,
-                       final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator )
+    public ResolveOps( final CartoDataManager data, final DiscoverySourceManager sourceManager, final ProjectRelationshipDiscoverer discoverer,
+                       final GraphAggregator aggregator )
     {
         this.data = data;
         this.sourceManager = sourceManager;
@@ -77,15 +77,13 @@ public class ResolveOps
         this.aggregator = aggregator;
     }
 
-    public List<ProjectVersionRef> resolve( final String fromUri, final AggregationOptions options,
-                                            final ProjectVersionRef... roots )
+    public List<ProjectVersionRef> resolve( final String fromUri, final AggregationOptions options, final ProjectVersionRef... roots )
         throws CartoDataException
     {
         final URI source = sourceManager.createSourceURI( fromUri );
         if ( source == null )
         {
-            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", fromUri,
-                                          sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", fromUri, sourceManager.getFormatHint() );
         }
 
         GraphWorkspace ws = data.getCurrentWorkspace();
@@ -101,7 +99,15 @@ public class ResolveOps
         for ( final ProjectVersionRef root : roots )
         {
             final ProjectVersionRef specific = discoverer.resolveSpecificVersion( root, config );
-            if ( !data.contains( specific ) )
+
+            boolean doDiscovery = !data.contains( specific );
+            if ( !doDiscovery && data.hasErrors( specific ) )
+            {
+                data.clearErrors( specific );
+                doDiscovery = true;
+            }
+
+            if ( doDiscovery )
             {
                 final DiscoveryResult result = discoverer.discoverRelationships( specific, config );
                 if ( result != null && data.contains( result.getSelectedRef() ) )
@@ -151,8 +157,8 @@ public class ResolveOps
                                                                    .toString() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.",
-                                          recipe.getSourceLocation(), sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
+                                          sourceManager.getFormatHint() );
         }
 
         logger.info( "Building repository for: %s", recipe );
@@ -212,17 +218,15 @@ public class ResolveOps
 
                 if ( ar.isVariableVersion() )
                 {
-                    final ProjectVersionRef specific =
-                        discoverer.resolveSpecificVersion( ar, options.getDiscoveryConfig() );
+                    final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, options.getDiscoveryConfig() );
                     ar =
-                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
-                                         ar.getClassifier(), ar.isOptional() );
+                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(),
+                                         ar.isOptional() );
                 }
 
                 if ( !"pom".equals( ar.getType() ) )
                 {
-                    final ArtifactRef pomAR =
-                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
+                    final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
                     addToContent( pomAR, items, location, excluded, seen );
                 }
@@ -241,9 +245,8 @@ public class ResolveOps
                         }
                         catch ( final TransferException e )
                         {
-                            throw new CartoDataException(
-                                                          "Failed to list available type-classifier combinations for: %s from: %s. Reason: %s",
-                                                          e, ar, location, e.getMessage() );
+                            throw new CartoDataException( "Failed to list available type-classifier combinations for: %s from: %s. Reason: %s", e,
+                                                          ar, location, e.getMessage() );
                         }
 
                         // 2. match up the resulting list against the extras we have
@@ -269,8 +272,8 @@ public class ResolveOps
                             }
 
                             final ArtifactRef extAR =
-                                new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(),
-                                                 extraCT.getType(), extraCT.getClassifier(), false );
+                                new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
+                                                 extraCT.getClassifier(), false );
 
                             addToContent( extAR, items, location, excluded, seen );
                         }
@@ -290,8 +293,7 @@ public class ResolveOps
                                 continue;
                             }
 
-                            final ArtifactRef metaAR =
-                                ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
+                            final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
                             addToContent( metaAR, items, location, excluded, seen );
                         }
@@ -308,8 +310,8 @@ public class ResolveOps
         return itemMap;
     }
 
-    private void addToContent( final ArtifactRef extAR, final Map<ArtifactRef, Transfer> items,
-                               final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private void addToContent( final ArtifactRef extAR, final Map<ArtifactRef, Transfer> items, final Location location,
+                               final Set<Location> excluded, final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         if ( !seen.contains( extAR ) )
@@ -350,28 +352,6 @@ public class ResolveOps
     private Transfer resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded )
         throws CartoDataException
     {
-        final String version = ar.getVersionString();
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append( ar.getArtifactId() )
-          .append( '-' )
-          .append( version );
-        if ( ar.getClassifier() != null )
-        {
-            sb.append( '-' )
-              .append( ar.getClassifier() );
-        }
-
-        sb.append( '.' );
-        if ( "maven-plugin".equals( ar.getType() ) )
-        {
-            sb.append( "jar" );
-        }
-        else
-        {
-            sb.append( ar.getType() );
-        }
-
         logger.info( "Attempting to resolve: %s from: %s", ar, location );
         Transfer item;
         try

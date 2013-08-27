@@ -22,7 +22,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 public interface CartoDataManager
 {
 
-    String MODEL_ERRORS = "tensor-modelErrors";
+    String MODEL_ERRORS = "modelErrors";
 
     String ERROR_SEPARATOR = Pattern.quote( "_::--::_" );
 
@@ -53,20 +53,16 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getKnownChildren( ProjectVersionRef parent )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source,
-                                                                          ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target,
-                                                                          ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source,
-                                                                       ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( ProjectRef target,
-                                                                       ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( ProjectRef target, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
     boolean contains( ProjectVersionRef ref );
@@ -108,6 +104,9 @@ public interface CartoDataManager
     void addError( final EProjectKey key, final Throwable error )
         throws CartoDataException;
 
+    void clearErrors( final ProjectVersionRef ref )
+        throws CartoDataException;
+
     Set<String> getErrors( final ProjectVersionRef ref )
         throws CartoDataException;
 
@@ -132,8 +131,7 @@ public interface CartoDataManager
     EProjectWeb getProjectWeb( ProjectVersionRef... refs )
         throws CartoDataException;
 
-    Set<ProjectVersionRef> pathFilter( ProjectRelationshipFilter filter, Set<ProjectVersionRef> leaves,
-                                       ProjectVersionRef... roots )
+    Set<ProjectVersionRef> pathFilter( ProjectRelationshipFilter filter, Set<ProjectVersionRef> leaves, ProjectVersionRef... roots )
         throws CartoDataException;
 
     GraphWorkspace createWorkspace( URI sourceUri )

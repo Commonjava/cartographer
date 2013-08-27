@@ -77,8 +77,7 @@ public class DefaultCartoDataManager
     {
     }
 
-    public DefaultCartoDataManager( final EGraphManager graphs, final GraphWorkspaceHolder workspaceHolder,
-                                    final CartoEventManager funnel )
+    public DefaultCartoDataManager( final EGraphManager graphs, final GraphWorkspaceHolder workspaceHolder, final CartoEventManager funnel )
     {
         this.graphs = graphs;
         this.workspaceHolder = workspaceHolder;
@@ -160,12 +159,8 @@ public class DefaultCartoDataManager
 
     private void fireErrorEvent( final ProjectVersionRef ref, final Throwable error )
     {
-        funnel.unlockOnRelationshipsErrorEvent( new ProjectRelationshipsErrorEvent(
-                                                                                    new ErrorKey(
-                                                                                                  ref.getGroupId(),
-                                                                                                  ref.getArtifactId(),
-                                                                                                  ref.getVersionString() ),
-                                                                                    error ) );
+        funnel.unlockOnRelationshipsErrorEvent( new ProjectRelationshipsErrorEvent( new ErrorKey( ref.getGroupId(), ref.getArtifactId(),
+                                                                                                  ref.getVersionString() ), error ) );
     }
 
     @Override
@@ -198,8 +193,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to traverse database for parents of: %s. Reason: %s", e, source,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to traverse database for parents of: %s. Reason: %s", e, source, e.getMessage() );
         }
 
         return ancestryTraversal.getAncestry();
@@ -213,8 +207,7 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> matches =
-            graphs.findDirectRelationshipsFrom( workspaceHolder.getCurrentWorkspace(), source, false,
-                                                RelationshipType.PARENT );
+            graphs.findDirectRelationshipsFrom( workspaceHolder.getCurrentWorkspace(), source, false, RelationshipType.PARENT );
         if ( matches != null && !matches.isEmpty() )
         {
             final ParentRelationship parent = (ParentRelationship) matches.iterator()
@@ -233,8 +226,7 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> matches =
-            graphs.findDirectRelationshipsTo( workspaceHolder.getCurrentWorkspace(), parent, false,
-                                              RelationshipType.PARENT );
+            graphs.findDirectRelationshipsTo( workspaceHolder.getCurrentWorkspace(), parent, false, RelationshipType.PARENT );
 
         final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
         for ( final ProjectRelationship<?> rel : matches )
@@ -256,8 +248,7 @@ public class DefaultCartoDataManager
         final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
-        return graphs.findDirectRelationshipsFrom( view, source, false,
-                                                   types.toArray( new RelationshipType[types.size()] ) );
+        return graphs.findDirectRelationshipsFrom( view, source, false, types.toArray( new RelationshipType[types.size()] ) );
     }
 
     /* (non-Javadoc)
@@ -271,16 +262,14 @@ public class DefaultCartoDataManager
         final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
-        return graphs.findDirectRelationshipsTo( view, target, false,
-                                                 types.toArray( new RelationshipType[types.size()] ) );
+        return graphs.findDirectRelationshipsTo( view, target, false, types.toArray( new RelationshipType[types.size()] ) );
     }
 
     /* (non-Javadoc)
      * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithGASource(org.apache.maven.graph.common.ref.ProjectRef, org.apache.maven.graph.common.RelationshipType)
      */
     @Override
-    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( final ProjectRef source,
-                                                                              final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( final ProjectRef source, final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         final Set<ProjectVersionRef> refs = getMatchingGAVs( source );
@@ -301,8 +290,7 @@ public class DefaultCartoDataManager
      * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithGATarget(org.apache.maven.graph.common.ref.ProjectRef, org.apache.maven.graph.common.RelationshipType)
      */
     @Override
-    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( final ProjectRef target,
-                                                                              final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( final ProjectRef target, final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         final Set<ProjectVersionRef> refs = getMatchingGAVs( target );
@@ -354,7 +342,7 @@ public class DefaultCartoDataManager
     public void addMetadata( final ProjectVersionRef ref, final Map<String, String> metadata )
     {
         logger.info( "Adding metadata for: %s:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
-        graphs.addMetadata( ref, metadata );
+        graphs.setMetadata( ref, metadata );
     }
 
     @Override
@@ -365,8 +353,7 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public Set<ProjectVersionRef> getIncompleteSubgraphsFor( final ProjectRelationshipFilter filter,
-                                                             final ProjectVersionRef ref )
+    public Set<ProjectVersionRef> getIncompleteSubgraphsFor( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
         throws CartoDataException
     {
         return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
@@ -394,8 +381,7 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public Set<ProjectVersionRef> getVariableSubgraphsFor( final ProjectRelationshipFilter filter,
-                                                           final ProjectVersionRef ref )
+    public Set<ProjectVersionRef> getVariableSubgraphsFor( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
         throws CartoDataException
     {
         return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
@@ -449,6 +435,21 @@ public class DefaultCartoDataManager
         return new HashSet<String>( Arrays.asList( errors ) );
     }
 
+    public synchronized void clearErrors( final ProjectVersionRef ref )
+    {
+        final Map<String, String> md = getMetadata( ref );
+        if ( md == null )
+        {
+            return;
+        }
+
+        final String removed = md.remove( MODEL_ERRORS );
+        if ( removed != null )
+        {
+            graphs.setMetadata( ref, md );
+        }
+    }
+
     @Override
     public synchronized void addError( final EProjectKey key, final Throwable error )
         throws CartoDataException
@@ -467,8 +468,7 @@ public class DefaultCartoDataManager
 
             if ( md == null )
             {
-                logger.error( "Cannot retrieve metadata for: %s", ref );
-                return;
+                md = new HashMap<>();
             }
         }
 
@@ -503,8 +503,7 @@ public class DefaultCartoDataManager
         throws CartoDataException
     {
         final Set<ProjectVersionRef> projects = graphs.getProjectsWithMetadata( MODEL_ERRORS );
-        final Map<ProjectVersionRef, Set<String>> errors =
-            new HashMap<ProjectVersionRef, Set<String>>( projects.size() );
+        final Map<ProjectVersionRef, Set<String>> errors = new HashMap<ProjectVersionRef, Set<String>>( projects.size() );
 
         for ( final ProjectVersionRef project : projects )
         {
@@ -536,8 +535,7 @@ public class DefaultCartoDataManager
             return null;
         }
 
-        final Map<ProjectVersionRef, Set<String>> errors =
-            new HashMap<ProjectVersionRef, Set<String>>( projects.size() );
+        final Map<ProjectVersionRef, Set<String>> errors = new HashMap<ProjectVersionRef, Set<String>>( projects.size() );
 
         for ( final ProjectVersionRef project : projects )
         {
@@ -604,8 +602,8 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public Set<ProjectVersionRef> pathFilter( final ProjectRelationshipFilter filter,
-                                              final Set<ProjectVersionRef> leaves, final ProjectVersionRef... refs )
+    public Set<ProjectVersionRef> pathFilter( final ProjectRelationshipFilter filter, final Set<ProjectVersionRef> leaves,
+                                              final ProjectVersionRef... refs )
         throws CartoDataException
     {
         if ( filter == null )
@@ -618,8 +616,7 @@ public class DefaultCartoDataManager
         logger.info( "BEFORE filtering: %d leaf projects:\n  %s", leaves.size(), join( leaves, "\n  " ) );
 
         final Set<ProjectVersionRef> result = new HashSet<ProjectVersionRef>();
-        logger.info( "Looking for paths to missing projects: %s in network: %s filtered by: %s", join( leaves, ", " ),
-                     web, filter );
+        logger.info( "Looking for paths to missing projects: %s in network: %s filtered by: %s", join( leaves, ", " ), web, filter );
 
         final Set<List<ProjectRelationship<?>>> paths = web.getPathsTo( leaves.toArray( new ProjectVersionRef[] {} ) );
         if ( paths != null )
@@ -704,8 +701,7 @@ public class DefaultCartoDataManager
     {
         if ( workspaceHolder.getCurrentWorkspace() != null )
         {
-            throw new CartoDataException(
-                                          "You already have an active workspace! Close that one before creating a new one." );
+            throw new CartoDataException( "You already have an active workspace! Close that one before creating a new one." );
         }
     }
 
@@ -725,8 +721,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
         }
 
         return workspace;
@@ -739,8 +734,7 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public void wildcardSelectionAdded( final GraphWorkspace graphWorkspace, final ProjectRef ref,
-                                        final SingleVersion version )
+    public void wildcardSelectionAdded( final GraphWorkspace graphWorkspace, final ProjectRef ref, final SingleVersion version )
         throws GraphDriverException
     {
     }
@@ -798,8 +792,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
         }
 
         return workspace;
@@ -820,8 +813,7 @@ public class DefaultCartoDataManager
             }
             catch ( final GraphDriverException e )
             {
-                throw new CartoDataException( "Failed to store workspace %s on detach. Reason: %s", e, ws.getId(),
-                                              e.getMessage() );
+                throw new CartoDataException( "Failed to store workspace %s on detach. Reason: %s", e, ws.getId(), e.getMessage() );
             }
         }
     }

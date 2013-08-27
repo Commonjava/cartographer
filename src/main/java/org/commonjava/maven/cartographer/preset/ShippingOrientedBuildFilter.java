@@ -17,7 +17,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
-//FIXME: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
+//TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
 public class ShippingOrientedBuildFilter
     implements ProjectRelationshipFilter
 {
@@ -48,8 +48,7 @@ public class ShippingOrientedBuildFilter
         this.selected = new HashMap<>();
     }
 
-    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final Set<ProjectRef> excludes,
-                                         final Map<ProjectRef, SingleVersion> selected )
+    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final Set<ProjectRef> excludes, final Map<ProjectRef, SingleVersion> selected )
     {
         //        logger.info( "Creating filter %s",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
@@ -57,9 +56,7 @@ public class ShippingOrientedBuildFilter
         this.runtimeOnly = runtimeOnly;
         this.acceptManaged = false;
         this.selected = selected;
-        this.filter =
-            runtimeOnly ? new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes )
-                            : null;
+        this.filter = runtimeOnly ? new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ) : null;
         this.excludes.addAll( excludes );
     }
 
@@ -134,8 +131,7 @@ public class ShippingOrientedBuildFilter
 
                 // As long as the scope is runtime or compile, this is still in the train to be rebuilt.
                 // Otherwise, it's test or provided scope, and it's a build-requires situation...we don't need to rebuild it.
-                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), exc,
-                                                        selected );
+                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), exc, selected );
             }
         }
     }
@@ -170,7 +166,9 @@ public class ShippingOrientedBuildFilter
                 sb.append( ", " );
             }
         }
-        sb.append( "])" );
+        sb.append( "; acceptManaged=" )
+          .append( acceptManaged )
+          .append( "])" );
     }
 
     @Override

@@ -23,7 +23,7 @@ public class DefaultAggregatorOptions
 
     private URI discoverySource = RelationshipUtils.UNKNOWN_SOURCE_URI;
 
-    // FIXME: Revisit this default timeout!!!
+    // TODO: Revisit this default timeout!!!
     private long discoveryTimeoutMillis = TimeUnit.MILLISECONDS.convert( 10, TimeUnit.SECONDS );
 
     public DefaultAggregatorOptions setFilter( final ProjectRelationshipFilter filter )
@@ -108,10 +108,10 @@ public class DefaultAggregatorOptions
     @Override
     public String toString()
     {
-        return String.format( "DefaultAggregatorOptions [\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s"
-                                  + "\n\tdiscoveryEnabled=%s" + "\n\tdiscoveryTimeoutMillis=%s"
-                                  + "\n\n\tfilter:\n\n%s\n\n]",
-                              processIncomplete, processVariable, discoveryEnabled, discoveryTimeoutMillis, filter );
+        return String.format( "DefaultAggregatorOptions [\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s" + "\n\tdiscoveryEnabled=%s"
+                                  + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", processIncomplete, processVariable,
+                              discoveryEnabled,
+                              discoveryTimeoutMillis, filter );
     }
 
     public DefaultAggregatorOptions setDiscoveryConfig( final DiscoveryConfig dc )

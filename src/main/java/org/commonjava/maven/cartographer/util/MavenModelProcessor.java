@@ -120,16 +120,14 @@ public class MavenModelProcessor
 
             final ProjectVersionRef projectRef = new ProjectVersionRef( g, a, v );
 
-            final EProjectDirectRelationships.Builder builder =
-                new EProjectDirectRelationships.Builder( source, projectRef );
+            final EProjectDirectRelationships.Builder builder = new EProjectDirectRelationships.Builder( source, projectRef );
 
             addParentRelationship( source, builder, model, projectRef );
             addExtensionUsages( source, builder, model, projectRef );
 
             addDependencyRelationships( source, builder, model, model, RelationshipUtils.POM_ROOT_URI, projectRef );
 
-            addPluginUsages( source, builder, model.getBuild(), model.getReporting(), model,
-                             RelationshipUtils.POM_ROOT_URI, projectRef );
+            addPluginUsages( source, builder, model.getBuild(), model.getReporting(), model, RelationshipUtils.POM_ROOT_URI, projectRef );
 
             final List<Profile> profiles = model.getProfiles();
             if ( profiles != null )
@@ -140,24 +138,23 @@ public class MavenModelProcessor
 
                     addDependencyRelationships( source, builder, profile, model, location, projectRef );
 
-                    addPluginUsages( source, builder, profile.getBuild(), profile.getReporting(), model, location,
-                                     projectRef );
+                    addPluginUsages( source, builder, profile.getBuild(), profile.getReporting(), model, location, projectRef );
                 }
             }
 
             final EProjectDirectRelationships rels = builder.build();
 
-            logger.info( "Storing direct relationships for: %s\n\n  %s", projectRef,
-                         join( rels.getAllRelationships(), "\n  " ) );
+            logger.info( "Storing direct relationships for: %s\n\n  %s", projectRef, join( rels.getAllRelationships(), "\n  " ) );
 
             final Set<ProjectRelationship<?>> skipped = dataManager.storeRelationships( rels );
+            dataManager.clearErrors( projectRef );
 
             return new DiscoveryResult( projectRef, rels.getAllRelationships(), skipped );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            throw new CartoDataException( "Failed to parse version string: '%s' for model: %s. Reason: %s", e,
-                                          model.getVersion(), model, e.getMessage() );
+            throw new CartoDataException( "Failed to parse version string: '%s' for model: %s. Reason: %s", e, model.getVersion(), model,
+                                          e.getMessage() );
         }
     }
 
@@ -186,22 +183,19 @@ public class MavenModelProcessor
             }
             catch ( final InterpolationException e )
             {
-                throw new CartoDataException(
-                                              "Failed to resolve expression from model.\nRaw string: '%s'\nModel: %s\nError: %s",
-                                              e, raw, model, e.getMessage() );
+                throw new CartoDataException( "Failed to resolve expression from model.\nRaw string: '%s'\nModel: %s\nError: %s", e, raw, model,
+                                              e.getMessage() );
             }
         }
 
         return raw;
     }
 
-    private void addExtensionUsages( final URI source, final Builder builder, final Model model,
-                                     final ProjectVersionRef projectRef )
+    private void addExtensionUsages( final URI source, final Builder builder, final Model model, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
-        final List<Extension> extensions =
-            model.getBuild() == null ? new ArrayList<Extension>() : model.getBuild()
-                                                                         .getExtensions();
+        final List<Extension> extensions = model.getBuild() == null ? new ArrayList<Extension>() : model.getBuild()
+                                                                                                        .getExtensions();
 
         for ( final Extension ext : extensions )
         {
@@ -229,9 +223,8 @@ public class MavenModelProcessor
         }
     }
 
-    public void addPluginUsages( final URI source, final Builder builder, final BuildBase build,
-                                 final Reporting reporting, final Model model, final URI location,
-                                 final ProjectVersionRef projectRef )
+    public void addPluginUsages( final URI source, final Builder builder, final BuildBase build, final Reporting reporting, final Model model,
+                                 final URI location, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         addPluginUsages( source, builder, build, model, false, location, projectRef );
@@ -240,8 +233,8 @@ public class MavenModelProcessor
         addSiteReportPluginUsages( source, builder, build, model, location, projectRef );
     }
 
-    private void addSiteReportPluginUsages( final URI source, final Builder builder, final BuildBase build,
-                                            final Model model, final URI location, final ProjectVersionRef projectRef )
+    private void addSiteReportPluginUsages( final URI source, final Builder builder, final BuildBase build, final Model model, final URI location,
+                                            final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         if ( build != null )
@@ -252,8 +245,7 @@ public class MavenModelProcessor
                 if ( plugin.getKey()
                            .equals( SITE_PLUGIN ) )
                 {
-                    addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model,
-                                          location );
+                    addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
                 }
             }
 
@@ -266,17 +258,15 @@ public class MavenModelProcessor
                     if ( plugin.getKey()
                                .equals( SITE_PLUGIN ) )
                     {
-                        addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model,
-                                              location );
+                        addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
                     }
                 }
             }
         }
     }
 
-    public void addSiteReportPlugins( final URI source, final Builder builder, final Plugin plugin,
-                                      final Object configuration, final ProjectVersionRef projectRef,
-                                      final Model model, final URI location )
+    public void addSiteReportPlugins( final URI source, final Builder builder, final Plugin plugin, final Object configuration,
+                                      final ProjectVersionRef projectRef, final Model model, final URI location )
         throws CartoDataException
     {
         XPath reportPluginPath = null;
@@ -286,8 +276,7 @@ public class MavenModelProcessor
         }
         catch ( final CoffeeDOMException e )
         {
-            logger.error( "Cannot compile report-plugin selection XPath for site-plugin configuration. Error: "
-                              + e.getMessage(), e );
+            logger.error( "Cannot compile report-plugin selection XPath for site-plugin configuration. Error: " + e.getMessage(), e );
         }
 
         if ( reportPluginPath == null || configuration == null )
@@ -347,16 +336,14 @@ public class MavenModelProcessor
 
                     if ( isValid( ref ) )
                     {
-                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref,
-                                                                     builder.getNextPluginIndex( false ), false ) );
+                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
                     }
                 }
             }
         }
         catch ( final CoffeeDOMException e )
         {
-            logger.error( "Cannot select report plugin definitions from site-plugin configuration. Error: "
-                              + e.getMessage(), e );
+            logger.error( "Cannot select report plugin definitions from site-plugin configuration. Error: " + e.getMessage(), e );
         }
         catch ( final IOException e )
         {
@@ -364,8 +351,8 @@ public class MavenModelProcessor
         }
     }
 
-    public void addReportPluginUsages( final URI source, final Builder builder, final Reporting reporting,
-                                       final Model model, final URI location, final ProjectVersionRef projectRef )
+    public void addReportPluginUsages( final URI source, final Builder builder, final Reporting reporting, final Model model, final URI location,
+                                       final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         if ( reporting != null )
@@ -399,16 +386,16 @@ public class MavenModelProcessor
 
                 if ( isValid( ref ) )
                 {
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref,
-                                                                 builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                       false ), false ) );
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                          false ),
+                                                                 false ) );
                 }
             }
         }
     }
 
-    public void addPluginUsages( final URI source, final Builder builder, final BuildBase build, final Model model,
-                                 final boolean managed, final URI location, final ProjectVersionRef projectRef )
+    public void addPluginUsages( final URI source, final Builder builder, final BuildBase build, final Model model, final boolean managed,
+                                 final URI location, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         final List<Plugin> plugins = getPlugins( model, managed );
@@ -441,12 +428,8 @@ public class MavenModelProcessor
 
             if ( isValid( ref ) )
             {
-                builder.withPlugins( new PluginRelationship(
-                                                             source,
-                                                             location,
-                                                             projectRef,
-                                                             ref,
-                                                             builder.getNextPluginDependencyIndex( projectRef, managed ),
+                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                      managed ),
                                                              managed ) );
             }
         }
@@ -482,17 +465,16 @@ public class MavenModelProcessor
         return plugins;
     }
 
-    public void addDependencyRelationships( final URI source, final Builder builder, final ModelBase base,
-                                            final Model model, final URI location, final ProjectVersionRef projectRef )
+    public void addDependencyRelationships( final URI source, final Builder builder, final ModelBase base, final Model model, final URI location,
+                                            final ProjectVersionRef projectRef )
         throws CartoDataException, InvalidVersionSpecificationException
     {
         addDependencyRelationships( source, builder, base, model, true, location, projectRef );
         addDependencyRelationships( source, builder, base, model, false, location, projectRef );
     }
 
-    public void addDependencyRelationships( final URI source, final Builder builder, final ModelBase base,
-                                            final Model model, final boolean managed, final URI location,
-                                            final ProjectVersionRef projectRef )
+    public void addDependencyRelationships( final URI source, final Builder builder, final ModelBase base, final Model model, final boolean managed,
+                                            final URI location, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         if ( managed )
@@ -514,19 +496,13 @@ public class MavenModelProcessor
 
                     final ProjectVersionRef ref = new ProjectVersionRef( g, a, v );
 
-                    final ArtifactRef artifactRef =
-                        new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                    final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     if ( isValid( artifactRef ) )
                     {
-                        builder.withDependencies( new DependencyRelationship(
-                                                                              source,
-                                                                              location,
-                                                                              projectRef,
-                                                                              artifactRef,
+                        builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef,
                                                                               DependencyScope.getScope( dep.getScope() ),
-                                                                              builder.getNextDependencyIndex( true ),
-                                                                              true ) );
+                                                                              builder.getNextDependencyIndex( true ), true ) );
                     }
                 }
             }
@@ -547,15 +523,13 @@ public class MavenModelProcessor
 
                 final ProjectVersionRef ref = new ProjectVersionRef( g, a, v );
 
-                final ArtifactRef artifactRef =
-                    new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                 if ( isValid( artifactRef ) )
                 {
                     builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef,
                                                                           DependencyScope.getScope( dep.getScope() ),
-                                                                          builder.getNextDependencyIndex( false ),
-                                                                          false ) );
+                                                                          builder.getNextDependencyIndex( false ), false ) );
                 }
             }
         }
@@ -574,8 +548,7 @@ public class MavenModelProcessor
         return false;
     }
 
-    public void addParentRelationship( final URI source, final Builder builder, final Model model,
-                                       final ProjectVersionRef projectRef )
+    public void addParentRelationship( final URI source, final Builder builder, final Model model, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         final Parent parent = model.getParent();
