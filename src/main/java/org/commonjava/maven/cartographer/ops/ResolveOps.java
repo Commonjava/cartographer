@@ -241,7 +241,7 @@ public class ResolveOps
                         TypeAndClassifier[] tcs;
                         try
                         {
-                            tcs = artifacts.listAvailableArtifacts( location, ar );
+                            tcs = artifacts.listAvailableArtifacts( location, ar.asProjectVersionRef() );
                         }
                         catch ( final TransferException e )
                         {
@@ -254,6 +254,11 @@ public class ResolveOps
                         {
                             for ( final ExtraCT extra : extras )
                             {
+                                if ( extra == null )
+                                {
+                                    continue;
+                                }
+
                                 if ( extra.matches( tc ) )
                                 {
                                     final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
@@ -286,9 +291,27 @@ public class ResolveOps
                     {
                         final ArtifactRef ref = entry.getKey();
 
+                        // Let's see if we can skip iterating through the meta-type extensions
+                        final String type = ref.getType();
+                        final int idx = type.lastIndexOf( '.' );
+                        if ( idx > 0 )
+                        {
+                            final String last = type.substring( idx + 1 );
+                            if ( metas != null && metas.contains( last ) )
+                            {
+                                continue;
+                            }
+                        }
+
                         for ( final String meta : metas )
                         {
                             if ( meta == null )
+                            {
+                                continue;
+                            }
+
+                            if ( ref.getType()
+                                    .endsWith( meta ) )
                             {
                                 continue;
                             }
@@ -310,24 +333,28 @@ public class ResolveOps
         return itemMap;
     }
 
-    private void addToContent( final ArtifactRef extAR, final Map<ArtifactRef, Transfer> items, final Location location,
-                               final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private void addToContent( final ArtifactRef ar, final Map<ArtifactRef, Transfer> items, final Location location, final Set<Location> excluded,
+                               final Set<ArtifactRef> seen )
         throws CartoDataException
     {
-        if ( !seen.contains( extAR ) )
+        if ( !seen.contains( ar ) )
         {
-            final Transfer item = resolve( extAR, location, excluded );
+            seen.add( ar );
+
+            final Transfer item = resolve( ar, location, excluded, seen );
             if ( item != null )
             {
-                logger.info( "+ %s", extAR );
-                items.put( extAR, item );
+                logger.info( "+ %s", ar );
+                items.put( ar, item );
             }
             else
             {
-                logger.info( "- %s", extAR );
+                logger.info( "- %s", ar );
             }
-
-            seen.add( extAR );
+        }
+        else
+        {
+            logger.info( "- %s (ALREADY SEEN)", ar );
         }
     }
 
@@ -349,7 +376,7 @@ public class ResolveOps
         return options;
     }
 
-    private Transfer resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded )
+    private Transfer resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         logger.info( "Attempting to resolve: %s from: %s", ar, location );
