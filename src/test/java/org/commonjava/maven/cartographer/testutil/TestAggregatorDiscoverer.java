@@ -43,14 +43,14 @@ public class TestAggregatorDiscoverer
     }
 
     @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
         throws CartoDataException
     {
         seen.add( ref );
 
         final DiscoveryResult result = mappedResults.get( ref );
         logger.info( "DISCOVER: %s....\n  %s", ref, result );
-        if ( result != null )
+        if ( result != null && storeRelationships )
         {
             data.storeRelationships( result.getAllDiscoveredRelationships() );
         }

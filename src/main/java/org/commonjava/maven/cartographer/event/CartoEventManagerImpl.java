@@ -1,11 +1,14 @@
 package org.commonjava.maven.cartographer.event;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
+import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -23,14 +26,38 @@ public class CartoEventManagerImpl
     private final Map<ProjectVersionRef, LockState> locks = new HashMap<ProjectVersionRef, LockState>();
 
     @Override
-    public void unlockOnNewRelationshipsEvent( final NewRelationshipsEvent evt )
+    public void fireStorageEvent( final RelationshipStorageEvent evt )
     {
-        logger.info( "Unlocking %s due to new relationships available.", evt.getRef() );
-        notifyOfGraph( evt.getRef() );
+        final Set<ProjectVersionRef> refs = new HashSet<>();
+        final Set<ProjectRelationship<?>> stored = evt.getStored();
+        if ( stored != null )
+        {
+            for ( final ProjectRelationship<?> rel : stored )
+            {
+                refs.add( rel.getDeclaring()
+                             .asProjectVersionRef() );
+            }
+        }
+
+        final Set<ProjectRelationship<?>> rejected = evt.getRejected();
+        if ( rejected != null )
+        {
+            for ( final ProjectRelationship<?> rel : rejected )
+            {
+                refs.add( rel.getDeclaring()
+                             .asProjectVersionRef() );
+            }
+        }
+
+        for ( final ProjectVersionRef ref : refs )
+        {
+            logger.info( "Unlocking %s due to new relationships available.", ref );
+            notifyOfGraph( ref );
+        }
     }
 
     @Override
-    public void unlockOnRelationshipsErrorEvent( final ProjectRelationshipsErrorEvent evt )
+    public void fireErrorEvent( final ProjectRelationshipsErrorEvent evt )
     {
         final ErrorKey key = evt.getKey();
         logger.info( "Unlocking %s due to error in model.", key );
@@ -41,8 +68,7 @@ public class CartoEventManagerImpl
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s", e,
-                          key.toString(), e.getMessage() );
+            logger.error( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s", e, key.toString(), e.getMessage() );
         }
     }
 
@@ -190,8 +216,4 @@ public class CartoEventManagerImpl
         }
     }
 
-    @Override
-    public void fireMissing( final MissingRelationshipsEvent missingRelationshipsEvent )
-    {
-    }
 }

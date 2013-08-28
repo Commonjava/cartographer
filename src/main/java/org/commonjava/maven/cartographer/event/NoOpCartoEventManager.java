@@ -22,17 +22,12 @@ public class NoOpCartoEventManager
     }
 
     @Override
-    public void unlockOnRelationshipsErrorEvent( final ProjectRelationshipsErrorEvent evt )
+    public void fireErrorEvent( final ProjectRelationshipsErrorEvent evt )
     {
     }
 
     @Override
-    public void unlockOnNewRelationshipsEvent( final NewRelationshipsEvent evt )
-    {
-    }
-
-    @Override
-    public void fireMissing( final MissingRelationshipsEvent missingRelationshipsEvent )
+    public void fireStorageEvent( final RelationshipStorageEvent evt )
     {
     }
 

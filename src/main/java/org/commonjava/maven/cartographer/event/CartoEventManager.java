@@ -10,10 +10,8 @@ public interface CartoEventManager
     void waitForGraph( ProjectVersionRef ref, CartoDataManager data, long timeoutMillis )
         throws CartoDataException;
 
-    void unlockOnRelationshipsErrorEvent( final ProjectRelationshipsErrorEvent evt );
+    void fireErrorEvent( final ProjectRelationshipsErrorEvent evt );
 
-    void unlockOnNewRelationshipsEvent( final NewRelationshipsEvent evt );
-
-    void fireMissing( MissingRelationshipsEvent missingRelationshipsEvent );
+    void fireStorageEvent( final RelationshipStorageEvent evt );
 
 }

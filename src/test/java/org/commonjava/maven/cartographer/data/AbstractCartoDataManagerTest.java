@@ -93,7 +93,7 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef r = new ProjectVersionRef( "org.test", "root", "1" );
         final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).build();
 
-        getDataManager().storeRelationships( root );
+        getDataManager().storeRelationships( root.getExactAllRelationships() );
 
         assertThat( getDataManager().contains( r ), equalTo( true ) );
     }
@@ -107,16 +107,14 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef c = new ProjectVersionRef( "org.test", "child", "1.0" );
 
         final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).build();
-        final EProjectDirectRelationships parent =
-            new EProjectDirectRelationships.Builder( sourceUri, p ).withParent( r )
-                                                                   .build();
-        final EProjectDirectRelationships child =
-            new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
-                                                                   .build();
+        final EProjectDirectRelationships parent = new EProjectDirectRelationships.Builder( sourceUri, p ).withParent( r )
+                                                                                                          .build();
+        final EProjectDirectRelationships child = new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
+                                                                                                         .build();
 
-        getDataManager().storeRelationships( root );
-        getDataManager().storeRelationships( parent );
-        getDataManager().storeRelationships( child );
+        getDataManager().storeRelationships( root.getExactAllRelationships() );
+        getDataManager().storeRelationships( parent.getExactAllRelationships() );
+        getDataManager().storeRelationships( child.getExactAllRelationships() );
 
         final EProjectGraph graph = getDataManager().getProjectGraph( c );
 
@@ -149,16 +147,14 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef c = new ProjectVersionRef( "org.test", "child", "1.0" );
 
         final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).build();
-        final EProjectDirectRelationships parent =
-            new EProjectDirectRelationships.Builder( sourceUri, p ).withParent( r )
-                                                                   .build();
-        final EProjectDirectRelationships child =
-            new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
-                                                                   .build();
+        final EProjectDirectRelationships parent = new EProjectDirectRelationships.Builder( sourceUri, p ).withParent( r )
+                                                                                                          .build();
+        final EProjectDirectRelationships child = new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
+                                                                                                         .build();
 
-        getDataManager().storeRelationships( root );
-        getDataManager().storeRelationships( parent );
-        getDataManager().storeRelationships( child );
+        getDataManager().storeRelationships( root.getExactAllRelationships() );
+        getDataManager().storeRelationships( parent.getExactAllRelationships() );
+        getDataManager().storeRelationships( child.getExactAllRelationships() );
 
         final List<ProjectVersionRef> ancestry = getDataManager().getAncestry( c );
         assertThat( ancestry, notNullValue() );
@@ -183,23 +179,18 @@ public abstract class AbstractCartoDataManagerTest
         int idx = 0;
         int pidx = 0;
         final DependencyRelationship papi =
-            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
-                                                                       null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3", null, null, false ),
+                                        DependencyScope.compile, idx++, false );
         final DependencyRelationship art =
-            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
-                                                                       null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3", null, null, false ),
+                                        DependencyScope.compile, idx++, false );
         final PluginRelationship jarp =
-            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-jar-plugin", "2.2" ), pidx++, false );
+            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins", "maven-jar-plugin", "2.2" ), pidx++, false );
         final PluginRelationship comp =
-            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-compiler-plugin", "2.3.2" ), pidx++,
+            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" ), pidx++,
                                     false );
         final ExtensionRelationship wag =
-            new ExtensionRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.wagon",
-                                                                            "wagon-provider-webdav", "1.0" ), 0 );
+            new ExtensionRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "1.0" ), 0 );
 
         prb.withParent( parent );
         prb.withDependencies( papi, art );
@@ -211,10 +202,9 @@ public abstract class AbstractCartoDataManagerTest
         assertThat( rels.getAllRelationships()
                         .size(), equalTo( 6 ) );
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> resulting =
-            getDataManager().getAllDirectRelationshipsWithExactSource( rels.getProjectRef(), null );
+        final Set<ProjectRelationship<?>> resulting = getDataManager().getAllDirectRelationshipsWithExactSource( rels.getProjectRef(), null );
 
         final Set<ProjectVersionRef> targets = RelationshipUtils.targets( resulting );
 
@@ -242,23 +232,18 @@ public abstract class AbstractCartoDataManagerTest
         int idx = 0;
         int pidx = 0;
         final DependencyRelationship papi =
-            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
-                                                                       null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3", null, null, false ),
+                                        DependencyScope.compile, idx++, false );
         final DependencyRelationship art =
-            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
-                                                                       null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+            new DependencyRelationship( sourceUri, p, new ArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3", null, null, false ),
+                                        DependencyScope.compile, idx++, false );
         final PluginRelationship jarp =
-            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-jar-plugin", "2.2" ), pidx++, false );
+            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins", "maven-jar-plugin", "2.2" ), pidx++, false );
         final PluginRelationship comp =
-            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-compiler-plugin", "2.3.2" ), pidx++,
+            new PluginRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" ), pidx++,
                                     false );
         final ExtensionRelationship wag =
-            new ExtensionRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.wagon",
-                                                                            "wagon-provider-webdav", "1.0" ), 0 );
+            new ExtensionRelationship( sourceUri, p, new ProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "1.0" ), 0 );
 
         prb.withParent( parent );
         prb.withDependencies( papi );
@@ -269,33 +254,26 @@ public abstract class AbstractCartoDataManagerTest
 
         final EProjectDirectRelationships rels = prb.build();
 
-        final Set<ProjectRelationship<?>> rejected = getDataManager().storeRelationships( rels );
+        final Set<ProjectRelationship<?>> rejected = getDataManager().storeRelationships( rels.getExactAllRelationships() );
         System.out.println( "Rejects: " + rejected );
 
-        final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> byTarget =
-            new HashMap<ProjectVersionRef, Set<ProjectRelationship<?>>>()
-            {
-                private static final long serialVersionUID = 1L;
+        final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> byTarget = new HashMap<ProjectVersionRef, Set<ProjectRelationship<?>>>()
+        {
+            private static final long serialVersionUID = 1L;
 
-                {
-                    put( parent, getDataManager().getAllDirectRelationshipsWithExactTarget( parent, null ) );
-                    put( papi.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( papi.getTarget(), null ) );
-                    put( art.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( art.getTarget(), null ) );
-                    put( jarp.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( jarp.getTarget(), null ) );
-                    put( comp.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( comp.getTarget(), null ) );
-                    put( wag.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( wag.getTarget(), null ) );
-                }
-            };
+            {
+                put( parent, getDataManager().getAllDirectRelationshipsWithExactTarget( parent, null ) );
+                put( papi.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( papi.getTarget(), null ) );
+                put( art.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( art.getTarget(), null ) );
+                put( jarp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( jarp.getTarget(), null ) );
+                put( comp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( comp.getTarget(), null ) );
+                put( wag.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( wag.getTarget(), null ) );
+            }
+        };
 
         for ( final Map.Entry<ProjectVersionRef, Set<ProjectRelationship<?>>> entry : byTarget.entrySet() )
         {
-            System.out.printf( "\n\n\nFor key: %s, dependencies:\n  %s\n\n\n", entry.getKey(),
-                               formatWithClassname( entry.getValue(), "\n  " ) );
+            System.out.printf( "\n\n\nFor key: %s, dependencies:\n  %s\n\n\n", entry.getKey(), formatWithClassname( entry.getValue(), "\n  " ) );
 
             assertThat( "Null dependents set for: " + entry.getKey() + "!", entry.getValue(), notNullValue() );
 
@@ -348,7 +326,7 @@ public abstract class AbstractCartoDataManagerTest
     //                                                                                                                                    false )
     //                                                                                                                   .build();
     //
-    //        getDataManager().storeRelationships( rels );
+    //        getDataManager().storeRelationships( rels.getExactAllRelationships() );
     //
     //        final EProjectRelationships result = getDataManager().getProjectRelationships( rels.getProjectRef() );
     //
@@ -364,23 +342,21 @@ public abstract class AbstractCartoDataManagerTest
         throws Exception
     {
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, new ProjectVersionRef( "org.apache.maven",
-                                                                                       "maven-core", "3.0.3" ) ).withDependency( new ProjectVersionRef(
-                                                                                                                                                        "org.apache.maven",
-                                                                                                                                                        "maven-artifact",
-                                                                                                                                                        "3.0.3" ),
-                                                                                                                                 null,
-                                                                                                                                 null,
-                                                                                                                                 null,
-                                                                                                                                 false )
-                                                                                                                .build();
+            new EProjectDirectRelationships.Builder( sourceUri, new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" ) ).withDependency( new ProjectVersionRef(
+                                                                                                                                                                            "org.apache.maven",
+                                                                                                                                                                            "maven-artifact",
+                                                                                                                                                                            "3.0.3" ),
+                                                                                                                                                     null,
+                                                                                                                                                     null,
+                                                                                                                                                     null,
+                                                                                                                                                     false )
+                                                                                                                                    .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> dependents =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( rels.getDependencies()
-                                                                           .get( 0 )
-                                                                           .getTarget(), null );
+        final Set<ProjectRelationship<?>> dependents = getDataManager().getAllDirectRelationshipsWithExactTarget( rels.getDependencies()
+                                                                                                                      .get( 0 )
+                                                                                                                      .getTarget(), null );
 
         assertThat( dependents, notNullValue() );
         assertThat( dependents.size(), equalTo( 1 ) );
@@ -396,14 +372,12 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef p = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
         final ProjectVersionRef d = new ProjectVersionRef( "org.apache.maven", "maven-artifact", "3.0.3" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, p ).withDependency( d, null, null, null, false )
-                                                                   .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, p ).withDependency( d, null, null, null, false )
+                                                                                                        .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter() );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -419,17 +393,14 @@ public abstract class AbstractCartoDataManagerTest
         throws Exception
     {
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
-        final ProjectVersionRef plugin =
-            new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
+        final ProjectVersionRef plugin = new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter() );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -445,17 +416,14 @@ public abstract class AbstractCartoDataManagerTest
         throws Exception
     {
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
-        final ProjectVersionRef plugin =
-            new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
+        final ProjectVersionRef plugin = new ProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter() );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -473,14 +441,12 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
         final ProjectVersionRef ext = new ProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "2.0" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts =
-            getDataManager().getAllDirectRelationshipsWithExactSource( project, new ExtensionOnlyFilter() );
+        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactSource( project, new ExtensionOnlyFilter() );
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
                         .next()
@@ -494,14 +460,12 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
         final ProjectVersionRef ext = new ProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "2.0" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( ext, new ExtensionOnlyFilter() );
+        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactTarget( ext, new ExtensionOnlyFilter() );
 
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
@@ -516,11 +480,10 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
         final ProjectVersionRef parent = new ProjectVersionRef( "org.apache.maven", "maven", "3.0.3" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
         final ProjectVersionRef parentResult = getDataManager().getParent( project );
         assertThat( parentResult, equalTo( parent ) );
@@ -533,11 +496,10 @@ public abstract class AbstractCartoDataManagerTest
         final ProjectVersionRef project = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
         final ProjectVersionRef parent = new ProjectVersionRef( "org.apache.maven", "maven", "3.0.3" );
 
-        final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
-                                                                         .build();
+        final EProjectDirectRelationships rels = new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
+                                                                                                              .build();
 
-        getDataManager().storeRelationships( rels );
+        getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectVersionRef> children = getDataManager().getKnownChildren( parent );
 

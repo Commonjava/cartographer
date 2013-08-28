@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
@@ -25,12 +24,6 @@ public interface CartoDataManager
     String MODEL_ERRORS = "modelErrors";
 
     String ERROR_SEPARATOR = Pattern.quote( "_::--::_" );
-
-    Set<ProjectRelationship<?>> storeGraph( EProjectGraph graph )
-        throws CartoDataException;
-
-    Set<ProjectRelationship<?>> storeRelationships( EProjectDirectRelationships relationships )
-        throws CartoDataException;
 
     Set<ProjectRelationship<?>> storeRelationships( ProjectRelationship<?>... relationships )
         throws CartoDataException;

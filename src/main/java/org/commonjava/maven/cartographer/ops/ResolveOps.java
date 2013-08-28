@@ -109,7 +109,7 @@ public class ResolveOps
 
             if ( doDiscovery )
             {
-                final DiscoveryResult result = discoverer.discoverRelationships( specific, config );
+                final DiscoveryResult result = discoverer.discoverRelationships( specific, config, true );
                 if ( result != null && data.contains( result.getSelectedRef() ) )
                 {
                     results.add( result.getSelectedRef() );

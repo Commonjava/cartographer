@@ -13,7 +13,7 @@ public interface ProjectRelationshipDiscoverer
     ProjectVersionRef resolveSpecificVersion( ProjectVersionRef ref, DiscoveryConfig discoveryConfig )
         throws CartoDataException;
 
-    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig )
+    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig, boolean store )
         throws CartoDataException;
 
 }

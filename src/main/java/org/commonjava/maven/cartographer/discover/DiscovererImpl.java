@@ -56,8 +56,7 @@ public class DiscovererImpl
     {
     }
 
-    public DiscovererImpl( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor,
-                           final TransferManager transferManager )
+    public DiscovererImpl( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor, final TransferManager transferManager )
     {
         this.dataManager = dataManager;
         this.modelProcessor = modelProcessor;
@@ -84,7 +83,7 @@ public class DiscovererImpl
     }
 
     @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
         throws CartoDataException
     {
         ProjectVersionRef specific = ref;
@@ -95,9 +94,9 @@ public class DiscovererImpl
 
         final Transfer transfer =
             retrieve( discoveryConfig, specific.getGroupId(), specific.getArtifactId(), specific.getVersionSpec()
-                                                                                                .renderStandard(),
-                      specific.getArtifactId() + "-" + specific.getVersionSpec()
-                                                               .renderStandard() + ".pom" );
+                                                                                                .renderStandard(), specific.getArtifactId() + "-"
+                + specific.getVersionSpec()
+                          .renderStandard() + ".pom" );
         Model model = null;
         if ( transfer != null && transfer.exists() )
         {
@@ -113,13 +112,11 @@ public class DiscovererImpl
             }
             catch ( final IOException e )
             {
-                logger.error( "Failed to read POM for: '%s' from: '%s'. Reason: %s", e, specific, transfer,
-                              e.getMessage() );
+                logger.error( "Failed to read POM for: '%s' from: '%s'. Reason: %s", e, specific, transfer, e.getMessage() );
             }
             catch ( final XmlPullParserException e )
             {
-                logger.error( "Failed to read POM for: '%s' from: '%s'. Reason: %s", e, specific, transfer,
-                              e.getMessage() );
+                logger.error( "Failed to read POM for: '%s' from: '%s'. Reason: %s", e, specific, transfer, e.getMessage() );
             }
             finally
             {
@@ -129,7 +126,14 @@ public class DiscovererImpl
 
         if ( model != null )
         {
-            return modelProcessor.storeModelRelationships( model, discoveryConfig.getDiscoverySource() );
+            if ( storeRelationships )
+            {
+                return modelProcessor.storeModelRelationships( model, discoveryConfig.getDiscoverySource() );
+            }
+            else
+            {
+                return modelProcessor.readRelationships( model, discoveryConfig.getDiscoverySource() );
+            }
         }
 
         return null;
@@ -143,14 +147,13 @@ public class DiscovererImpl
         Transfer transfer;
         try
         {
-            transfer =
-                transferManager.retrieve( new Resource( new SimpleLocation( discoveryConfig.getDiscoverySource()
-                                                                                           .toString() ), path ) );
+            transfer = transferManager.retrieve( new Resource( new SimpleLocation( discoveryConfig.getDiscoverySource()
+                                                                                                  .toString() ), path ) );
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to retrieve: %s from: %s. Reason: %s", e, path,
-                                          discoveryConfig.getDiscoverySource(), e.getMessage() );
+            throw new CartoDataException( "Failed to retrieve: %s from: %s. Reason: %s", e, path, discoveryConfig.getDiscoverySource(),
+                                          e.getMessage() );
         }
 
         return transfer;
@@ -159,10 +162,8 @@ public class DiscovererImpl
     private ProjectVersionRef resolveSnapshot( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
-        final Transfer transfer =
-            retrieve( discoveryConfig, ref.getGroupId(), ref.getArtifactId(), ref.getVersionSpec()
-                                                                                 .renderStandard(),
-                      "maven-metadata.xml" );
+        final Transfer transfer = retrieve( discoveryConfig, ref.getGroupId(), ref.getArtifactId(), ref.getVersionSpec()
+                                                                                                       .renderStandard(), "maven-metadata.xml" );
         if ( transfer != null && transfer.exists() )
         {
             String latest = null;
@@ -190,8 +191,7 @@ public class DiscovererImpl
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( "Latest version in snapshot metadata '%s' is cannot be parsed. Reason: %s", e, latest,
-                              e.getMessage() );
+                logger.error( "Latest version in snapshot metadata '%s' is cannot be parsed. Reason: %s", e, latest, e.getMessage() );
             }
             finally
             {
@@ -205,10 +205,8 @@ public class DiscovererImpl
     private ProjectVersionRef resolveRange( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
-        final Transfer transfer =
-            retrieve( discoveryConfig, ref.getGroupId(), ref.getArtifactId(), ref.getVersionSpec()
-                                                                                 .renderStandard(),
-                      "maven-metadata.xml" );
+        final Transfer transfer = retrieve( discoveryConfig, ref.getGroupId(), ref.getArtifactId(), ref.getVersionSpec()
+                                                                                                       .renderStandard(), "maven-metadata.xml" );
         if ( transfer != null && transfer.exists() )
         {
             final List<String> allVersions = new ArrayList<String>();
@@ -255,8 +253,7 @@ public class DiscovererImpl
                     }
                     catch ( final InvalidVersionSpecificationException e )
                     {
-                        logger.error( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, spec,
-                                      e.getMessage() );
+                        logger.error( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, spec, e.getMessage() );
                     }
                 }
             }

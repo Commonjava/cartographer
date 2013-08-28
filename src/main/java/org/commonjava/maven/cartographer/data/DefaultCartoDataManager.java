@@ -34,7 +34,6 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
@@ -53,8 +52,8 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.ErrorKey;
-import org.commonjava.maven.cartographer.event.MissingRelationshipsEvent;
 import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
+import org.commonjava.maven.cartographer.event.RelationshipStorageEvent;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
@@ -84,83 +83,37 @@ public class DefaultCartoDataManager
         this.funnel = funnel;
     }
 
-    /* (non-Javadoc)
-     * @see org.commonjava.tensor.data.TensorDataManager#storeGraph(boolean, boolean, org.apache.maven.graph.effective.EProjectGraph)
-     */
-    @Override
-    public Set<ProjectRelationship<?>> storeGraph( final EProjectGraph graph )
-        throws CartoDataException
-    {
-        logger.info( "Retrieving all relationships in graph: %s", graph.getRoot() );
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( graph.getExactAllRelationships() );
-        fireMissingEvents( rels );
-
-        return rels;
-    }
-
-    /* (non-Javadoc)
-     * @see org.commonjava.tensor.data.TensorDataManager#storeRelationships(boolean, org.apache.maven.graph.effective.EProjectRelationships)
-     */
-    @Override
-    public Set<ProjectRelationship<?>> storeRelationships( final EProjectDirectRelationships relationships )
-        throws CartoDataException
-    {
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( relationships.getExactAllRelationships() );
-        fireMissingEvents( rels );
-
-        return rels;
-    }
-
-    /* (non-Javadoc)
-     * @see org.commonjava.tensor.data.TensorDataManager#storeRelationships(org.apache.maven.graph.effective.rel.ProjectRelationship)
-     */
     @Override
     public Set<ProjectRelationship<?>> storeRelationships( final ProjectRelationship<?>... relationships )
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( relationships );
-        fireMissingEvents( rels );
 
         return rels;
     }
 
-    /* (non-Javadoc)
-     * @see org.commonjava.tensor.data.TensorDataManager#storeRelationships(java.util.Collection)
-     */
     @Override
     public Set<ProjectRelationship<?>> storeRelationships( final Collection<ProjectRelationship<?>> relationships )
         throws CartoDataException
     {
         final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( relationships );
-        fireMissingEvents( rels );
+        fireStorageEvents( relationships, rels );
 
         return rels;
     }
 
-    private void fireMissingEvents( final Set<ProjectRelationship<?>> stored )
-    {
-        if ( funnel == null )
-        {
-            return;
-        }
-
-        for ( final ProjectRelationship<?> rel : stored )
-        {
-            final ProjectVersionRef ref = rel.getTarget()
-                                             .asProjectVersionRef();
-
-            // TODO: If the sessionManager.getCurrentSession() is restricted by source-uri, this may produce weird results from that session's POV
-            if ( !graphs.containsGraph( workspaceHolder.getCurrentWorkspace(), ref ) )
-            {
-                funnel.fireMissing( new MissingRelationshipsEvent( ref, workspaceHolder.getCurrentWorkspace() ) );
-            }
-        }
-    }
-
     private void fireErrorEvent( final ProjectVersionRef ref, final Throwable error )
     {
-        funnel.unlockOnRelationshipsErrorEvent( new ProjectRelationshipsErrorEvent( new ErrorKey( ref.getGroupId(), ref.getArtifactId(),
-                                                                                                  ref.getVersionString() ), error ) );
+        funnel.fireErrorEvent( new ProjectRelationshipsErrorEvent( new ErrorKey( ref.getGroupId(), ref.getArtifactId(),
+                                                                                              ref.getVersionString() ), error ) );
+    }
+
+    private void fireStorageEvents( final Collection<ProjectRelationship<?>> original, final Set<ProjectRelationship<?>> rejected )
+    {
+        final Set<ProjectRelationship<?>> relationships = new HashSet<>( original );
+        relationships.removeAll( rejected );
+
+        funnel.fireStorageEvent( new RelationshipStorageEvent( relationships, rejected ) );
     }
 
     @Override
@@ -435,6 +388,7 @@ public class DefaultCartoDataManager
         return new HashSet<String>( Arrays.asList( errors ) );
     }
 
+    @Override
     public synchronized void clearErrors( final ProjectVersionRef ref )
     {
         final Map<String, String> md = getMetadata( ref );

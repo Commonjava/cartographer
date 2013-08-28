@@ -27,6 +27,7 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.util.logging.Logger;
 
@@ -51,8 +52,7 @@ public class DefaultGraphAggregator
     {
     }
 
-    public DefaultGraphAggregator( final CartoDataManager dataManager, final ProjectRelationshipDiscoverer discoverer,
-                                   final ExecutorService executor )
+    public DefaultGraphAggregator( final CartoDataManager dataManager, final ProjectRelationshipDiscoverer discoverer, final ExecutorService executor )
     {
         this.dataManager = dataManager;
         this.discoverer = discoverer;
@@ -115,12 +115,10 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants,
-                                         final Set<ProjectVersionRef> missing )
+                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing )
         throws CartoDataException
     {
-        logger.info( "Performing discovery and cycle-detection on %d missing subgraphs: %s", todos.size(),
-                     join( todos, ", " ) );
+        logger.info( "Performing discovery and cycle-detection on %d missing subgraphs: %s", todos.size(), join( todos, ", " ) );
 
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
         final CountDownLatch latch = new CountDownLatch( todos.size() );
@@ -133,23 +131,24 @@ public class DefaultGraphAggregator
             if ( missing.contains( todoRef ) )
             {
                 logger.info( "Skipping missing reference: %s", todoRef );
+                latch.countDown(); // over-allocated, so reduce the count
                 continue;
             }
             else if ( cycleParticipants.contains( todoRef ) )
             {
                 logger.info( "Skipping cycle-participant reference: %s", todoRef );
+                latch.countDown(); // over-allocated, so reduce the count
                 continue;
             }
-            // TODO: .contains() is EXPENSIVE due to path-membership analysis!!!
             else if ( dataManager.contains( todoRef ) )
             {
                 logger.info( "Skipping already-discovered reference: %s", todoRef );
+                latch.countDown(); // over-allocated, so reduce the count
                 continue;
             }
 
             logger.info( "Creating discovery runnable for: %s", todo );
-            final DiscoveryRunnable runnable =
-                new DiscoveryRunnable( todo, config, roMissing, discoverer, dataManager, latch );
+            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, roMissing, discoverer, false, latch );
 
             executor.execute( runnable );
             runnables.add( runnable );
@@ -166,20 +165,90 @@ public class DefaultGraphAggregator
 
         logger.info( "Accounting for discovery results. Before discovery, these were missing:\n\n%s\n\n", missing );
 
+        final Set<ProjectRelationship<?>> newRels = new HashSet<>();
         final Set<DiscoveryTodo> newTodos = new HashSet<>();
         for ( final DiscoveryRunnable r : runnables )
         {
-            missing.addAll( r.getNewMissing() );
-            final Set<DiscoveryTodo> ntd = r.getNewTodos();
-            if ( ntd != null )
+            final DiscoveryResult result = r.getResult();
+            final DiscoveryTodo todo = r.getTodo();
+
+            if ( result != null )
             {
-                newTodos.addAll( ntd );
+                final ProjectVersionRef newRef = result.getSelectedRef();
+
+                if ( newRef.isVariableVersion() || !dataManager.contains( newRef ) )
+                {
+                    markMissing( newRef, todo, missing );
+                }
+                else
+                {
+                    final Set<ProjectRelationshipFilter> filters = todo.getFilters();
+
+                    final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
+                    if ( discoveredRels != null )
+                    {
+                        newRels.addAll( discoveredRels );
+
+                        for ( final ProjectRelationship<?> rel : newRels )
+                        {
+                            final ProjectVersionRef relTarget = rel.getTarget()
+                                                                   .asProjectVersionRef();
+                            if ( !dataManager.contains( relTarget ) )
+                            {
+                                final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                                for ( final ProjectRelationshipFilter filter : filters )
+                                {
+                                    if ( filter.accept( rel ) )
+                                    {
+                                        acceptingChildren.add( filter.getChildFilter( rel ) );
+                                    }
+                                }
+
+                                if ( !acceptingChildren.isEmpty() )
+                                {
+                                    newTodos.add( new DiscoveryTodo( relTarget, acceptingChildren ) );
+                                }
+                            }
+                        }
+                    }
+                }
             }
+            else
+            {
+                markMissing( todo.getRef(), todo, missing );
+            }
+        }
+
+        if ( !newRels.isEmpty() )
+        {
+            final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( newRels );
+            addToCycleParticipants( rejected, cycleParticipants );
         }
 
         logger.info( "After discovery, these are missing:\n\n%s\n\n", missing );
 
         return newTodos;
+    }
+
+    private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
+    {
+        for ( final ProjectRelationship<?> rejected : rejectedRelationships )
+        {
+            cycleParticipants.add( rejected.getDeclaring()
+                                           .asProjectVersionRef() );
+            cycleParticipants.add( rejected.getTarget()
+                                           .asProjectVersionRef() );
+        }
+    }
+
+    private void markMissing( final ProjectVersionRef ref, final DiscoveryTodo todo, final Set<ProjectVersionRef> missing )
+    {
+        missing.add( ref );
+        final ProjectVersionRef originalRef = todo.getRef();
+        if ( !originalRef.equals( ref ) )
+        {
+            missing.add( originalRef );
+        }
     }
 
     private Set<ProjectVersionRef> loadExistingCycleParticipants( final EProjectNet net )
@@ -204,8 +273,7 @@ public class DefaultGraphAggregator
         logger.info( "Finding paths from: %s to: %s", net.getView()
                                                          .getRoots(), initialIncomplete );
 
-        final Set<List<ProjectRelationship<?>>> paths =
-            net.getPathsTo( initialIncomplete.toArray( new ProjectVersionRef[initialIncomplete.size()] ) );
+        final Set<List<ProjectRelationship<?>>> paths = net.getPathsTo( initialIncomplete.toArray( new ProjectVersionRef[initialIncomplete.size()] ) );
 
         if ( paths == null || paths.isEmpty() )
         {

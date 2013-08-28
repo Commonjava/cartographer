@@ -16,7 +16,6 @@
 package org.commonjava.maven.cartographer.util;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.apache.commons.lang.StringUtils.join;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -68,7 +67,6 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.util.logging.Logger;
 
-// FIXME: Need a method to create the relationships BUT NOT STORE THEM
 @ApplicationScoped
 public class MavenModelProcessor
 {
@@ -90,6 +88,18 @@ public class MavenModelProcessor
     }
 
     public DiscoveryResult storeModelRelationships( final Model model, final URI source )
+        throws CartoDataException
+    {
+        final DiscoveryResult fromRead = readRelationships( model, source );
+        final ProjectVersionRef projectRef = fromRead.getSelectedRef();
+        dataManager.clearErrors( projectRef );
+        final Set<ProjectRelationship<?>> skipped = dataManager.storeRelationships( fromRead.getAllDiscoveredRelationships() );
+
+        return new DiscoveryResult( fromRead, skipped );
+
+    }
+
+    public DiscoveryResult readRelationships( final Model model, final URI source )
         throws CartoDataException
     {
         try
@@ -143,13 +153,7 @@ public class MavenModelProcessor
             }
 
             final EProjectDirectRelationships rels = builder.build();
-
-            logger.info( "Storing direct relationships for: %s\n\n  %s", projectRef, join( rels.getAllRelationships(), "\n  " ) );
-
-            final Set<ProjectRelationship<?>> skipped = dataManager.storeRelationships( rels );
-            dataManager.clearErrors( projectRef );
-
-            return new DiscoveryResult( projectRef, rels.getAllRelationships(), skipped );
+            return new DiscoveryResult( projectRef, rels.getAllRelationships() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -223,8 +227,8 @@ public class MavenModelProcessor
         }
     }
 
-    public void addPluginUsages( final URI source, final Builder builder, final BuildBase build, final Reporting reporting, final Model model,
-                                 final URI location, final ProjectVersionRef projectRef )
+    private void addPluginUsages( final URI source, final Builder builder, final BuildBase build, final Reporting reporting, final Model model,
+                                  final URI location, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         addPluginUsages( source, builder, build, model, false, location, projectRef );
@@ -581,4 +585,5 @@ public class MavenModelProcessor
 
         return valid;
     }
+
 }
