@@ -97,7 +97,7 @@ public class DefaultGraphAggregator
                     logger.info( "Next batch of TODOs: %s", current );
                     pending.clear();
 
-                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing );
+                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net );
                     if ( newTodos != null )
                     {
                         logger.info( "Uncovered new batch of TODOs: %s", newTodos );
@@ -115,7 +115,7 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing )
+                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing, final EProjectNet net )
         throws CartoDataException
     {
         logger.info( "Performing discovery and cycle-detection on %d missing subgraphs: %s", todos.size(), join( todos, ", " ) );
@@ -140,7 +140,7 @@ public class DefaultGraphAggregator
                 latch.countDown(); // over-allocated, so reduce the count
                 continue;
             }
-            else if ( dataManager.contains( todoRef ) )
+            else if ( net.containsGraph( todoRef ) )
             {
                 logger.info( "Skipping already-discovered reference: %s", todoRef );
                 latch.countDown(); // over-allocated, so reduce the count
@@ -174,40 +174,31 @@ public class DefaultGraphAggregator
 
             if ( result != null )
             {
-                final ProjectVersionRef newRef = result.getSelectedRef();
+                final Set<ProjectRelationshipFilter> filters = todo.getFilters();
 
-                if ( newRef.isVariableVersion() || !dataManager.contains( newRef ) )
+                final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
+                if ( discoveredRels != null )
                 {
-                    markMissing( newRef, todo, missing );
-                }
-                else
-                {
-                    final Set<ProjectRelationshipFilter> filters = todo.getFilters();
+                    newRels.addAll( discoveredRels );
 
-                    final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
-                    if ( discoveredRels != null )
+                    for ( final ProjectRelationship<?> rel : newRels )
                     {
-                        newRels.addAll( discoveredRels );
-
-                        for ( final ProjectRelationship<?> rel : newRels )
+                        final ProjectVersionRef relTarget = rel.getTarget()
+                                                               .asProjectVersionRef();
+                        if ( !net.containsGraph( relTarget ) )
                         {
-                            final ProjectVersionRef relTarget = rel.getTarget()
-                                                                   .asProjectVersionRef();
-                            if ( !dataManager.contains( relTarget ) )
+                            final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                            for ( final ProjectRelationshipFilter filter : filters )
                             {
-                                final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
-                                for ( final ProjectRelationshipFilter filter : filters )
+                                if ( filter.accept( rel ) )
                                 {
-                                    if ( filter.accept( rel ) )
-                                    {
-                                        acceptingChildren.add( filter.getChildFilter( rel ) );
-                                    }
+                                    acceptingChildren.add( filter.getChildFilter( rel ) );
                                 }
+                            }
 
-                                if ( !acceptingChildren.isEmpty() )
-                                {
-                                    newTodos.add( new DiscoveryTodo( relTarget, acceptingChildren ) );
-                                }
+                            if ( !acceptingChildren.isEmpty() )
+                            {
+                                newTodos.add( new DiscoveryTodo( relTarget, acceptingChildren ) );
                             }
                         }
                     }

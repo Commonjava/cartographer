@@ -71,6 +71,13 @@ public class ResolveOpsTest
               .append( ']' );
         }
 
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            render( sb );
+            return sb.toString();
+        }
     }
 
     private final Logger logger = new Logger( getClass() );
