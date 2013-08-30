@@ -16,13 +16,20 @@
 package org.commonjava.maven.cartographer.data;
 
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
+import org.commonjava.util.logging.Logger;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.junit.After;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
+@Ignore
 public class CartoDataManagerWeldTest
     extends AbstractCartoDataManagerTest
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     private Weld weld;
 
@@ -34,12 +41,24 @@ public class CartoDataManagerWeldTest
 
     private GraphWorkspaceHolder sessionManager;
 
+    @Rule
+    public TemporaryFolder temp = new TemporaryFolder();
+
     @Override
     protected void setupComponents()
     {
         weld = new Weld();
+
+        //        weld.addExtension( new CoreCDIExtension().withDefaultComponentInstances()
+        //                                                 .withDefaultBeans()
+        //                                                 .withDefaultBean( new EGraphManager( new FileNeo4JEGraphDriver( temp.newFolder( "db" ) ) ),
+        //                                                                   EGraphManager.class )
+        //                                                 .withDefaultBean( new MemoryPasswordManager(), PasswordManager.class )
+        //                                                 .withDefaultBean( new FileCacheProviderConfig( temp.newFolder( "cache" ) ),
+        //                                                                   FileCacheProviderConfig.class ) );
         container = weld.initialize();
 
+        logger.info( "Selecting components from weld..." );
         sessionManager = container.instance()
                                   .select( GraphWorkspaceHolder.class )
                                   .get();

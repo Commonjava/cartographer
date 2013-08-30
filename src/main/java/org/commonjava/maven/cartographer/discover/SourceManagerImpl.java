@@ -1,7 +1,9 @@
 package org.commonjava.maven.cartographer.discover;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
@@ -23,11 +25,15 @@ public class SourceManagerImpl
     {
         try
         {
-            return new URI( source );
+            return new URL( source ).toURI();
         }
         catch ( final URISyntaxException e )
         {
             logger.error( "Invalid source URI: %s. Reason: %s", e, source, e.getMessage() );
+        }
+        catch ( final MalformedURLException e )
+        {
+            logger.error( "Invalid source URL: %s. Reason: %s", e, source, e.getMessage() );
         }
 
         return null;

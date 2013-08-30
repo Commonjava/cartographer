@@ -74,13 +74,13 @@ public class RepositoryContentRecipe
     @Override
     public String toString()
     {
-        return String.format( "RepositoryContentRecipe [roots=%s, workspaceId=%s, filter=%s, source-location=%s]",
-                              roots, workspaceId, getFilter(), getSourceLocation() );
+        return String.format( "RepositoryContentRecipe [roots=%s, workspaceId=%s, filter=%s, source-location=%s]", roots, workspaceId, getFilter(),
+                              getSourceLocation() );
     }
 
     public boolean isValid()
     {
-        return getSourceLocation() != null && roots != null && !roots.isEmpty();
+        return getWorkspaceId() != null && getSourceLocation() != null && roots != null && !roots.isEmpty() && filter != null;
     }
 
     public DiscoveryConfig getDiscoveryConfig()

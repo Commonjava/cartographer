@@ -104,8 +104,8 @@ public class DefaultCartoDataManager
 
     private void fireErrorEvent( final ProjectVersionRef ref, final Throwable error )
     {
-        funnel.fireErrorEvent( new ProjectRelationshipsErrorEvent( new ErrorKey( ref.getGroupId(), ref.getArtifactId(),
-                                                                                              ref.getVersionString() ), error ) );
+        funnel.fireErrorEvent( new ProjectRelationshipsErrorEvent( new ErrorKey( ref.getGroupId(), ref.getArtifactId(), ref.getVersionString() ),
+                                                                   error ) );
     }
 
     private void fireStorageEvents( final Collection<ProjectRelationship<?>> original, final Set<ProjectRelationship<?>> rejected )

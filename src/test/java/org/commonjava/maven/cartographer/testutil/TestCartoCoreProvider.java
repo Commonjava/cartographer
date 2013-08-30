@@ -25,6 +25,7 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.testing.core.cdi.TestData;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
@@ -81,13 +82,13 @@ public class TestCartoCoreProvider
     {
         cacheProviderConfig = new FileCacheProviderConfig( cacheDir );
 
-        driver = new FileNeo4JEGraphDriver( dbDir );
-        graphs = new EGraphManager( driver );
         fileEvents = new NoOpFileEventManager();
         transferDecorator = new NoOpTransferDecorator();
         locationExpander = new NoOpLocationExpander();
         nfc = new NoOpNotFoundCache();
 
+        driver = new FileNeo4JEGraphDriver( dbDir );
+        graphs = new EGraphManager( driver );
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
     }

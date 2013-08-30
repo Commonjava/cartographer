@@ -40,7 +40,7 @@ public class SOBBuildablesFilter
         this.acceptManaged = acceptManaged;
         this.selected = new HashMap<>();
         this.filter =
-            new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
     private SOBBuildablesFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
@@ -48,8 +48,8 @@ public class SOBBuildablesFilter
         this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
-                                                                                          true, true, null ) ) : childFilter;
+            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
+                                                                                                 false, true, true, null ) ) : childFilter;
     }
 
     @Override

@@ -105,12 +105,15 @@ public class ShippingOrientedBuildFilter
         {
             case EXTENSION:
             case PLUGIN:
+            {
+                return new ShippingOrientedBuildFilter( true, excludes, new HashMap<ProjectRef, SingleVersion>() );
+            }
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
 
                 // reset selections map to simulate classloader isolation.
-                return new ShippingOrientedBuildFilter( true, excludes, new HashMap<ProjectRef, SingleVersion>() );
+                return new ShippingOrientedBuildFilter( true, excludes, selected );
             }
             case PARENT:
             {

@@ -41,6 +41,7 @@ public final class AggregationUtils
             }
 
             prc.addVersionRef( pvr );
+            prc.addArtifactRef( pvr.asPomArtifact() );
 
             final ArtifactRef tar = rel.getTargetArtifact()
                                        .setOptional( false );

@@ -568,6 +568,10 @@ public class MavenModelProcessor
                 builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
             }
         }
+        else
+        {
+            builder.withParent( new ParentRelationship( source, builder.getProjectRef() ) );
+        }
     }
 
     private boolean isValid( final ProjectVersionRef ref )

@@ -69,12 +69,13 @@ public class ResolveOps
     }
 
     public ResolveOps( final CartoDataManager data, final DiscoverySourceManager sourceManager, final ProjectRelationshipDiscoverer discoverer,
-                       final GraphAggregator aggregator )
+                       final GraphAggregator aggregator, final ArtifactManager artifacts )
     {
         this.data = data;
         this.sourceManager = sourceManager;
         this.discoverer = discoverer;
         this.aggregator = aggregator;
+        this.artifacts = artifacts;
     }
 
     public List<ProjectVersionRef> resolve( final String fromUri, final AggregationOptions options, final ProjectVersionRef... roots )
@@ -154,7 +155,7 @@ public class ResolveOps
         }
 
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
-                                                                   .toString() );
+                                                                   .getUri() );
         if ( sourceUri == null )
         {
             throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
@@ -164,7 +165,15 @@ public class ResolveOps
         logger.info( "Building repository for: %s", recipe );
 
         EProjectWeb web = null;
-        data.setCurrentWorkspace( recipe.getWorkspaceId() );
+
+        if ( data.getCurrentWorkspace() == null || !recipe.getWorkspaceId()
+                                                          .equals( data.getCurrentWorkspace()
+                                                                       .getId() ) )
+        {
+            data.setCurrentWorkspace( recipe.getWorkspaceId() );
+        }
+
+        sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
 
         Collection<ProjectVersionRef> roots = recipe.getRoots();
         for ( final Iterator<ProjectVersionRef> it = roots.iterator(); it.hasNext(); )

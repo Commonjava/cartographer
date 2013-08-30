@@ -8,11 +8,23 @@ import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 public class GraphWorkspaceHolder
 {
 
-    private final InheritableThreadLocal<GraphWorkspace> workspace = new InheritableThreadLocal<GraphWorkspace>();
+    private InheritableThreadLocal<GraphWorkspace> workspace;
 
     public GraphWorkspace getCurrentWorkspace()
     {
+        initTL();
         return workspace.get();
+    }
+
+    private synchronized void initTL()
+    {
+        synchronized ( this )
+        {
+            if ( workspace == null )
+            {
+                workspace = new InheritableThreadLocal<>();
+            }
+        }
     }
 
     public void setCurrentWorkspace( final GraphWorkspace newWs, final boolean clearExisting )
@@ -23,6 +35,7 @@ public class GraphWorkspaceHolder
             return;
         }
 
+        initTL();
         if ( workspace.get() != null && !clearExisting )
         {
             return;
@@ -34,6 +47,11 @@ public class GraphWorkspaceHolder
 
     public void clearCurrentWorkspace()
     {
+        if ( workspace == null )
+        {
+            return;
+        }
+
         final GraphWorkspace existing = workspace.get();
         if ( existing != null )
         {
