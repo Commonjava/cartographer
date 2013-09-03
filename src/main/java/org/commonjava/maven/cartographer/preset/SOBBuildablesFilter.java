@@ -2,7 +2,6 @@ package org.commonjava.maven.cartographer.preset;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
@@ -11,17 +10,14 @@ import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
-import org.commonjava.maven.cartographer.data.CartoDataException;
 
 public class SOBBuildablesFilter
-    implements ProjectRelationshipFilter, WorkspaceRecorder
+    implements ProjectRelationshipFilter
 {
 
     private final ProjectRelationshipFilter filter;
@@ -147,23 +143,4 @@ public class SOBBuildablesFilter
         return sb.toString();
     }
 
-    @Override
-    public void save( final GraphWorkspace workspace )
-        throws CartoDataException
-    {
-        for ( final Entry<ProjectRef, SingleVersion> entry : selected.entrySet() )
-        {
-            final ProjectRef key = entry.getKey();
-            final SingleVersion value = entry.getValue();
-
-            try
-            {
-                workspace.selectVersionForAll( key, value );
-            }
-            catch ( final GraphDriverException e )
-            {
-                throw new CartoDataException( "Failed to select: %s for project: %s. Reason: %s", e, value, key, e.getMessage() );
-            }
-        }
-    }
 }
