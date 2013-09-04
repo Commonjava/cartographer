@@ -198,7 +198,7 @@ public class ResolveOps
         web = data.getProjectWeb( recipe.getFilter(), rootsArray );
         if ( web == null )
         {
-            return null;
+            throw new CartoDataException( "Failed to retrieve web for roots: %s (attempted resolve? %s)", roots, recipe.isResolve() );
         }
 
         final Map<ProjectRef, ProjectRefCollection> refMap = collectProjectReferences( web );

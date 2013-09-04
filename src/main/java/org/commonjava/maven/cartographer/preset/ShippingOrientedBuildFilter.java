@@ -1,9 +1,7 @@
 package org.commonjava.maven.cartographer.preset;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
@@ -14,8 +12,6 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
 //TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
 public class ShippingOrientedBuildFilter
@@ -28,8 +24,6 @@ public class ShippingOrientedBuildFilter
 
     private final Set<ProjectRef> excludes = new HashSet<ProjectRef>();
 
-    private final Map<ProjectRef, SingleVersion> selected;
-
     private final boolean acceptManaged;
 
     public ShippingOrientedBuildFilter()
@@ -37,7 +31,6 @@ public class ShippingOrientedBuildFilter
         this.runtimeOnly = false;
         this.acceptManaged = false;
         this.filter = null;
-        this.selected = new HashMap<>();
     }
 
     public ShippingOrientedBuildFilter( final boolean acceptManaged )
@@ -45,17 +38,15 @@ public class ShippingOrientedBuildFilter
         this.acceptManaged = acceptManaged;
         this.runtimeOnly = false;
         this.filter = null;
-        this.selected = new HashMap<>();
     }
 
-    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final Set<ProjectRef> excludes, final Map<ProjectRef, SingleVersion> selected )
+    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final Set<ProjectRef> excludes )
     {
         //        logger.info( "Creating filter %s",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
         //                                     : "for any artifact" );
         this.runtimeOnly = runtimeOnly;
         this.acceptManaged = false;
-        this.selected = selected;
         this.filter = runtimeOnly ? new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ) : null;
         this.excludes.addAll( excludes );
     }
@@ -77,25 +68,12 @@ public class ShippingOrientedBuildFilter
         {
             result = !excludes.contains( rel.getTarget()
                                             .asProjectRef() ) && ( filter == null || filter.accept( rel ) );
-
-            final ProjectVersionRef target = rel.getTarget();
-            final ProjectRef targetGA = target.asProjectRef();
-            if ( result && !selected.containsKey( targetGA ) && target.getVersionSpec()
-                                                                      .isConcrete() )
-            {
-                selected.put( targetGA, (SingleVersion) target.getVersionSpec() );
-            }
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
-    }
-
-    public Map<ProjectRef, SingleVersion> getSelectedProjectVersions()
-    {
-        return selected;
     }
 
     @Override
@@ -106,14 +84,14 @@ public class ShippingOrientedBuildFilter
             case EXTENSION:
             case PLUGIN:
             {
-                return new ShippingOrientedBuildFilter( true, excludes, new HashMap<ProjectRef, SingleVersion>() );
+                return new ShippingOrientedBuildFilter( true, excludes );
             }
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
 
                 // reset selections map to simulate classloader isolation.
-                return new ShippingOrientedBuildFilter( true, excludes, selected );
+                return new ShippingOrientedBuildFilter( true, excludes );
             }
             case PARENT:
             {
@@ -134,7 +112,7 @@ public class ShippingOrientedBuildFilter
 
                 // As long as the scope is runtime or compile, this is still in the train to be rebuilt.
                 // Otherwise, it's test or provided scope, and it's a build-requires situation...we don't need to rebuild it.
-                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), exc, selected );
+                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), exc );
             }
         }
     }

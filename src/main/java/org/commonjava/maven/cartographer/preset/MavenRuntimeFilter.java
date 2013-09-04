@@ -1,5 +1,8 @@
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -9,29 +12,36 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
-public class SOBBuildablesFilter
+public class MavenRuntimeFilter
     implements ProjectRelationshipFilter
 {
 
     private final ProjectRelationshipFilter filter;
 
+    private final Map<ProjectRef, SingleVersion> selected;
+
     private final boolean acceptManaged;
 
-    public SOBBuildablesFilter()
+    public MavenRuntimeFilter()
     {
-        this( false );
+        this( new HashMap<ProjectRef, SingleVersion>(), null );
     }
 
-    public SOBBuildablesFilter( final boolean acceptManaged )
+    public MavenRuntimeFilter( final boolean acceptManaged )
     {
         this.acceptManaged = acceptManaged;
+        this.selected = new HashMap<>();
         this.filter =
             new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
-    private SOBBuildablesFilter( final ProjectRelationshipFilter childFilter )
+    private MavenRuntimeFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
     {
+        this.selected = selected;
         this.acceptManaged = false;
         this.filter =
             childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
@@ -50,12 +60,25 @@ public class SOBBuildablesFilter
         else
         {
             result = filter.accept( rel );
+
+            final ProjectVersionRef target = rel.getTarget();
+            final ProjectRef targetGA = target.asProjectRef();
+            if ( result && !selected.containsKey( targetGA ) && target.getVersionSpec()
+                                                                      .isConcrete() )
+            {
+                selected.put( targetGA, (SingleVersion) target.getVersionSpec() );
+            }
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
+    }
+
+    public Map<ProjectRef, SingleVersion> getSelectedProjectVersions()
+    {
+        return selected;
     }
 
     @Override
@@ -68,7 +91,7 @@ public class SOBBuildablesFilter
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
-                return new SOBBuildablesFilter( new NoneFilter() );
+                return new MavenRuntimeFilter( selected, new NoneFilter() );
             }
             case PARENT:
             {
@@ -81,10 +104,10 @@ public class SOBBuildablesFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return new SOBBuildablesFilter( new NoneFilter() );
+                    return new MavenRuntimeFilter( selected, new NoneFilter() );
                 }
 
-                return new SOBBuildablesFilter( filter.getChildFilter( lastRelationship ) );
+                return new MavenRuntimeFilter( selected, filter.getChildFilter( lastRelationship ) );
             }
         }
     }
