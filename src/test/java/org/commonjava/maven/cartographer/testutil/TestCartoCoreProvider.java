@@ -13,8 +13,8 @@ import javax.enterprise.inject.Produces;
 
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.EGraphDriver;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4JEGraphDriver;
+import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
+import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -36,7 +36,7 @@ import org.junit.rules.TemporaryFolder;
 public class TestCartoCoreProvider
 {
 
-    private EGraphDriver driver;
+    private GraphWorkspaceFactory wsFactory;
 
     private EGraphManager graphs;
 
@@ -87,8 +87,8 @@ public class TestCartoCoreProvider
         locationExpander = new NoOpLocationExpander();
         nfc = new NoOpNotFoundCache();
 
-        driver = new FileNeo4JEGraphDriver( dbDir );
-        graphs = new EGraphManager( driver );
+        wsFactory = new FileNeo4jWorkspaceFactory( dbDir, false );
+        graphs = new EGraphManager( wsFactory );
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
     }
@@ -193,10 +193,10 @@ public class TestCartoCoreProvider
     @Produces
     @Default
     @TestData
-    public EGraphDriver getDriver()
+    public GraphWorkspaceFactory getFactory()
         throws IOException
     {
-        return driver;
+        return wsFactory;
     }
 
 }

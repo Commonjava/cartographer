@@ -13,6 +13,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
@@ -60,6 +61,9 @@ public class DefaultGraphAggregatorTest
         final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
         final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
         final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
+
+        fixture.getData()
+               .createWorkspace( new GraphWorkspaceConfiguration() );
 
         /* @formatter:off */
         fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList(

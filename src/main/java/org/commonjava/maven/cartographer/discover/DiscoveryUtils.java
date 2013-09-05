@@ -19,8 +19,7 @@ public final class DiscoveryUtils
     {
     }
 
-    public static void selectSingle( final SingleVersion ver, final ProjectVersionRef ref,
-                                     final CartoDataManager dataManager )
+    public static void selectSingle( final SingleVersion ver, final ProjectVersionRef ref, final CartoDataManager dataManager )
         throws CartoDataException
     {
         if ( !ver.isConcrete() )
@@ -38,12 +37,11 @@ public final class DiscoveryUtils
                                 .createTemporaryWorkspace( new GraphWorkspaceConfiguration() );
             }
 
-            ws.selectVersion( ref, ver );
+            ws.selectVersion( ref, ref.selectVersion( ver ) );
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to record selected version: %s for: %s. Reason: %s", e, ver, ref,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to record selected version: %s for: %s. Reason: %s", e, ver, ref, e.getMessage() );
         }
     }
 
@@ -65,12 +63,11 @@ public final class DiscoveryUtils
                                 .createTemporaryWorkspace( new GraphWorkspaceConfiguration() );
             }
 
-            ws.selectVersionForAll( ref, ver );
+            ws.selectVersionForAll( ref, new ProjectVersionRef( ref, ver ) );
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to record selected version: %s for all: %s. Reason: %s", e, ver, ref,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to record selected version: %s for all: %s. Reason: %s", e, ver, ref, e.getMessage() );
         }
     }
 
