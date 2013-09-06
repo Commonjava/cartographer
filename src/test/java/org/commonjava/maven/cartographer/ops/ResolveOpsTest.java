@@ -31,8 +31,7 @@ import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
+import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.commonjava.maven.galley.util.ArtifactFormatUtils;
 import org.commonjava.util.logging.Log4jUtil;
 import org.commonjava.util.logging.Logger;
@@ -92,16 +91,16 @@ public class ResolveOpsTest
             final String path = ArtifactFormatUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
 
             fixture.getTransport()
-                   .registerDownload( new Resource( location, path ), new TestDownload( "Foo".getBytes() ) );
+                   .registerExistence( new Resource( location, path ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerDownload( new Resource( location, path + ".asc" ), new TestDownload( "Foo".getBytes() ) );
+                   .registerExistence( new Resource( location, path + ".asc" ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerDownload( new Resource( location, path + ".md5" ), new TestDownload( "Foo".getBytes() ) );
+                   .registerExistence( new Resource( location, path + ".md5" ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerDownload( new Resource( location, path + ".sha1" ), new TestDownload( "Foo".getBytes() ) );
+                   .registerExistence( new Resource( location, path + ".sha1" ), new TestExistence( true ) );
 
             if ( last != null )
             {
@@ -125,7 +124,7 @@ public class ResolveOpsTest
         recipe.setRoots( Collections.singleton( recipeRoot ) );
         recipe.setWorkspaceId( ws.getId() );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, Transfer>> contents = fixture.getResolveOps()
+        final Map<ProjectVersionRef, Map<ArtifactRef, Resource>> contents = fixture.getResolveOps()
                                                                                    .resolveRepositoryContents( recipe );
         for ( final ProjectVersionRef ref : lineage )
         {

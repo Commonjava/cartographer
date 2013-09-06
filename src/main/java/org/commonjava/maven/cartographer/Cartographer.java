@@ -37,6 +37,10 @@ import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.filearc.FileTransport;
 import org.commonjava.maven.galley.filearc.ZipJarTransport;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
@@ -131,7 +135,12 @@ public class Cartographer
 
         final ExecutorService executor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
 
-        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, executor );
+        final DownloadHandler dh = new DownloadHandler( nfc, executor );
+        final UploadHandler uh = new UploadHandler( nfc, executor );
+        final ListingHandler lh = new ListingHandler( nfc );
+        final ExistenceHandler eh = new ExistenceHandler( nfc );
+
+        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh );
 
         final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( data, mmp, xferMgr );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, executor );

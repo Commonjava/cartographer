@@ -40,7 +40,7 @@ import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.ArtifactManager;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
@@ -141,7 +141,7 @@ public class ResolveOps
         return results;
     }
 
-    public Map<ProjectVersionRef, Map<ArtifactRef, Transfer>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
+    public Map<ProjectVersionRef, Map<ArtifactRef, Resource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
         throws CartoDataException
     {
         if ( recipe == null )
@@ -216,12 +216,12 @@ public class ResolveOps
             throw new CartoDataException( "RepositoryContentRecipe is insane! Source location is among those excluded!" );
         }
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, Transfer>> itemMap = new HashMap<>();
+        final Map<ProjectVersionRef, Map<ArtifactRef, Resource>> itemMap = new HashMap<>();
         for ( final ProjectRefCollection refs : refMap.values() )
         {
             for ( ArtifactRef ar : refs.getArtifactRefs() )
             {
-                final Map<ArtifactRef, Transfer> items = new HashMap<>();
+                final Map<ArtifactRef, Resource> items = new HashMap<>();
 
                 logger.info( "Including: %s", ar );
 
@@ -296,7 +296,7 @@ public class ResolveOps
 
                 if ( metas != null && !metas.isEmpty() )
                 {
-                    for ( final Entry<ArtifactRef, Transfer> entry : new HashMap<>( items ).entrySet() )
+                    for ( final Entry<ArtifactRef, Resource> entry : new HashMap<>( items ).entrySet() )
                     {
                         final ArtifactRef ref = entry.getKey();
 
@@ -342,7 +342,7 @@ public class ResolveOps
         return itemMap;
     }
 
-    private void addToContent( final ArtifactRef ar, final Map<ArtifactRef, Transfer> items, final Location location, final Set<Location> excluded,
+    private void addToContent( final ArtifactRef ar, final Map<ArtifactRef, Resource> items, final Location location, final Set<Location> excluded,
                                final Set<ArtifactRef> seen )
         throws CartoDataException
     {
@@ -350,7 +350,7 @@ public class ResolveOps
         {
             seen.add( ar );
 
-            final Transfer item = resolve( ar, location, excluded, seen );
+            final Resource item = resolve( ar, location, excluded, seen );
             if ( item != null )
             {
                 logger.info( "+ %s", ar );
@@ -385,14 +385,14 @@ public class ResolveOps
         return options;
     }
 
-    private Transfer resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private Resource resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         logger.info( "Attempting to resolve: %s from: %s", ar, location );
-        Transfer item;
+        Resource item;
         try
         {
-            item = artifacts.retrieve( location, ar );
+            item = artifacts.checkExistence( location, ar );
         }
         catch ( final TransferException e )
         {

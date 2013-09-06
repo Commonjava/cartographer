@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.data;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
@@ -27,9 +28,11 @@ import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -80,12 +83,17 @@ public class CartoDataManagerTest
 
         nfc = new MemoryNotFoundCache();
 
-        final CacheProvider cacheProvider =
-            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
+        final CacheProvider cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
+
+        final ExecutorService executor = Executors.newFixedThreadPool( 2 );
+        final DownloadHandler dh = new DownloadHandler( nfc, executor );
+        final UploadHandler uh = new UploadHandler( nfc, executor );
+        final ListingHandler lh = new ListingHandler( nfc );
+        final ExistenceHandler eh = new ExistenceHandler( nfc );
 
         final TransferManager transferManager =
-            new TransferManagerImpl( transportManager, cacheProvider, nfc, new NoOpFileEventManager(),
-                                     new NoOpTransferDecorator(), Executors.newFixedThreadPool( 2 ) );
+            new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), provider.getTransferDecorator(), dh, uh,
+                                     lh, eh );
 
         discoverer = new DiscovererImpl( dataManager, processor, transferManager );
 
