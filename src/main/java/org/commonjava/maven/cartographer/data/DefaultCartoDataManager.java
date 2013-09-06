@@ -18,6 +18,7 @@ package org.commonjava.maven.cartographer.data;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.join;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
@@ -44,12 +45,11 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.maven.atlas.graph.workspace.AbstractGraphWorkspaceListener;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceListener;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.ErrorKey;
 import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
@@ -58,7 +58,8 @@ import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
 public class DefaultCartoDataManager
-    implements CartoDataManager, GraphWorkspaceListener
+    extends AbstractGraphWorkspaceListener
+    implements CartoDataManager
 {
 
     private final Logger logger = new Logger( getClass() );
@@ -87,7 +88,7 @@ public class DefaultCartoDataManager
     public Set<ProjectRelationship<?>> storeRelationships( final ProjectRelationship<?>... relationships )
         throws CartoDataException
     {
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( relationships );
+        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
 
         return rels;
     }
@@ -96,7 +97,7 @@ public class DefaultCartoDataManager
     public Set<ProjectRelationship<?>> storeRelationships( final Collection<ProjectRelationship<?>> relationships )
         throws CartoDataException
     {
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( relationships );
+        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
         fireStorageEvents( relationships, rels );
 
         return rels;
@@ -281,21 +282,21 @@ public class DefaultCartoDataManager
     @Override
     public Map<String, String> getMetadata( final ProjectVersionRef ref )
     {
-        return graphs.getMetadata( ref );
+        return graphs.getMetadata( getCurrentWorkspace(), ref );
     }
 
     @Override
     public void addMetadata( final ProjectVersionRef ref, final String name, final String value )
     {
         logger.info( "Adding metadata: '%s' = '%s' for: %s", name, value, ref );
-        graphs.addMetadata( ref, name, value );
+        graphs.addMetadata( getCurrentWorkspace(), ref, name, value );
     }
 
     @Override
     public void addMetadata( final ProjectVersionRef ref, final Map<String, String> metadata )
     {
         logger.info( "Adding metadata for: %s:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
-        graphs.setMetadata( ref, metadata );
+        graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
     }
 
     @Override
@@ -400,7 +401,7 @@ public class DefaultCartoDataManager
         final String removed = md.remove( MODEL_ERRORS );
         if ( removed != null )
         {
-            graphs.setMetadata( ref, md );
+            graphs.setMetadata( getCurrentWorkspace(), ref, md );
         }
     }
 
@@ -415,7 +416,7 @@ public class DefaultCartoDataManager
             if ( !contains( ref ) )
             {
                 logger.info( "No metadata for: %s. Creating disconnected project entry in database.", ref );
-                graphs.addDisconnectedProject( ref );
+                graphs.addDisconnectedProject( getCurrentWorkspace(), ref );
             }
 
             md = getMetadata( ref );
@@ -526,7 +527,7 @@ public class DefaultCartoDataManager
     {
         try
         {
-            graphs.reindex();
+            graphs.reindex( getCurrentWorkspace() );
         }
         catch ( final GraphDriverException e )
         {
@@ -617,7 +618,14 @@ public class DefaultCartoDataManager
         final GraphWorkspace ws = workspaceHolder.getCurrentWorkspace();
         if ( ws != null )
         {
-            ws.close();
+            try
+            {
+                ws.close();
+            }
+            catch ( final IOException e )
+            {
+                throw new CartoDataException( "Failed to close workspace: %s. Reason: %s", e, ws.getId(), e.getMessage() );
+            }
         }
     }
 
@@ -682,23 +690,6 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public void selectionAdded( final GraphWorkspace session, final ProjectVersionRef ref, final SingleVersion version )
-        throws GraphDriverException
-    {
-    }
-
-    @Override
-    public void wildcardSelectionAdded( final GraphWorkspace graphWorkspace, final ProjectRef ref, final SingleVersion version )
-        throws GraphDriverException
-    {
-    }
-
-    @Override
-    public void selectionsCleared( final GraphWorkspace session )
-    {
-    }
-
-    @Override
     public void closed( final GraphWorkspace ws )
     {
         if ( workspaceHolder.getCurrentWorkspace() == ws )
@@ -708,8 +699,9 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public void accessed( final GraphWorkspace ws )
+    public void detached( final GraphWorkspace ws )
     {
+        clearCurrentWorkspace();
     }
 
     @Override
@@ -754,22 +746,8 @@ public class DefaultCartoDataManager
 
     @Override
     public void clearCurrentWorkspace()
-        throws CartoDataException
     {
-        final GraphWorkspace ws = workspaceHolder.getCurrentWorkspace();
         workspaceHolder.clearCurrentWorkspace();
-
-        if ( ws != null )
-        {
-            try
-            {
-                graphs.storeWorkspace( ws );
-            }
-            catch ( final GraphDriverException e )
-            {
-                throw new CartoDataException( "Failed to store workspace %s on detach. Reason: %s", e, ws.getId(), e.getMessage() );
-            }
-        }
     }
 
     @Override

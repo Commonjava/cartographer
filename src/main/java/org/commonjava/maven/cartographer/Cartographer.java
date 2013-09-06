@@ -8,7 +8,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.EGraphDriver;
+import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -90,10 +90,10 @@ public class Cartographer
         this.workspaces = workspace;
     }
 
-    public Cartographer( final String workspaceId, final File resolverCacheDir, final int resolverThreads, final EGraphDriver graphDriver )
+    public Cartographer( final String workspaceId, final File resolverCacheDir, final int resolverThreads, final GraphWorkspaceFactory wsFactory )
         throws CartoDataException
     {
-        final EGraphManager graphs = new EGraphManager( graphDriver );
+        final EGraphManager graphs = new EGraphManager( wsFactory );
 
         // TODO: This needs to be replaced with a real implementation.
         final CartoEventManager events = new NoOpCartoEventManager();

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4JEGraphDriver;
+import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
@@ -51,7 +51,7 @@ public class CartoFixture
 
         if ( graphs == null )
         {
-            graphs = new EGraphManager( new FileNeo4JEGraphDriver( getTemp().newFolder( "graph.db" ) ) );
+            graphs = new EGraphManager( new FileNeo4jWorkspaceFactory( getTemp().newFolder( "graph.db" ), false ) );
         }
 
         if ( cartoEvents == null )
