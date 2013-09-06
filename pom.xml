@@ -22,7 +22,7 @@
   
   <properties>
     <atlasVersion>0.9.1</atlasVersion>
-    <galleyVersion>0.2.0</galleyVersion>
+    <galleyVersion>0.3.0-SNAPSHOT</galleyVersion>
   </properties>
 
   <dependencyManagement>
