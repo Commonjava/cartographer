@@ -35,6 +35,7 @@ public class WorkspaceOps
     }
 
     public boolean delete( final String id )
+        throws CartoDataException
     {
         return data.deleteWorkspace( id );
     }

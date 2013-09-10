@@ -706,8 +706,16 @@ public class DefaultCartoDataManager
 
     @Override
     public boolean deleteWorkspace( final String id )
+        throws CartoDataException
     {
-        return graphs.deleteWorkspace( id );
+        try
+        {
+            return graphs.deleteWorkspace( id );
+        }
+        catch ( final IOException e )
+        {
+            throw new CartoDataException( "Failed to delete workspace: %s. Reason: %s", e, id, e.getMessage() );
+        }
     }
 
     @Override

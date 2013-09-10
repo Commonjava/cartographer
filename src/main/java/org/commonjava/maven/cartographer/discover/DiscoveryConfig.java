@@ -1,6 +1,8 @@
 package org.commonjava.maven.cartographer.discover;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
 
 public interface DiscoveryConfig
 {
@@ -24,6 +26,12 @@ public interface DiscoveryConfig
         {
             return null;
         }
+
+        @Override
+        public Set<String> getEnabledPatchers()
+        {
+            return Collections.emptySet();
+        }
     };
 
     boolean isEnabled();
@@ -31,5 +39,7 @@ public interface DiscoveryConfig
     long getTimeoutMillis();
 
     URI getDiscoverySource();
+
+    Set<String> getEnabledPatchers();
 
 }

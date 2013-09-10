@@ -142,7 +142,8 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getMatchingGAVs( ProjectRef projectRef )
         throws CartoDataException;
 
-    boolean deleteWorkspace( String id );
+    boolean deleteWorkspace( String id )
+        throws CartoDataException;
 
     Set<GraphWorkspace> getAllWorkspaces();
 

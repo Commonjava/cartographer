@@ -6,11 +6,16 @@ import static org.commonjava.maven.cartographer.discover.DiscoveryUtils.selectSi
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,6 +32,7 @@ import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionUtils;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.discover.patch.DepgraphPatcher;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
@@ -52,15 +58,37 @@ public class DiscovererImpl
     @Inject
     private CartoDataManager dataManager;
 
+    @Inject
+    private Instance<DepgraphPatcher> patcherInstances;
+
+    private Map<String, DepgraphPatcher> patchers;
+
     protected DiscovererImpl()
     {
     }
 
-    public DiscovererImpl( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor, final TransferManager transferManager )
+    @PostConstruct
+    public void mapPatchers()
+    {
+        mapPatchers( this.patcherInstances );
+    }
+
+    private void mapPatchers( final Iterable<DepgraphPatcher> patcherInstances )
+    {
+        this.patchers = new HashMap<>();
+        for ( final DepgraphPatcher patcher : patcherInstances )
+        {
+            patchers.put( patcher.getId(), patcher );
+        }
+    }
+
+    public DiscovererImpl( final CartoDataManager dataManager, final MavenModelProcessor modelProcessor, final TransferManager transferManager,
+                           final DepgraphPatcher... patchers )
     {
         this.dataManager = dataManager;
         this.modelProcessor = modelProcessor;
         this.transferManager = transferManager;
+        mapPatchers( Arrays.asList( patchers ) );
     }
 
     @Override
@@ -124,19 +152,38 @@ public class DiscovererImpl
             }
         }
 
+        DiscoveryResult result = null;
         if ( model != null )
         {
             if ( storeRelationships )
             {
-                return modelProcessor.storeModelRelationships( model, discoveryConfig.getDiscoverySource() );
+                result = modelProcessor.storeModelRelationships( model, discoveryConfig.getDiscoverySource() );
             }
             else
             {
-                return modelProcessor.readRelationships( model, discoveryConfig.getDiscoverySource() );
+                result = modelProcessor.readRelationships( model, discoveryConfig.getDiscoverySource() );
             }
         }
 
-        return null;
+        if ( result != null )
+        {
+            final Map<String, Object> ctx = new HashMap<>();
+            ctx.put( DepgraphPatcher.MAVEN_MODEL_CTX_KEY, model );
+
+            for ( final String patcherId : discoveryConfig.getEnabledPatchers() )
+            {
+                final DepgraphPatcher patcher = patchers.get( patcherId );
+                if ( patcher == null )
+                {
+                    logger.warn( "No such dependency-graph patcher: '%s'", patcherId );
+                    continue;
+                }
+
+                result = patcher.patch( result, transfer, ctx );
+            }
+        }
+
+        return result;
     }
 
     private Transfer retrieve( final DiscoveryConfig discoveryConfig, final String groupId, final String... parts )
@@ -148,7 +195,7 @@ public class DiscovererImpl
         try
         {
             transfer = transferManager.retrieve( new ConcreteResource( new SimpleLocation( discoveryConfig.getDiscoverySource()
-                                                                                                  .toString() ), path ) );
+                                                                                                          .toString() ), path ) );
         }
         catch ( final TransferException e )
         {
