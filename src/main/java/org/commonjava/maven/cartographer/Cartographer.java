@@ -150,10 +150,10 @@ public class Cartographer
 
         final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh, batchExecutor );
 
-        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( data, mmp, xferMgr );
+        final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
+        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
 
-        final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
         this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator, artifacts );
     }
 

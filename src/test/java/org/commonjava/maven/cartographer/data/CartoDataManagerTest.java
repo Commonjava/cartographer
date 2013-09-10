@@ -25,6 +25,8 @@ import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.testutil.TestCartoCoreProvider;
 import org.commonjava.maven.cartographer.testutil.TestCartoEventManager;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
+import org.commonjava.maven.galley.ArtifactManager;
+import org.commonjava.maven.galley.ArtifactManagerImpl;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
@@ -36,7 +38,9 @@ import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
+import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
+import org.commonjava.maven.galley.type.StandardTypeMapper;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -96,7 +100,8 @@ public class CartoDataManagerTest
             new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), provider.getTransferDecorator(), dh, uh,
                                      lh, eh, batchExecutor );
 
-        discoverer = new DiscovererImpl( dataManager, processor, transferManager );
+        final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
+        discoverer = new DiscovererImpl( processor, artifacts );
 
         aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
     }
