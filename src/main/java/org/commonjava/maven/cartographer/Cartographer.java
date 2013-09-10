@@ -133,17 +133,19 @@ public class Cartographer
 
         final NotFoundCache nfc = new MemoryNotFoundCache();
 
-        final ExecutorService executor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
+        final ExecutorService aggExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
+        final ExecutorService transportExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
+        final ExecutorService batchExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
 
-        final DownloadHandler dh = new DownloadHandler( nfc, executor );
-        final UploadHandler uh = new UploadHandler( nfc, executor );
+        final DownloadHandler dh = new DownloadHandler( nfc, transportExecutor );
+        final UploadHandler uh = new UploadHandler( nfc, transportExecutor );
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
-        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh );
+        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh, batchExecutor );
 
         final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( data, mmp, xferMgr );
-        final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, executor );
+        final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
         this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator, artifacts );

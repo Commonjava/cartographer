@@ -86,6 +86,7 @@ public class CartoDataManagerTest
         final CacheProvider cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
+        final ExecutorService batchExecutor = Executors.newFixedThreadPool( 2 );
         final DownloadHandler dh = new DownloadHandler( nfc, executor );
         final UploadHandler uh = new UploadHandler( nfc, executor );
         final ListingHandler lh = new ListingHandler( nfc );
@@ -93,7 +94,7 @@ public class CartoDataManagerTest
 
         final TransferManager transferManager =
             new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), provider.getTransferDecorator(), dh, uh,
-                                     lh, eh );
+                                     lh, eh, batchExecutor );
 
         discoverer = new DiscovererImpl( dataManager, processor, transferManager );
 

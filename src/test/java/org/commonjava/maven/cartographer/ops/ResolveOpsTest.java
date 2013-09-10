@@ -29,10 +29,10 @@ import org.commonjava.maven.cartographer.preset.SOBBuildablesFilter;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
-import org.commonjava.maven.galley.util.ArtifactFormatUtils;
+import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Log4jUtil;
 import org.commonjava.util.logging.Logger;
 import org.junit.Before;
@@ -88,19 +88,19 @@ public class ResolveOpsTest
         ProjectVersionRef last = null;
         for ( final ProjectVersionRef ref : lineage )
         {
-            final String path = ArtifactFormatUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
+            final String path = PathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
 
             fixture.getTransport()
-                   .registerExistence( new Resource( location, path ), new TestExistence( true ) );
+                   .registerExistence( new ConcreteResource( location, path ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerExistence( new Resource( location, path + ".asc" ), new TestExistence( true ) );
+                   .registerExistence( new ConcreteResource( location, path + ".asc" ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerExistence( new Resource( location, path + ".md5" ), new TestExistence( true ) );
+                   .registerExistence( new ConcreteResource( location, path + ".md5" ), new TestExistence( true ) );
 
             fixture.getTransport()
-                   .registerExistence( new Resource( location, path + ".sha1" ), new TestExistence( true ) );
+                   .registerExistence( new ConcreteResource( location, path + ".sha1" ), new TestExistence( true ) );
 
             if ( last != null )
             {
@@ -124,7 +124,7 @@ public class ResolveOpsTest
         recipe.setRoots( Collections.singleton( recipeRoot ) );
         recipe.setWorkspaceId( ws.getId() );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, Resource>> contents = fixture.getResolveOps()
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents = fixture.getResolveOps()
                                                                                    .resolveRepositoryContents( recipe );
         for ( final ProjectVersionRef ref : lineage )
         {
