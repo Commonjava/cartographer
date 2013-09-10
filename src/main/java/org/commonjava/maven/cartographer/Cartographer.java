@@ -1,6 +1,8 @@
 package org.commonjava.maven.cartographer;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,6 +23,7 @@ import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
+import org.commonjava.maven.cartographer.meta.MetadataScanner;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
@@ -112,7 +115,10 @@ public class Cartographer
         this.calculator = new CalculationOps( data );
         this.grapher = new GraphOps( data );
         this.renderer = new GraphRenderingOps( data );
-        this.metadata = new MetadataOps( data );
+
+        final Set<MetadataScanner> scanners = new HashSet<>();
+        // TODO: Add some scanners.
+        this.metadata = new MetadataOps( data, scanners );
 
         final MavenModelProcessor mmp = new MavenModelProcessor( data );
 
