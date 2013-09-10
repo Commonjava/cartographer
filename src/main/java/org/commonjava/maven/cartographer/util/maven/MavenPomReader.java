@@ -5,40 +5,22 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.ArtifactManager;
-import org.commonjava.maven.galley.ArtifactMetadataManager;
+import org.commonjava.maven.galley.model.Location;
 
 @ApplicationScoped
 public class MavenPomReader
 {
 
     @Inject
-    private ArtifactManager artifactManager;
-
-    @Inject
-    private ArtifactMetadataManager metadataManager;
+    private ArtifactManager artifacts;
 
     public MavenPomReader()
     {
     }
 
-    public MavenPomReader( final ArtifactManager artifactManager, final ArtifactMetadataManager metadataManager )
-    {
-        this.artifactManager = artifactManager;
-        this.metadataManager = metadataManager;
-    }
-
-    public MavenPomView read( ProjectVersionRef ref )
+    public MavenPomView read( final ProjectVersionRef ref, final Location... locations )
         throws MavenPomException
     {
-        if ( !ref.isSpecificVersion() )
-        {
-            throw new MavenPomException( "Cannot read POM for '%s'. It does not reference any single GAV (even a snaphot).", ref );
-        }
-
-        if ( !ref.isRelease() )
-        {
-            ref = artifactManager.resolveSnapshotVersion( ref );
-        }
 
         return null;
     }

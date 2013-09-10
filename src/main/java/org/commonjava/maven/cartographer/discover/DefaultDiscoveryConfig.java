@@ -2,6 +2,8 @@ package org.commonjava.maven.cartographer.discover;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultDiscoveryConfig
@@ -13,6 +15,8 @@ public class DefaultDiscoveryConfig
     private long timeoutMillis = TimeUnit.MILLISECONDS.convert( 60, TimeUnit.SECONDS );
 
     private final URI discoverySource;
+
+    private Set<String> patchers;
 
     public DefaultDiscoveryConfig( final URI discoverySource )
     {
@@ -37,6 +41,12 @@ public class DefaultDiscoveryConfig
         return this;
     }
 
+    public DefaultDiscoveryConfig setEnabledPatchers( final Set<String> patchers )
+    {
+        this.patchers = patchers;
+        return this;
+    }
+
     @Override
     public boolean isEnabled()
     {
@@ -53,6 +63,12 @@ public class DefaultDiscoveryConfig
     public URI getDiscoverySource()
     {
         return discoverySource;
+    }
+
+    @Override
+    public Set<String> getEnabledPatchers()
+    {
+        return patchers == null ? Collections.<String> emptySet() : patchers;
     }
 
 }
