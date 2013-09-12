@@ -37,6 +37,8 @@ public class RepositoryContentRecipe
 
     private boolean resolve;
 
+    private boolean multiSourceGAVs;
+
     private Integer timeoutSecs;
 
     private Set<String> metas;
@@ -178,6 +180,16 @@ public class RepositoryContentRecipe
     public void setPatcherIds( final Set<String> patcherIds )
     {
         this.patcherIds = patcherIds;
+    }
+
+    public boolean isMultiSourceGAVs()
+    {
+        return multiSourceGAVs;
+    }
+
+    public void setMultiSourceGAVs( final boolean multiSourceGAVs )
+    {
+        this.multiSourceGAVs = multiSourceGAVs;
     }
 
 }

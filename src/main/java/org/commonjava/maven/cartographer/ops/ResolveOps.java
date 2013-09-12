@@ -233,17 +233,22 @@ public class ResolveOps
                                          ar.isOptional() );
                 }
 
-                if ( !addToContent( ar, items, location, excluded, seen ) )
+                final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
+                if ( mainArtifact == null )
                 {
                     logger.info( "Main artifact: %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
                     continue;
                 }
 
+                // if multi-source GAVs are enabled, use the main location still
+                // otherwise, restrict results for this GAV to the place where the main artifact came from.
+                final Location artifactLocation = recipe.isMultiSourceGAVs() ? location : mainArtifact.getLocation();
+
                 if ( !"pom".equals( ar.getType() ) )
                 {
                     final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
-                    addToContent( pomAR, items, location, excluded, seen );
+                    addToContent( pomAR, items, artifactLocation, excluded, seen );
                 }
 
                 if ( extras != null )
@@ -275,7 +280,7 @@ public class ResolveOps
                                 if ( extra.matches( tc ) )
                                 {
                                     final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
-                                    addToContent( extAR, items, location, excluded, seen );
+                                    addToContent( extAR, items, artifactLocation, excluded, seen );
                                 }
                             }
                         }
@@ -293,7 +298,7 @@ public class ResolveOps
                                 new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
                                                  extraCT.getClassifier(), false );
 
-                            addToContent( extAR, items, location, excluded, seen );
+                            addToContent( extAR, items, artifactLocation, excluded, seen );
                         }
                     }
                 }
@@ -331,7 +336,7 @@ public class ResolveOps
 
                             final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
-                            addToContent( metaAR, items, location, excluded, seen );
+                            addToContent( metaAR, items, artifactLocation, excluded, seen );
                         }
                     }
                 }
@@ -346,8 +351,8 @@ public class ResolveOps
         return itemMap;
     }
 
-    private boolean addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items, final Location location,
-                                  final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private ConcreteResource addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items, final Location location,
+                                           final Set<Location> excluded, final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         if ( !seen.contains( ar ) )
@@ -359,19 +364,20 @@ public class ResolveOps
             {
                 logger.info( "+ %s", ar );
                 items.put( ar, item );
-                return true;
             }
             else
             {
                 logger.info( "- %s", ar );
             }
+
+            return item;
         }
         else
         {
             logger.info( "- %s (ALREADY SEEN)", ar );
         }
 
-        return false;
+        return null;
     }
 
     private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final URI sourceUri )
