@@ -6,6 +6,7 @@ import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PLUGIN;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PLUGIN_DEP;
 import static org.commonjava.maven.atlas.ident.DependencyScope.compile;
+import static org.commonjava.maven.atlas.ident.DependencyScope.embedded;
 import static org.commonjava.maven.atlas.ident.DependencyScope.provided;
 import static org.commonjava.maven.atlas.ident.DependencyScope.runtime;
 import static org.commonjava.maven.atlas.ident.DependencyScope.test;
@@ -71,6 +72,10 @@ public final class PresetAssertions
         final DependencyRelationship providedDep = new DependencyRelationship( from, src, tgt, provided, 0, false );
         assertThat( "Provided dependency acceptance does not match expectations", filter.accept( providedDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( provided ) ) );
+
+        final DependencyRelationship embeddedDep = new DependencyRelationship( from, src, tgt, embedded, 0, false );
+        assertThat( "Provided dependency acceptance does not match expectations", filter.accept( embeddedDep ),
+                    equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( embedded ) ) );
     }
 
     public static void assertRejectsAllManaged( final ProjectRelationshipFilter filter, final URI from, final ProjectVersionRef src,

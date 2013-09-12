@@ -3,6 +3,7 @@ package org.commonjava.maven.cartographer.preset;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 import static org.commonjava.maven.atlas.ident.DependencyScope.compile;
+import static org.commonjava.maven.atlas.ident.DependencyScope.embedded;
 import static org.commonjava.maven.atlas.ident.DependencyScope.provided;
 import static org.commonjava.maven.atlas.ident.DependencyScope.runtime;
 import static org.commonjava.maven.atlas.ident.DependencyScope.test;
@@ -63,7 +64,7 @@ public class SOBBuildablesFilterTest
     public void initialInstanceAcceptsRuntimeAndCompileDependencies_AndParent()
         throws Exception
     {
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
     }
 
     @Test
@@ -123,40 +124,43 @@ public class SOBBuildablesFilterTest
     }
 
     @Test
-    public void acceptAllRuntimeAndCompileDependenciesWithParentsAfterTraversingRuntimeDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingRuntimeDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), runtime, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllRuntimeAndCompileDependenciesWithParentsAfterTraversingCompileDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingCompileDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), compile, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllRuntimeAndCompileDependenciesWithParentsAfterTraversingParent()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingParent()
         throws Exception
     {
         final ParentRelationship parent = new ParentRelationship( from, src, root );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }

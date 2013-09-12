@@ -27,7 +27,9 @@ public class SOBBuildablesFilter
     {
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( new ParentFilter( false ),
+                          new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ),
+                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
     private SOBBuildablesFilter( final ProjectRelationshipFilter childFilter )
@@ -35,7 +37,9 @@ public class SOBBuildablesFilter
         this.acceptManaged = false;
         this.filter =
             childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
-                                                                                                 false, true, true, null ) ) : childFilter;
+                                                                                                 false, true, true, null ),
+                                                new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
+                            : childFilter;
     }
 
     @Override

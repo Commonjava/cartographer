@@ -5,13 +5,10 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -19,9 +16,11 @@ import org.apache.maven.model.InputSource;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3ReaderEx;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.discover.patch.DepgraphPatcher;
+import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.ArtifactManager;
 import org.commonjava.maven.galley.TransferException;
@@ -45,34 +44,22 @@ public class DiscovererImpl
     private MavenModelProcessor modelProcessor;
 
     @Inject
-    private Instance<DepgraphPatcher> patcherInstances;
+    private CartoDataManager dataManager;
 
-    private Map<String, DepgraphPatcher> patchers;
+    @Inject
+    private PatcherSupport patchers;
 
     protected DiscovererImpl()
     {
     }
 
-    @PostConstruct
-    public void mapPatchers()
-    {
-        mapPatchers( this.patcherInstances );
-    }
-
-    private void mapPatchers( final Iterable<DepgraphPatcher> patcherInstances )
-    {
-        this.patchers = new HashMap<>();
-        for ( final DepgraphPatcher patcher : patcherInstances )
-        {
-            patchers.put( patcher.getId(), patcher );
-        }
-    }
-
-    public DiscovererImpl( final MavenModelProcessor modelProcessor, final ArtifactManager artifactManager, final DepgraphPatcher... patchers )
+    public DiscovererImpl( final MavenModelProcessor modelProcessor, final ArtifactManager artifactManager, final CartoDataManager dataManager,
+                           final PatcherSupport patchers )
     {
         this.modelProcessor = modelProcessor;
         this.artifactManager = artifactManager;
-        mapPatchers( Arrays.asList( patchers ) );
+        this.dataManager = dataManager;
+        this.patchers = patchers;
     }
 
     @Override
@@ -145,33 +132,19 @@ public class DiscovererImpl
         DiscoveryResult result = null;
         if ( model != null )
         {
-            if ( storeRelationships )
-            {
-                result = modelProcessor.storeModelRelationships( model, discoveryConfig.getDiscoverySource() );
-            }
-            else
-            {
-                result = modelProcessor.readRelationships( model, discoveryConfig.getDiscoverySource() );
-            }
+            result = modelProcessor.readRelationships( model, discoveryConfig.getDiscoverySource() );
         }
 
         if ( result != null )
         {
             final List<? extends Location> locations = Arrays.asList( location );
-            final Map<String, Object> ctx = new HashMap<>();
-            ctx.put( DepgraphPatcher.MAVEN_MODEL_CTX_KEY, model );
-            ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, transfer );
 
-            for ( final String patcherId : discoveryConfig.getEnabledPatchers() )
+            result = patchers.patch( result, discoveryConfig.getEnabledPatchers(), locations, model, transfer );
+
+            if ( storeRelationships )
             {
-                final DepgraphPatcher patcher = patchers.get( patcherId );
-                if ( patcher == null )
-                {
-                    logger.warn( "No such dependency-graph patcher: '%s'", patcherId );
-                    continue;
-                }
-
-                result = patcher.patch( result, locations, ctx );
+                final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( result.getAcceptedRelationships() );
+                result = new DiscoveryResult( result.getSource(), result, rejected );
             }
         }
 

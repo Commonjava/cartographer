@@ -74,6 +74,7 @@ public class DefaultGraphAggregatorTest
         ) );
         
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
+            src,
             gc1,
             new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()

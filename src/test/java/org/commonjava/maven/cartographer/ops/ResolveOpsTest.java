@@ -28,8 +28,8 @@ import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.SOBBuildablesFilter;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.commonjava.maven.galley.util.PathUtils;
@@ -125,7 +125,7 @@ public class ResolveOpsTest
         recipe.setWorkspaceId( ws.getId() );
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents = fixture.getResolveOps()
-                                                                                   .resolveRepositoryContents( recipe );
+                                                                                           .resolveRepositoryContents( recipe );
         for ( final ProjectVersionRef ref : lineage )
         {
             assertThat( ref + " not present in repository contents!", contents.containsKey( ref ), equalTo( true ) );
@@ -156,6 +156,7 @@ public class ResolveOpsTest
         ) );
         
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
+            src,
             gc1,
             new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()

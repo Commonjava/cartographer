@@ -22,6 +22,7 @@ import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
+import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.testutil.TestCartoCoreProvider;
 import org.commonjava.maven.cartographer.testutil.TestCartoEventManager;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
@@ -101,7 +102,7 @@ public class CartoDataManagerTest
                                      lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
-        discoverer = new DiscovererImpl( processor, artifacts );
+        discoverer = new DiscovererImpl( processor, artifacts, dataManager, new PatcherSupport() );
 
         aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
     }

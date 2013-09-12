@@ -25,6 +25,8 @@ public class RepositoryContentRecipe
 
     private Set<ProjectVersionRef> roots;
 
+    private Set<String> patcherIds;
+
     private Set<ExtraCT> extras;
 
     private String workspaceId;
@@ -166,6 +168,16 @@ public class RepositoryContentRecipe
         }
 
         return false;
+    }
+
+    public Set<String> getPatcherIds()
+    {
+        return patcherIds;
+    }
+
+    public void setPatcherIds( final Set<String> patcherIds )
+    {
+        this.patcherIds = patcherIds;
     }
 
 }

@@ -1,0 +1,36 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>group.id</groupId>
+  <artifactId>artifact-id</artifactId>
+  <version>1</version>
+  
+  <packaging>pom</packaging>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>test-dep</id>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>other.group</groupId>
+                  <artifactId>other-artifact</artifactId>
+                  <version>1</version>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>
+
+

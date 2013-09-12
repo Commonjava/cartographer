@@ -39,8 +39,8 @@ import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.ArtifactManager;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
@@ -233,14 +233,18 @@ public class ResolveOps
                                          ar.isOptional() );
                 }
 
+                if ( !addToContent( ar, items, location, excluded, seen ) )
+                {
+                    logger.info( "Main artifact: %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+                    continue;
+                }
+
                 if ( !"pom".equals( ar.getType() ) )
                 {
                     final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
                     addToContent( pomAR, items, location, excluded, seen );
                 }
-
-                addToContent( ar, items, location, excluded, seen );
 
                 if ( extras != null )
                 {
@@ -342,8 +346,8 @@ public class ResolveOps
         return itemMap;
     }
 
-    private void addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items, final Location location, final Set<Location> excluded,
-                               final Set<ArtifactRef> seen )
+    private boolean addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items, final Location location,
+                                  final Set<Location> excluded, final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         if ( !seen.contains( ar ) )
@@ -355,6 +359,7 @@ public class ResolveOps
             {
                 logger.info( "+ %s", ar );
                 items.put( ar, item );
+                return true;
             }
             else
             {
@@ -365,6 +370,8 @@ public class ResolveOps
         {
             logger.info( "- %s (ALREADY SEEN)", ar );
         }
+
+        return false;
     }
 
     private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final URI sourceUri )
@@ -373,6 +380,7 @@ public class ResolveOps
         options.setFilter( recipe.getFilter() );
 
         final DefaultDiscoveryConfig dconf = new DefaultDiscoveryConfig( sourceUri );
+        dconf.setEnabledPatchers( recipe.getPatcherIds() );
 
         dconf.setEnabled( true );
         dconf.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );

@@ -21,6 +21,7 @@ import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
+import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.meta.MetadataScanner;
@@ -151,7 +152,7 @@ public class Cartographer
         final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
-        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts );
+        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts, data, new PatcherSupport() );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
 
         this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator, artifacts );

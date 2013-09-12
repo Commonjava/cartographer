@@ -3,6 +3,7 @@ package org.commonjava.maven.cartographer.preset;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 import static org.commonjava.maven.atlas.ident.DependencyScope.compile;
+import static org.commonjava.maven.atlas.ident.DependencyScope.embedded;
 import static org.commonjava.maven.atlas.ident.DependencyScope.provided;
 import static org.commonjava.maven.atlas.ident.DependencyScope.runtime;
 import static org.commonjava.maven.atlas.ident.DependencyScope.test;
@@ -61,7 +62,7 @@ public class ShippingOrientedBuildFilterTest
     public void initialInstanceAcceptsAllConcreteRelationships()
         throws Exception
     {
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
     }
 
@@ -72,51 +73,51 @@ public class ShippingOrientedBuildFilterTest
     }
 
     @Test
-    public void acceptOnlyConcreteRuntimeImpliedDependenciesAfterTraversingPlugin()
+    public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingPlugin()
         throws Exception
     {
         final PluginRelationship plugin = new PluginRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptOnlyConcreteRuntimeImpliedDependenciesAfterTraversingExtension()
+    public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingExtension()
         throws Exception
     {
         final ExtensionRelationship plugin = new ExtensionRelationship( from, root, src, 0 );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptOnlyConcreteRuntimeImpliedDependenciesAfterTestDependency()
+    public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTestDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), test, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptOnlyConcreteRuntimeImpliedDependenciesAfterProvidedDependency()
+    public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterProvidedDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), provided, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -129,7 +130,7 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
@@ -143,7 +144,7 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
@@ -157,7 +158,7 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );

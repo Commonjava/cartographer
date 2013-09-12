@@ -95,7 +95,7 @@ public class MavenModelProcessor
         dataManager.clearErrors( projectRef );
         final Set<ProjectRelationship<?>> skipped = dataManager.storeRelationships( fromRead.getAllDiscoveredRelationships() );
 
-        return new DiscoveryResult( fromRead, skipped );
+        return new DiscoveryResult( source, fromRead, skipped );
 
     }
 
@@ -153,7 +153,7 @@ public class MavenModelProcessor
             }
 
             final EProjectDirectRelationships rels = builder.build();
-            return new DiscoveryResult( projectRef, rels.getAllRelationships() );
+            return new DiscoveryResult( source, projectRef, rels.getAllRelationships() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
