@@ -203,9 +203,6 @@ public class ResolveOps
 
         final Map<ProjectRef, ProjectRefCollection> refMap = collectProjectReferences( web );
 
-        final Set<ExtraCT> extras = recipe.getExtras();
-        final Set<String> metas = recipe.getMetas();
-
         final Set<ArtifactRef> seen = new HashSet<>();
         final Location location = recipe.getSourceLocation();
         final Set<Location> excluded = recipe.getExcludedSourceLocations();
@@ -233,10 +230,11 @@ public class ResolveOps
                                          ar.isOptional() );
                 }
 
+                logger.info( "Resolving referenced artifact: %s", ar );
                 final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
                 if ( mainArtifact == null )
                 {
-                    logger.info( "Main artifact: %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+                    logger.info( "Referenced artifact %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
                     continue;
                 }
 
@@ -248,9 +246,15 @@ public class ResolveOps
                 {
                     final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
+                    logger.info( "Resolving POM: %s", pomAR );
                     addToContent( pomAR, items, artifactLocation, excluded, seen );
                 }
+                else
+                {
+                    logger.info( "Referenced artifact: %s WAS a POM. Skipping special POM resolution.", ar );
+                }
 
+                final Set<ExtraCT> extras = recipe.getExtras();
                 if ( extras != null )
                 {
                     if ( recipe.hasWildcardExtras() )
@@ -280,6 +284,7 @@ public class ResolveOps
                                 if ( extra.matches( tc ) )
                                 {
                                     final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
+                                    logger.info( "Attempting to resolve classifier/type artifact from listing:", extAR );
                                     addToContent( extAR, items, artifactLocation, excluded, seen );
                                 }
                             }
@@ -298,13 +303,17 @@ public class ResolveOps
                                 new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
                                                  extraCT.getClassifier(), false );
 
+                            logger.info( "Attempting to resolve specifically listed classifier/type artifact:", extAR );
                             addToContent( extAR, items, artifactLocation, excluded, seen );
                         }
                     }
                 }
 
+                final Set<String> metas = recipe.getMetas();
                 if ( metas != null && !metas.isEmpty() )
                 {
+                    logger.info( "Attempting to resolve metadata files for: %s", metas );
+
                     for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<>( items ).entrySet() )
                     {
                         final ArtifactRef ref = entry.getKey();
@@ -336,6 +345,7 @@ public class ResolveOps
 
                             final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
+                            logger.info( "Attempting to resolve 'meta' artifact:", metaAR );
                             addToContent( metaAR, items, artifactLocation, excluded, seen );
                         }
                     }

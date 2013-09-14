@@ -17,7 +17,7 @@ public class DiscoveryRunnable
 
     private final AggregationOptions config;
 
-    private final CountDownLatch latch;
+    private CountDownLatch latch;
 
     private final Logger logger = new Logger( getClass() );
 
@@ -32,14 +32,13 @@ public class DiscoveryRunnable
     private final boolean storeRelationships;
 
     public DiscoveryRunnable( final DiscoveryTodo todo, final AggregationOptions config, final Set<ProjectVersionRef> missing,
-                              final ProjectRelationshipDiscoverer discoverer, final boolean storeRelationships, final CountDownLatch latch )
+                              final ProjectRelationshipDiscoverer discoverer, final boolean storeRelationships )
     {
         this.todo = todo;
         this.config = config;
         this.roMissing = missing;
         this.discoverer = discoverer;
         this.storeRelationships = storeRelationships;
-        this.latch = latch;
     }
 
     @Override
@@ -57,6 +56,14 @@ public class DiscoveryRunnable
             {
                 result = discoverer.discoverRelationships( ref, discoveryConfig, storeRelationships );
             }
+            else if ( roMissing.contains( ref ) )
+            {
+                logger.info( "MISS: Already marked as missing: %s", ref );
+            }
+            else
+            {
+                logger.info( "No discoverer! Skipping: %s", ref );
+            }
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -68,7 +75,10 @@ public class DiscoveryRunnable
         }
         finally
         {
-            latch.countDown();
+            if ( latch != null )
+            {
+                latch.countDown();
+            }
         }
     }
 
@@ -80,6 +90,11 @@ public class DiscoveryRunnable
     public DiscoveryTodo getTodo()
     {
         return todo;
+    }
+
+    public void setLatch( final CountDownLatch latch )
+    {
+        this.latch = latch;
     }
 
 }
