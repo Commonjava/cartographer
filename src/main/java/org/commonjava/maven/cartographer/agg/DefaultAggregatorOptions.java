@@ -26,6 +26,8 @@ public class DefaultAggregatorOptions
     // TODO: Revisit this default timeout!!!
     private long discoveryTimeoutMillis = TimeUnit.MILLISECONDS.convert( 10, TimeUnit.SECONDS );
 
+    private DiscoveryConfig dc;
+
     public DefaultAggregatorOptions setFilter( final ProjectRelationshipFilter filter )
     {
         this.filter = filter;
@@ -83,8 +85,8 @@ public class DefaultAggregatorOptions
     @Override
     public DiscoveryConfig getDiscoveryConfig()
     {
-        return new DefaultDiscoveryConfig( discoverySource ).setEnabled( discoveryEnabled )
-                                                            .setTimeoutMillis( discoveryTimeoutMillis );
+        return dc == null ? new DefaultDiscoveryConfig( discoverySource ).setEnabled( discoveryEnabled )
+                                                                         .setTimeoutMillis( discoveryTimeoutMillis ) : dc;
     }
 
     @Override
@@ -116,6 +118,7 @@ public class DefaultAggregatorOptions
 
     public DefaultAggregatorOptions setDiscoveryConfig( final DiscoveryConfig dc )
     {
+        this.dc = dc;
         this.discoverySource = dc.getDiscoverySource();
         this.discoveryEnabled = dc.isEnabled();
         this.discoveryTimeoutMillis = dc.getTimeoutMillis();

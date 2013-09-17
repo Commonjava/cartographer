@@ -3,6 +3,7 @@ package org.commonjava.maven.cartographer.discover;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +28,24 @@ public class DefaultDiscoveryConfig
         throws URISyntaxException
     {
         this.discoverySource = new URI( discoverySource );
+    }
+
+    public DefaultDiscoveryConfig( final DiscoveryConfig discoveryConfig )
+    {
+        Set<String> enabledPatchers = discoveryConfig.getEnabledPatchers();
+        if ( enabledPatchers == null )
+        {
+            enabledPatchers = new HashSet<>();
+        }
+        else
+        {
+            enabledPatchers = new HashSet<>( enabledPatchers );
+        }
+
+        this.patchers = enabledPatchers;
+        this.enabled = discoveryConfig.isEnabled();
+        this.timeoutMillis = discoveryConfig.getTimeoutMillis();
+        this.discoverySource = discoveryConfig.getDiscoverySource();
     }
 
     public DefaultDiscoveryConfig setEnabled( final boolean enabled )

@@ -95,7 +95,10 @@ public class ResolveOps
 
         sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), fromUri );
 
-        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
+        //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
+        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
+        config.setEnabled( true );
+
         final List<ProjectVersionRef> results = new ArrayList<>();
         for ( final ProjectVersionRef root : roots )
         {
@@ -214,13 +217,19 @@ public class ResolveOps
         }
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
+        int projectCounter = 1;
+        final int projectSz = refMap.size();
         for ( final ProjectRefCollection refs : refMap.values() )
         {
-            for ( ArtifactRef ar : refs.getArtifactRefs() )
+            int artifactCounter = 1;
+            final Set<ArtifactRef> artifactRefs = refs.getArtifactRefs();
+
+            final int artifactSz = artifactRefs.size();
+            for ( ArtifactRef ar : artifactRefs )
             {
                 final Map<ArtifactRef, ConcreteResource> items = new HashMap<>();
 
-                logger.info( "Including: %s", ar );
+                logger.info( "%d/%d %d/%d. Including: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
 
                 if ( ar.isVariableVersion() )
                 {
@@ -230,7 +239,7 @@ public class ResolveOps
                                          ar.isOptional() );
                 }
 
-                logger.info( "Resolving referenced artifact: %s", ar );
+                logger.info( "%d/%d %d/%d 1. Resolving referenced artifact: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
                 final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
                 if ( mainArtifact == null )
                 {
@@ -246,7 +255,7 @@ public class ResolveOps
                 {
                     final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
 
-                    logger.info( "Resolving POM: %s", pomAR );
+                    logger.info( "%d/%d %d/%d 2. Resolving POM: %s", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
                     addToContent( pomAR, items, artifactLocation, excluded, seen );
                 }
                 else
@@ -255,6 +264,7 @@ public class ResolveOps
                 }
 
                 final Set<ExtraCT> extras = recipe.getExtras();
+                int extCounter = 3;
                 if ( extras != null )
                 {
                     if ( recipe.hasWildcardExtras() )
@@ -284,10 +294,14 @@ public class ResolveOps
                                 if ( extra.matches( tc ) )
                                 {
                                     final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
-                                    logger.info( "Attempting to resolve classifier/type artifact from listing:", extAR );
+                                    logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve classifier/type artifact from listing: %s",
+                                                 projectCounter, projectSz, artifactCounter, artifactSz, extCounter, tcs.length, extAR );
                                     addToContent( extAR, items, artifactLocation, excluded, seen );
+                                    break;
                                 }
                             }
+
+                            extCounter++;
                         }
                     }
                     else
@@ -303,8 +317,10 @@ public class ResolveOps
                                 new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
                                                  extraCT.getClassifier(), false );
 
-                            logger.info( "Attempting to resolve specifically listed classifier/type artifact:", extAR );
+                            logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve specifically listed classifier/type artifact: %s", projectCounter,
+                                         projectSz, artifactCounter, artifactSz, extCounter, extras.size(), extAR );
                             addToContent( extAR, items, artifactLocation, excluded, seen );
+                            extCounter++;
                         }
                     }
                 }
@@ -314,6 +330,8 @@ public class ResolveOps
                 {
                     logger.info( "Attempting to resolve metadata files for: %s", metas );
 
+                    int metaCounter = extCounter;
+                    final int metaSz = ( items.size() * metas.size() ) + extCounter;
                     for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<>( items ).entrySet() )
                     {
                         final ArtifactRef ref = entry.getKey();
@@ -345,8 +363,10 @@ public class ResolveOps
 
                             final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
-                            logger.info( "Attempting to resolve 'meta' artifact:", metaAR );
+                            logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve 'meta' artifact: %s", projectCounter, projectSz, artifactCounter,
+                                         artifactSz, metaCounter, metaSz, metaAR );
                             addToContent( metaAR, items, artifactLocation, excluded, seen );
+                            metaCounter++;
                         }
                     }
                 }
@@ -355,7 +375,11 @@ public class ResolveOps
                 {
                     itemMap.put( ar.asProjectVersionRef(), items );
                 }
+
+                artifactCounter++;
             }
+
+            projectCounter++;
         }
 
         return itemMap;

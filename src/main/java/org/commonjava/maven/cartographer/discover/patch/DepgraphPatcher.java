@@ -13,6 +13,8 @@ public interface DepgraphPatcher
 
     String TRANSFER_CTX_KEY = "transfer";
 
+    String POM_VIEW = "pom-view";
+
     DiscoveryResult patch( DiscoveryResult result, List<? extends Location> locations, Map<String, Object> context );
 
     String getId();

@@ -1,5 +1,7 @@
 package org.commonjava.maven.cartographer.discover.patch;
 
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +55,7 @@ public class PatcherSupport
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
                                   final Model model, final Transfer transfer )
     {
+        logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
         DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<>();
         ctx.put( DepgraphPatcher.MAVEN_MODEL_CTX_KEY, model );
@@ -67,6 +70,7 @@ public class PatcherSupport
                 continue;
             }
 
+            logger.info( "Running project-relationship patcher: %s for: %s", patcherId, orig.getSelectedRef() );
             result = patcher.patch( result, locations, ctx );
         }
 

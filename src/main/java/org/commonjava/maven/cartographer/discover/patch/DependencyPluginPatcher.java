@@ -50,7 +50,12 @@ public class DependencyPluginPatcher
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
-            final MavenPomView pomView = pomReader.read( ref, locations );
+            MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
+            if ( pomView == null )
+            {
+                pomView = pomReader.read( ref, locations );
+                context.put( POM_VIEW, pomView );
+            }
 
             final Set<ProjectRelationship<?>> accepted = new HashSet<>( orig.getAcceptedRelationships() );
             final Set<ProjectRelationship<?>> rejected = new HashSet<>( orig.getRejectedRelationships() );
