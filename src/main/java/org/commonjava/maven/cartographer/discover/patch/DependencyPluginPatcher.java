@@ -57,6 +57,16 @@ public class DependencyPluginPatcher
                 context.put( POM_VIEW, pomView );
             }
 
+            // get all artifactItems with a version element. Only these need to be verified.
+            final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";
+
+            logger.info( "Looking for dependency-plugin usages matching: '%s'", depArtifactItemsPath );
+            final List<Element> depArtifactItems = pomView.resolveXPathToElements( depArtifactItemsPath, false );
+            if ( depArtifactItems == null || depArtifactItems.isEmpty() )
+            {
+                return orig;
+            }
+
             final Set<ProjectRelationship<?>> accepted = new HashSet<>( orig.getAcceptedRelationships() );
             final Set<ProjectRelationship<?>> rejected = new HashSet<>( orig.getRejectedRelationships() );
 
@@ -71,7 +81,7 @@ public class DependencyPluginPatcher
                 }
             }
 
-            calculateDependencyPluginPatch( concreteDeps, ref, pomView, orig.getSource(), accepted, rejected );
+            calculateDependencyPluginPatch( depArtifactItems, concreteDeps, ref, pomView, orig.getSource(), accepted, rejected );
 
             final Set<ProjectRelationship<?>> all = new HashSet<>();
             all.addAll( accepted );
@@ -87,15 +97,11 @@ public class DependencyPluginPatcher
         return result;
     }
 
-    private void calculateDependencyPluginPatch( final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
+    private void calculateDependencyPluginPatch( final List<Element> depArtifactItems,
+                                                 final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
                                                  final MavenPomView pomView, final URI source, final Set<ProjectRelationship<?>> accepted,
                                                  final Set<ProjectRelationship<?>> rejected )
     {
-        // get all artifactItems with a version element. Only these need to be verified.
-        final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";
-
-        logger.info( "Looking for dependency-plugin usages matching: '%s'", depArtifactItemsPath );
-        final List<Element> depArtifactItems = pomView.resolveXPathToElements( depArtifactItemsPath, false );
         logger.info( "Detected %d dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
                         : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )

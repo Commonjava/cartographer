@@ -54,6 +54,16 @@ public class DistributionPomPatcher
                 context.put( POM_VIEW, pomView );
             }
 
+            // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
+            final String assemblyOnPomProjectPath =
+                "/project[packaging/text()=\"pom\"]//plugin[artifactId/text()=\"maven-assembly-plugin\"]//configuration[appendAssemblyId/text()=\"false\"]";
+
+            final Element assemblyConfigTest = pomView.resolveXPathToElement( assemblyOnPomProjectPath, false );
+            if ( assemblyConfigTest == null )
+            {
+                return orig;
+            }
+
             final Set<ProjectRelationship<?>> accepted = new HashSet<>( orig.getAcceptedRelationships() );
             final Set<ProjectRelationship<?>> rejected = new HashSet<>( orig.getRejectedRelationships() );
 
@@ -87,36 +97,28 @@ public class DistributionPomPatcher
                                                   final MavenPomView pomView, final URI source, final Set<ProjectRelationship<?>> accepted,
                                                   final Set<ProjectRelationship<?>> rejected )
     {
-        // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
-        final String assemblyOnPomProjectPath =
-            "/project[packaging/text()=\"pom\"]//plugin[artifactId/text()=\"maven-assembly-plugin\"]//configuration[appendAssemblyId/text()=\"false\"]";
+        logger.info( "Detected pom-packaging project with an assembly that produces artifacts without classifiers..."
+            + "Need to flip provided-scope deps to compile scope here." );
 
-        final Element assemblyConfigTest = pomView.resolveXPathToElement( assemblyOnPomProjectPath, false );
-        if ( assemblyConfigTest != null )
+        // flip provided scope to compile scope...is this dangerous??
+        // if the project has packaging == pom and a series of assemblies, it's likely to be a distro project, and not meant for consumption via maven
+        // also, if something like type == zip is used for a dependency, IIRC transitive deps are not traversed during the build.
+        // so this SHOULD be safe.
+        for ( final DependencyRelationship dep : concreteDeps.values() )
         {
-            logger.info( "Detected pom-packaging project with an assembly that produces artifacts without classifiers..."
-                + "Need to flip provided-scope deps to compile scope here." );
-
-            // flip provided scope to compile scope...is this dangerous??
-            // if the project has packaging == pom and a series of assemblies, it's likely to be a distro project, and not meant for consumption via maven
-            // also, if something like type == zip is used for a dependency, IIRC transitive deps are not traversed during the build.
-            // so this SHOULD be safe.
-            for ( final DependencyRelationship dep : concreteDeps.values() )
+            if ( dep.getScope() == DependencyScope.provided )
             {
-                if ( dep.getScope() == DependencyScope.provided )
-                {
-                    logger.info( "Fixing scope for: %s", dep );
+                logger.info( "Fixing scope for: %s", dep );
 
-                    accepted.remove( dep );
-                    final Set<ProjectRef> excludes = dep.getExcludes();
-                    final ProjectRef[] excludedRefs = excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
+                accepted.remove( dep );
+                final Set<ProjectRef> excludes = dep.getExcludes();
+                final ProjectRef[] excludedRefs = excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
 
-                    final DependencyRelationship replacement =
-                        new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(), false,
-                                                    excludedRefs );
+                final DependencyRelationship replacement =
+                    new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(), false,
+                                                excludedRefs );
 
-                    accepted.add( replacement );
-                }
+                accepted.add( replacement );
             }
         }
     }

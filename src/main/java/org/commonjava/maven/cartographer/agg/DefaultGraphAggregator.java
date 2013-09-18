@@ -99,7 +99,7 @@ public class DefaultGraphAggregator
                     final HashSet<DiscoveryTodo> current = new HashSet<>( pending );
                     done.addAll( current );
 
-                    logger.info( "%d. Next batch of TODOs: %s", pass, current );
+                    logger.info( "%d. Next batch of TODOs:\n  %s", pass, new JoinString( "\n  ", current ) );
                     pending.clear();
 
                     final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
