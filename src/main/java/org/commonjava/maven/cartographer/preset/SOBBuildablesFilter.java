@@ -45,8 +45,7 @@ public class SOBBuildablesFilter
     @Override
     public boolean accept( final ProjectRelationship<?> rel )
     {
-        boolean result = false;
-
+        boolean result;
         if ( !acceptManaged && rel.isManaged() )
         {
             result = false;

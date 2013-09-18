@@ -30,6 +30,7 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.util.logging.Logger;
+import org.commonjava.util.logging.helper.JoinString;
 
 @ApplicationScoped
 public class DefaultGraphAggregator
@@ -90,23 +91,27 @@ public class DefaultGraphAggregator
 
                 logger.debug( "Loading initial set of GAVs to be resolved..." );
                 final LinkedList<DiscoveryTodo> pending = loadInitialPending( net );
+                final HashSet<DiscoveryTodo> done = new HashSet<>();
 
+                int pass = 0;
                 while ( !pending.isEmpty() )
                 {
                     final HashSet<DiscoveryTodo> current = new HashSet<>( pending );
-                    logger.debug( "Next batch of TODOs: %s", current );
+                    done.addAll( current );
+
+                    logger.info( "%d. Next batch of TODOs: %s", pass, current );
                     pending.clear();
 
-                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net );
+                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
                     if ( newTodos != null )
                     {
-                        logger.debug( "Uncovered new batch of TODOs: %s", newTodos );
-                        for ( final DiscoveryTodo newTodo : newTodos )
-                        {
-                            // don't have to check contains for this new todo, since we cleared the pending list above...
-                            pending.addLast( newTodo );
-                        }
+                        newTodos.removeAll( done );
+                        logger.info( "%d. Uncovered new batch of TODOs:\n  %s", pass, new JoinString( "\n  ", newTodos ) );
+
+                        pending.addAll( newTodos );
                     }
+
+                    pass++;
                 }
             }
         }
@@ -115,37 +120,41 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing, final EProjectNet net )
+                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing, final EProjectNet net,
+                                         final int pass )
         throws CartoDataException
     {
-        logger.debug( "Performing discovery and cycle-detection on %d missing subgraphs: %s", todos.size(), join( todos, ", " ) );
+        logger.debug( "%d. Performing discovery and cycle-detection on %d missing subgraphs:\n  %s", pass, todos.size(), new JoinString( "\n  ",
+                                                                                                                                         todos ) );
 
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
 
         final Set<ProjectVersionRef> roMissing = Collections.unmodifiableSet( missing );
+        int idx = 0;
         for ( final DiscoveryTodo todo : todos )
         {
             final ProjectVersionRef todoRef = todo.getRef();
 
             if ( missing.contains( todoRef ) )
             {
-                logger.info( "Skipping missing reference: %s", todoRef );
+                logger.info( "%d.%d. Skipping missing reference: %s", pass, idx++, todoRef );
                 continue;
             }
             else if ( cycleParticipants.contains( todoRef ) )
             {
-                logger.info( "Skipping cycle-participant reference: %s", todoRef );
+                logger.info( "%d.%d. Skipping cycle-participant reference: %s", pass, idx++, todoRef );
                 continue;
             }
             else if ( net.containsGraph( todoRef ) )
             {
-                logger.info( "Skipping already-discovered reference: %s", todoRef );
+                logger.info( "%d.%d. Skipping already-discovered reference: %s", pass, idx++, todoRef );
                 continue;
             }
 
             //            logger.info( "DISCOVER += %s", todo );
-            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, roMissing, discoverer, false );
+            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, roMissing, discoverer, false, pass, idx );
             runnables.add( runnable );
+            idx++;
         }
 
         final CountDownLatch latch = new CountDownLatch( runnables.size() );
@@ -162,9 +171,11 @@ public class DefaultGraphAggregator
         catch ( final InterruptedException e )
         {
             logger.error( "Interrupted on subgraph discovery." );
+            return null;
         }
 
-        logger.info( "Accounting for discovery results. Before discovery, these were missing:\n\n  %s\n\n", join( missing, "\n  " ) );
+        logger.info( "%d. Accounting for discovery results. Before discovery, these were missing:\n\n  %s\n\n", pass,
+                     new JoinString( "\n  ", missing ) );
 
         final Set<ProjectRelationship<?>> newRels = new HashSet<>();
         final Set<DiscoveryTodo> newTodos = new HashSet<>();
@@ -180,8 +191,11 @@ public class DefaultGraphAggregator
                 final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
                 if ( discoveredRels != null )
                 {
-                    logger.info( "Processing %d new relationships for: %s\n\n  %s", discoveredRels.size(), result.getSelectedRef(),
-                                 join( discoveredRels, "\n  " ) );
+                    logger.info( "%d.%d. Processing %d new relationships for: %s\n\n  %s", pass, r.getIndex(), discoveredRels.size(),
+                                 result.getSelectedRef(), join( discoveredRels, "\n  " ) );
+
+                    final int index = r.getIndex();
+                    idx = 0;
                     for ( final ProjectRelationship<?> rel : discoveredRels )
                     {
                         final ProjectVersionRef relTarget = rel.getTarget()
@@ -189,37 +203,37 @@ public class DefaultGraphAggregator
                         if ( !net.containsGraph( relTarget ) )
                         {
                             final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                            int fidx = 0;
                             for ( final ProjectRelationshipFilter filter : filters )
                             {
-                                if ( filter.accept( rel ) )
+                                final boolean accepted = filter.accept( rel );
+                                logger.info( "%d.%d.%d.%d. CHECK: %s\n  vs.\n\n  %s\n\n  Accepted? %s", pass, index, idx, fidx, rel, filter, accepted );
+                                if ( accepted )
                                 {
                                     acceptingChildren.add( filter.getChildFilter( rel ) );
                                 }
+                                fidx++;
                             }
 
                             if ( !acceptingChildren.isEmpty() )
                             {
-                                logger.info( "DISCOVER += %s\n  (filters:\n    %s)", relTarget, new Object()
-                                {
-                                    @Override
-                                    public String toString()
-                                    {
-                                        return join( acceptingChildren, "\n    " );
-                                    }
-                                } );
+                                logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, relTarget,
+                                             new JoinString( "\n    ", acceptingChildren ) );
 
                                 newRels.add( rel );
                                 newTodos.add( new DiscoveryTodo( relTarget, acceptingChildren ) );
                             }
                             else
                             {
-                                logger.info( "SKIP: %s", relTarget );
+                                logger.info( "%d.%d.%d. SKIP: %s", pass, index, idx, relTarget );
                             }
                         }
                         else
                         {
-                            logger.info( "SKIP (already discovered): %s", relTarget );
+                            logger.info( "%d.%d.%d. SKIP (already discovered): %s", pass, index, idx, relTarget );
                         }
+
+                        idx++;
                     }
                 }
                 else
@@ -240,7 +254,7 @@ public class DefaultGraphAggregator
             addToCycleParticipants( rejected, cycleParticipants );
         }
 
-        logger.info( "After discovery, these are missing:\n\n  %s\n\n", join( missing, "\n  " ) );
+        logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
 
         return newTodos;
     }

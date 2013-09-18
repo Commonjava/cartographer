@@ -31,14 +31,20 @@ public class DiscoveryRunnable
 
     private final boolean storeRelationships;
 
+    private final int pass;
+
+    private final int idx;
+
     public DiscoveryRunnable( final DiscoveryTodo todo, final AggregationOptions config, final Set<ProjectVersionRef> missing,
-                              final ProjectRelationshipDiscoverer discoverer, final boolean storeRelationships )
+                              final ProjectRelationshipDiscoverer discoverer, final boolean storeRelationships, final int pass, final int idx )
     {
         this.todo = todo;
         this.config = config;
         this.roMissing = missing;
         this.discoverer = discoverer;
         this.storeRelationships = storeRelationships;
+        this.pass = pass;
+        this.idx = idx;
     }
 
     @Override
@@ -46,7 +52,7 @@ public class DiscoveryRunnable
     {
         final ProjectVersionRef ref = todo.getRef();
 
-        logger.info( "\n\n\n\nProcessing missing project: %s\n\n\n\n", ref );
+        logger.info( "\n\n\n\n%d.%d. Processing missing project: %s\n\n\n\n", pass, idx, ref );
 
         try
         {
@@ -58,7 +64,7 @@ public class DiscoveryRunnable
             }
             else if ( roMissing.contains( ref ) )
             {
-                logger.info( "MISS: Already marked as missing: %s", ref );
+                logger.info( "%d.%d. MISS: Already marked as missing: %s", pass, idx, ref );
             }
             else
             {
@@ -67,11 +73,11 @@ public class DiscoveryRunnable
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot discover subgraph for: %s. Reason: %s.", e, ref, e.getMessage() );
+            logger.error( "%d.%d. Cannot discover subgraph for: %s. Reason: %s.", e, pass, idx, ref, e.getMessage() );
         }
         catch ( final CartoDataException e )
         {
-            logger.error( "Failed to discover subgraph for: %s. Reason: %s.", e, ref, e.getMessage() );
+            logger.error( "%d.%d. Failed to discover subgraph for: %s. Reason: %s.", e, pass, idx, ref, e.getMessage() );
         }
         finally
         {
@@ -80,6 +86,11 @@ public class DiscoveryRunnable
                 latch.countDown();
             }
         }
+    }
+
+    public int getIndex()
+    {
+        return idx;
     }
 
     public DiscoveryResult getResult()

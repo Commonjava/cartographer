@@ -17,8 +17,6 @@ package org.commonjava.maven.cartographer.util;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,11 +39,6 @@ import org.apache.maven.model.PluginManagement;
 import org.apache.maven.model.Profile;
 import org.apache.maven.model.ReportPlugin;
 import org.apache.maven.model.Reporting;
-import org.cdmckay.coffeedom.CoffeeDOMException;
-import org.cdmckay.coffeedom.Document;
-import org.cdmckay.coffeedom.Element;
-import org.cdmckay.coffeedom.input.SAXBuilder;
-import org.cdmckay.coffeedom.xpath.XPath;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.PrefixedObjectValueSource;
 import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
@@ -71,7 +64,7 @@ import org.commonjava.util.logging.Logger;
 public class MavenModelProcessor
 {
 
-    private static final String SITE_PLUGIN = "org.apache.maven.plugins:maven-site-plugin";
+    //    private static final String SITE_PLUGIN = "org.apache.maven.plugins:maven-site-plugin";
 
     private static final Logger logger = new Logger( MavenModelProcessor.class );
 
@@ -234,126 +227,152 @@ public class MavenModelProcessor
         addPluginUsages( source, builder, build, model, false, location, projectRef );
         addPluginUsages( source, builder, build, model, true, location, projectRef );
         addReportPluginUsages( source, builder, reporting, model, location, projectRef );
-        addSiteReportPluginUsages( source, builder, build, model, location, projectRef );
+
+        // FIXME: Causes an error:
+        //17:04:20,745 ERROR [org.commonjava.maven.cartographer.util.MavenModelProcessor] (carto-aggregator-1) Cannot select report plugin definitions from site-plugin configuration. Error: Could not load default SAX parser: org.apache.xerces.parsers.SAXParser: SAX2 driver class org.apache.xerces.parsers.SAXParser not found: org.apache.xerces.parsers.SAXParser from [Module "deployment.aprox.war:main" from Service Module Loader]: org.cdmckay.coffeedom.CoffeeDOMException: Could not load default SAX parser: org.apache.xerces.parsers.SAXParser: SAX2 driver class org.apache.xerces.parsers.SAXParser not found: org.apache.xerces.parsers.SAXParser from [Module "deployment.aprox.war:main" from Service Module Loader]
+        //            at org.cdmckay.coffeedom.input.SAXBuilder.createParser(SAXBuilder.java:598) [coffeedom-1.0.0.jar:]
+        //            at org.cdmckay.coffeedom.input.SAXBuilder.build(SAXBuilder.java:471) [coffeedom-1.0.0.jar:]
+        //            at org.cdmckay.coffeedom.input.SAXBuilder.build(SAXBuilder.java:801) [coffeedom-1.0.0.jar:]
+        //            at org.commonjava.maven.cartographer.util.MavenModelProcessor.addSiteReportPlugins(MavenModelProcessor.java:294) [classes:]
+        //            at org.commonjava.maven.cartographer.util.MavenModelProcessor.addSiteReportPluginUsages(MavenModelProcessor.java:252) [classes:]
+        //            at org.commonjava.maven.cartographer.util.MavenModelProcessor.addPluginUsages(MavenModelProcessor.java:237) [classes:]
+        //            at org.commonjava.maven.cartographer.util.MavenModelProcessor.readRelationships(MavenModelProcessor.java:140) [classes:]
+        //            at org.commonjava.maven.cartographer.util.MavenModelProcessor$Proxy$_$$_WeldClientProxy.readRelationships(MavenModelProcessor$Proxy$_$$_WeldClientProxy.java) [classes:]
+        //            at org.commonjava.aprox.depgraph.discover.AproxModelDiscoverer.discoverRelationships(AproxModelDiscoverer.java:135) [classes:]
+        //            at org.commonjava.aprox.depgraph.discover.AproxModelDiscoverer$Proxy$_$$_WeldClientProxy.discoverRelationships(AproxModelDiscoverer$Proxy$_$$_WeldClientProxy.java) [classes:]
+        //            at org.commonjava.aprox.depgraph.discover.AproxProjectGraphDiscoverer.discoverRelationships(AproxProjectGraphDiscoverer.java:118) [classes:]
+        //            at org.commonjava.aprox.depgraph.discover.AproxProjectGraphDiscoverer$Proxy$_$$_WeldClientProxy.discoverRelationships(AproxProjectGraphDiscoverer$Proxy$_$$_WeldClientProxy.java) [classes:]
+        //            at org.commonjava.maven.cartographer.agg.DiscoveryRunnable.run(DiscoveryRunnable.java:57) [classes:]
+        //            at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145) [rt.jar:1.7.0_21]
+        //            at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615) [rt.jar:1.7.0_21]
+        //            at java.lang.Thread.run(Thread.java:722) [rt.jar:1.7.0_21]
+        //    Caused by: org.xml.sax.SAXException: SAX2 driver class org.apache.xerces.parsers.SAXParser not found
+        //    java.lang.ClassNotFoundException: org.apache.xerces.parsers.SAXParser from [Module "deployment.aprox.war:main" from Service Module Loader]
+        //            at org.xml.sax.helpers.XMLReaderFactory.loadClass(XMLReaderFactory.java:229) [rt.jar:1.7.0_21]
+        //            at org.xml.sax.helpers.XMLReaderFactory.createXMLReader(XMLReaderFactory.java:220) [rt.jar:1.7.0_21]
+        //            at org.cdmckay.coffeedom.input.SAXBuilder.createParser(SAXBuilder.java:592) [coffeedom-1.0.0.jar:]
+        //            ... 15 more
+        //    Caused by: java.lang.ClassNotFoundException: org.apache.xerces.parsers.SAXParser from [Module "deployment.aprox.war:main" from Service Module Loader]
+        //        addSiteReportPluginUsages( source, builder, build, model, location, projectRef );
     }
 
-    private void addSiteReportPluginUsages( final URI source, final Builder builder, final BuildBase build, final Model model, final URI location,
-                                            final ProjectVersionRef projectRef )
-        throws CartoDataException
-    {
-        if ( build != null )
-        {
-            List<Plugin> plugins = build.getPlugins();
-            for ( final Plugin plugin : plugins )
-            {
-                if ( plugin.getKey()
-                           .equals( SITE_PLUGIN ) )
-                {
-                    addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
-                }
-            }
-
-            final PluginManagement pmgmt = build.getPluginManagement();
-            if ( pmgmt != null )
-            {
-                plugins = pmgmt.getPlugins();
-                for ( final Plugin plugin : plugins )
-                {
-                    if ( plugin.getKey()
-                               .equals( SITE_PLUGIN ) )
-                    {
-                        addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
-                    }
-                }
-            }
-        }
-    }
-
-    public void addSiteReportPlugins( final URI source, final Builder builder, final Plugin plugin, final Object configuration,
-                                      final ProjectVersionRef projectRef, final Model model, final URI location )
-        throws CartoDataException
-    {
-        XPath reportPluginPath = null;
-        try
-        {
-            reportPluginPath = XPath.newInstance( "configuration/reportPlugins/*" );
-        }
-        catch ( final CoffeeDOMException e )
-        {
-            logger.error( "Cannot compile report-plugin selection XPath for site-plugin configuration. Error: " + e.getMessage(), e );
-        }
-
-        if ( reportPluginPath == null || configuration == null )
-        {
-            return;
-        }
-
-        final String xml = configuration.toString();
-        try
-        {
-            final Document configDoc = new SAXBuilder().build( new ByteArrayInputStream( xml.getBytes() ) );
-
-            final List<Object> pluginNodes = reportPluginPath.selectNodes( configDoc );
-
-            if ( pluginNodes != null )
-            {
-                for ( final Object node : pluginNodes )
-                {
-                    final Element pluginNode = (Element) node;
-                    final Element gEl = pluginNode.getChild( "groupId" );
-                    final Element aEl = pluginNode.getChild( "artifactId" );
-                    final Element vEl = pluginNode.getChild( "version" );
-
-                    if ( gEl == null || aEl == null )
-                    {
-                        logger.debug( "Cannot process invalid report-plugin configuration: %s:%s", gEl, aEl );
-                        continue;
-                    }
-
-                    String gid = gEl.getTextNormalize();
-                    String aid = aEl.getTextNormalize();
-
-                    String ver = null;
-                    if ( vEl != null )
-                    {
-                        ver = vEl.getTextNormalize();
-                    }
-
-                    if ( isEmpty( ver ) )
-                    {
-                        ver = "[0,]";
-                        logger.debug( "No version found for: %s:%s. Skipping.", gEl, aEl );
-                        continue;
-                    }
-
-                    gid = resolveExpressions( gid, model );
-                    aid = resolveExpressions( aid, model );
-                    ver = resolveExpressions( ver, model );
-
-                    if ( containsNull( gid, aid, ver ) )
-                    {
-                        logger.info( "Incomplete GAV for site-report plugin: %s:%s:%s", gid, aid, ver );
-                        continue;
-                    }
-
-                    final ProjectVersionRef ref = new ProjectVersionRef( gid, aid, ver );
-
-                    if ( isValid( ref ) )
-                    {
-                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
-                    }
-                }
-            }
-        }
-        catch ( final CoffeeDOMException e )
-        {
-            logger.error( "Cannot select report plugin definitions from site-plugin configuration. Error: " + e.getMessage(), e );
-        }
-        catch ( final IOException e )
-        {
-            logger.error( "Cannot read site-plugin configuration. Error: " + e.getMessage(), e );
-        }
-    }
+    //    private void addSiteReportPluginUsages( final URI source, final Builder builder, final BuildBase build, final Model model, final URI location,
+    //                                            final ProjectVersionRef projectRef )
+    //        throws CartoDataException
+    //    {
+    //        if ( build != null )
+    //        {
+    //            List<Plugin> plugins = build.getPlugins();
+    //            for ( final Plugin plugin : plugins )
+    //            {
+    //                if ( plugin.getKey()
+    //                           .equals( SITE_PLUGIN ) )
+    //                {
+    //                    addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
+    //                }
+    //            }
+    //
+    //            final PluginManagement pmgmt = build.getPluginManagement();
+    //            if ( pmgmt != null )
+    //            {
+    //                plugins = pmgmt.getPlugins();
+    //                for ( final Plugin plugin : plugins )
+    //                {
+    //                    if ( plugin.getKey()
+    //                               .equals( SITE_PLUGIN ) )
+    //                    {
+    //                        addSiteReportPlugins( source, builder, plugin, plugin.getConfiguration(), projectRef, model, location );
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //
+    //    public void addSiteReportPlugins( final URI source, final Builder builder, final Plugin plugin, final Object configuration,
+    //                                      final ProjectVersionRef projectRef, final Model model, final URI location )
+    //        throws CartoDataException
+    //    {
+    //        XPath reportPluginPath = null;
+    //        try
+    //        {
+    //            reportPluginPath = XPath.newInstance( "configuration/reportPlugins/*" );
+    //        }
+    //        catch ( final CoffeeDOMException e )
+    //        {
+    //            logger.error( "Cannot compile report-plugin selection XPath for site-plugin configuration. Error: " + e.getMessage(), e );
+    //        }
+    //
+    //        if ( reportPluginPath == null || configuration == null )
+    //        {
+    //            return;
+    //        }
+    //
+    //        final String xml = configuration.toString();
+    //        try
+    //        {
+    //            final Document configDoc = new SAXBuilder().build( new ByteArrayInputStream( xml.getBytes() ) );
+    //
+    //            final List<Object> pluginNodes = reportPluginPath.selectNodes( configDoc );
+    //
+    //            if ( pluginNodes != null )
+    //            {
+    //                for ( final Object node : pluginNodes )
+    //                {
+    //                    final Element pluginNode = (Element) node;
+    //                    final Element gEl = pluginNode.getChild( "groupId" );
+    //                    final Element aEl = pluginNode.getChild( "artifactId" );
+    //                    final Element vEl = pluginNode.getChild( "version" );
+    //
+    //                    if ( gEl == null || aEl == null )
+    //                    {
+    //                        logger.debug( "Cannot process invalid report-plugin configuration: %s:%s", gEl, aEl );
+    //                        continue;
+    //                    }
+    //
+    //                    String gid = gEl.getTextNormalize();
+    //                    String aid = aEl.getTextNormalize();
+    //
+    //                    String ver = null;
+    //                    if ( vEl != null )
+    //                    {
+    //                        ver = vEl.getTextNormalize();
+    //                    }
+    //
+    //                    if ( isEmpty( ver ) )
+    //                    {
+    //                        ver = "[0,]";
+    //                        logger.debug( "No version found for: %s:%s. Skipping.", gEl, aEl );
+    //                        continue;
+    //                    }
+    //
+    //                    gid = resolveExpressions( gid, model );
+    //                    aid = resolveExpressions( aid, model );
+    //                    ver = resolveExpressions( ver, model );
+    //
+    //                    if ( containsNull( gid, aid, ver ) )
+    //                    {
+    //                        logger.info( "Incomplete GAV for site-report plugin: %s:%s:%s", gid, aid, ver );
+    //                        continue;
+    //                    }
+    //
+    //                    final ProjectVersionRef ref = new ProjectVersionRef( gid, aid, ver );
+    //
+    //                    if ( isValid( ref ) )
+    //                    {
+    //                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        catch ( final CoffeeDOMException e )
+    //        {
+    //            logger.error( "Cannot select report plugin definitions from site-plugin configuration. Error: " + e.getMessage(), e );
+    //        }
+    //        catch ( final IOException e )
+    //        {
+    //            logger.error( "Cannot read site-plugin configuration. Error: " + e.getMessage(), e );
+    //        }
+    //    }
 
     public void addReportPluginUsages( final URI source, final Builder builder, final Reporting reporting, final Model model, final URI location,
                                        final ProjectVersionRef projectRef )
