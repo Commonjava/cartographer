@@ -236,7 +236,7 @@ public class ResolveOps
                     final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, options.getDiscoveryConfig() );
                     if ( specific == null )
                     {
-                        // TODO: Is this really the best we can do??
+                        logger.error( "No version available for variable reference: %s. Skipping.", ar.asProjectVersionRef() );
                         continue;
                     }
 
