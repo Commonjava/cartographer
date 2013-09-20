@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
@@ -18,7 +16,6 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.reader.MavenPomReader;
 import org.commonjava.maven.galley.maven.view.DependencyView;
 import org.commonjava.maven.galley.maven.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
@@ -31,18 +28,6 @@ public class DependencyPluginPatcher
 
     private final Logger logger = new Logger( getClass() );
 
-    @Inject
-    private MavenPomReader pomReader;
-
-    protected DependencyPluginPatcher()
-    {
-    }
-
-    public DependencyPluginPatcher( final MavenPomReader pomReader )
-    {
-        this.pomReader = pomReader;
-    }
-
     @Override
     public DiscoveryResult patch( final DiscoveryResult orig, final List<? extends Location> locations, final Map<String, Object> context )
     {
@@ -50,12 +35,7 @@ public class DependencyPluginPatcher
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
-            MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
-            if ( pomView == null )
-            {
-                pomView = pomReader.read( ref, locations );
-                context.put( POM_VIEW, pomView );
-            }
+            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
 
             // get all artifactItems with a version element. Only these need to be verified.
             final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";

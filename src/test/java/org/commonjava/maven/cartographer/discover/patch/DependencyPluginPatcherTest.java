@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ public class DependencyPluginPatcherTest
     public void setup()
     {
         setupGalley();
-        patcher = new DependencyPluginPatcher( galleyCore.getPomReader() );
+        patcher = new DependencyPluginPatcher();
     }
 
     private final URI profileLoc = RelationshipUtils.profileLocation( "test-profile" );
@@ -54,7 +53,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -85,7 +84,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -116,7 +115,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -147,7 +146,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -178,7 +177,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );

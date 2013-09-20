@@ -2,8 +2,10 @@ package org.commonjava.maven.cartographer.discover.patch;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Level;
@@ -15,6 +17,7 @@ import org.commonjava.maven.galley.maven.view.DependencyView;
 import org.commonjava.maven.galley.maven.view.MavenPomView;
 import org.commonjava.maven.galley.maven.view.ProjectRefView;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.util.logging.Log4jUtil;
 import org.junit.BeforeClass;
@@ -35,6 +38,21 @@ public abstract class AbstractPatcherTest
     protected void setupGalley()
     {
         galleyCore.initMissingComponents();
+    }
+
+    protected Map<String, Object> getContext( final ProjectVersionRef ref, final Location location )
+        throws Exception
+    {
+        final Transfer txfr = galleyCore.getArtifacts()
+                                        .retrieve( location, ref.asPomArtifact() );
+        final MavenPomView read = galleyCore.getPomReader()
+                                            .read( txfr, Arrays.asList( location ) );
+
+        final Map<String, Object> ctx = new HashMap<>();
+        ctx.put( DepgraphPatcher.POM_VIEW, read );
+        ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, txfr );
+
+        return ctx;
     }
 
     protected Set<ProjectRelationship<?>> parseDependencyRelationships( final String pom, final ProjectVersionRef pvr, final Location location,

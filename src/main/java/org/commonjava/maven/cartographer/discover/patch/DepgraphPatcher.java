@@ -9,8 +9,6 @@ import org.commonjava.maven.galley.model.Location;
 public interface DepgraphPatcher
 {
 
-    String MAVEN_MODEL_CTX_KEY = "maven-model";
-
     String TRANSFER_CTX_KEY = "transfer";
 
     String POM_VIEW = "pom-view";

@@ -12,8 +12,8 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.apache.maven.model.Model;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
+import org.commonjava.maven.galley.maven.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -53,12 +53,12 @@ public class PatcherSupport
     }
 
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
-                                  final Model model, final Transfer transfer )
+                                  final MavenPomView pomView, final Transfer transfer )
     {
         logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
         DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<>();
-        ctx.put( DepgraphPatcher.MAVEN_MODEL_CTX_KEY, model );
+        ctx.put( DepgraphPatcher.POM_VIEW, pomView );
         ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, transfer );
 
         for ( final String patcherId : enabledPatchers )

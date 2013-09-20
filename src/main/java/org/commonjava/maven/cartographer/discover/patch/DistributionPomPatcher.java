@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
@@ -16,7 +14,6 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.reader.MavenPomReader;
 import org.commonjava.maven.galley.maven.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
@@ -28,18 +25,6 @@ public class DistributionPomPatcher
 
     private final Logger logger = new Logger( getClass() );
 
-    @Inject
-    private MavenPomReader pomReader;
-
-    protected DistributionPomPatcher()
-    {
-    }
-
-    public DistributionPomPatcher( final MavenPomReader pomReader )
-    {
-        this.pomReader = pomReader;
-    }
-
     @Override
     public DiscoveryResult patch( final DiscoveryResult orig, final List<? extends Location> locations, final Map<String, Object> context )
     {
@@ -47,12 +32,7 @@ public class DistributionPomPatcher
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
-            MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
-            if ( pomView == null )
-            {
-                pomView = pomReader.read( ref, locations );
-                context.put( POM_VIEW, pomView );
-            }
+            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
 
             // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
             final String assemblyOnPomProjectPath =

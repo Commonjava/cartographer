@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -35,7 +34,7 @@ public class DistributionPomPatcherTest
     public void setup()
     {
         setupGalley();
-        patcher = new DistributionPomPatcher( galleyCore.getPomReader() );
+        patcher = new DistributionPomPatcher();
     }
 
     @Test
@@ -53,7 +52,7 @@ public class DistributionPomPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -84,7 +83,7 @@ public class DistributionPomPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
@@ -115,7 +114,7 @@ public class DistributionPomPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), new HashMap<String, Object>() );
+        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( origResult.getAcceptedRelationships() );
