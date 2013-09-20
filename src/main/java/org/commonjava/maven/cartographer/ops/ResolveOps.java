@@ -234,6 +234,12 @@ public class ResolveOps
                 if ( ar.isVariableVersion() )
                 {
                     final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, options.getDiscoveryConfig() );
+                    if ( specific == null )
+                    {
+                        // TODO: Is this really the best we can do??
+                        continue;
+                    }
+
                     ar =
                         new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(),
                                          ar.isOptional() );
