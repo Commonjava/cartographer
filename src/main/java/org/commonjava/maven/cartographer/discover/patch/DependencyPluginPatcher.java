@@ -20,7 +20,6 @@ import org.commonjava.maven.galley.maven.view.DependencyView;
 import org.commonjava.maven.galley.maven.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
-import org.w3c.dom.Element;
 
 public class DependencyPluginPatcher
     implements DepgraphPatcher
@@ -41,7 +40,8 @@ public class DependencyPluginPatcher
             final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";
 
             logger.info( "Looking for dependency-plugin usages matching: '%s'", depArtifactItemsPath );
-            final List<Element> depArtifactItems = pomView.resolveXPathToElements( depArtifactItemsPath, false );
+            // TODO: Switch to a DependencyView here, with path to dependencyManagement...
+            final List<DependencyView> depArtifactItems = pomView.getAllDependenciesMatching( depArtifactItemsPath );
             if ( depArtifactItems == null || depArtifactItems.isEmpty() )
             {
                 return orig;
@@ -77,7 +77,7 @@ public class DependencyPluginPatcher
         return result;
     }
 
-    private void calculateDependencyPluginPatch( final List<Element> depArtifactItems,
+    private void calculateDependencyPluginPatch( final List<DependencyView> depArtifactItems,
                                                  final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
                                                  final MavenPomView pomView, final URI source, final Set<ProjectRelationship<?>> accepted,
                                                  final Set<ProjectRelationship<?>> rejected )
@@ -86,10 +86,9 @@ public class DependencyPluginPatcher
                         : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )
         {
-            for ( final Element ai : depArtifactItems )
+            for ( final DependencyView depView : depArtifactItems )
             {
-                final URI pomLocation = RelationshipUtils.profileLocation( pomView.getProfileIdFor( ai ) );
-                final DependencyView depView = pomView.asDependency( ai );
+                final URI pomLocation = RelationshipUtils.profileLocation( depView.getProfileId() );
                 final VersionlessArtifactRef depRef = depView.asVersionlessArtifactRef();
                 logger.info( "Detected dependency-plugin usage with key: %s", depRef );
 

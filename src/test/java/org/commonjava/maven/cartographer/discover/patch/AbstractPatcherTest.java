@@ -61,7 +61,7 @@ public abstract class AbstractPatcherTest
         final Set<ProjectRelationship<?>> discovered = new HashSet<>();
         final MavenPomView pomView = galleyCore.getPomReader()
                                                .read( pvr, Arrays.asList( location ) );
-        List<DependencyView> deps = pomView.getAllDependencies();
+        List<DependencyView> deps = pomView.getAllDirectDependencies();
         int idx = 0;
         for ( final DependencyView dep : deps )
         {

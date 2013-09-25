@@ -41,6 +41,8 @@ import org.commonjava.maven.galley.ArtifactManager;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.type.TypeMapper;
+import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
@@ -63,6 +65,9 @@ public class ResolveOps
 
     @Inject
     private ArtifactManager artifacts;
+
+    @Inject
+    private TypeMapper typeMapper;
 
     protected ResolveOps()
     {
@@ -288,7 +293,7 @@ public class ResolveOps
                         }
 
                         // 2. match up the resulting list against the extras we have
-                        for ( final TypeAndClassifier tc : tcs )
+                        tsAndCs: for ( final TypeAndClassifier tc : tcs )
                         {
                             for ( final ExtraCT extra : extras )
                             {
@@ -302,7 +307,24 @@ public class ResolveOps
                                     final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
                                     logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve classifier/type artifact from listing: %s",
                                                  projectCounter, projectSz, artifactCounter, artifactSz, extCounter, tcs.length, extAR );
-                                    addToContent( extAR, items, artifactLocation, excluded, seen );
+
+                                    // if we're using a listing for wildcards, we've already established that these exist...
+                                    // so don't waste the time on individual calls!
+                                    //
+                                    // addToContent( extAR, items, artifactLocation, excluded, seen );
+                                    //
+                                    ConcreteResource item;
+                                    try
+                                    {
+                                        item = new ConcreteResource( location, PathUtils.formatArtifactPath( extAR, typeMapper ) );
+                                    }
+                                    catch ( final TransferException e )
+                                    {
+                                        logger.error( "SHOULD NEVER HAPPEN: %s", e, e.getMessage() );
+                                        break tsAndCs;
+                                    }
+
+                                    items.put( ar, item );
                                     break;
                                 }
                             }

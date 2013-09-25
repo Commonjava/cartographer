@@ -47,10 +47,14 @@ import org.commonjava.util.logging.Logger;
 public class MavenModelProcessor
 {
 
-    private static final Logger logger = new Logger( MavenModelProcessor.class );
+    private final Logger logger = new Logger( MavenModelProcessor.class );
 
     @Inject
     private CartoDataManager dataManager;
+
+    private final boolean processManagedInfo = false;
+
+    private final boolean processBuildInfo = false;
 
     protected MavenModelProcessor()
     {
@@ -76,6 +80,8 @@ public class MavenModelProcessor
     public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source )
         throws CartoDataException
     {
+        logger.info( "Reading relationships for: %s\n  (from: %s)", pomView.getRef(), source );
+
         try
         {
             final ProjectVersionRef projectRef = pomView.asProjectVersionRef();
@@ -83,11 +89,14 @@ public class MavenModelProcessor
             final EProjectDirectRelationships.Builder builder = new EProjectDirectRelationships.Builder( source, projectRef );
 
             addParentRelationship( source, builder, pomView, projectRef );
-            addExtensionUsages( source, builder, pomView, projectRef );
 
             addDependencyRelationships( source, builder, pomView, projectRef );
 
-            addPluginUsages( source, builder, pomView, projectRef );
+            if ( processBuildInfo )
+            {
+                addExtensionUsages( source, builder, pomView, projectRef );
+                addPluginUsages( source, builder, pomView, projectRef );
+            }
 
             final EProjectDirectRelationships rels = builder.build();
             return new DiscoveryResult( source, projectRef, rels.getAllRelationships() );
@@ -115,12 +124,15 @@ public class MavenModelProcessor
                 continue;
             }
 
+            if ( !ext.isValid() )
+            {
+                logger.warn( "Skipping invalid build extension: %s", ext.asProjectVersionRef() );
+                continue;
+            }
+
             final ProjectVersionRef ref = ext.asProjectVersionRef();
 
-            if ( isValid( ref ) )
-            {
-                builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
-            }
+            builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
         }
     }
 
@@ -142,14 +154,17 @@ public class MavenModelProcessor
         {
             for ( final PluginView plugin : plugins )
             {
+                if ( !plugin.isValid() )
+                {
+                    logger.warn( "Skipping invalid site reporting plugin: %s", plugin.asProjectVersionRef() );
+                    continue;
+                }
+
                 final ProjectVersionRef ref = plugin.asProjectVersionRef();
                 final String profileId = plugin.getProfileId();
                 final URI location = RelationshipUtils.profileLocation( profileId );
 
-                if ( isValid( ref ) )
-                {
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
-                }
+                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
             }
         }
     }
@@ -162,16 +177,18 @@ public class MavenModelProcessor
         {
             for ( final PluginView refView : plugins )
             {
+                if ( !refView.isValid() )
+                {
+                    logger.warn( "Skipping invalid old-style reporting plugin: %s", refView.asProjectVersionRef() );
+                    continue;
+                }
+
                 final ProjectVersionRef ref = refView.asProjectVersionRef();
                 final String profileId = refView.getProfileId();
                 final URI location = RelationshipUtils.profileLocation( profileId );
 
-                if ( isValid( ref ) )
-                {
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                          false ),
-                                                                 false ) );
-                }
+                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                      false ), false ) );
             }
         }
     }
@@ -179,18 +196,24 @@ public class MavenModelProcessor
     public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
-        List<PluginView> plugins = pomView.getAllManagedBuildPlugins();
-        if ( plugins != null )
+        if ( processManagedInfo )
         {
-            for ( final PluginView plugin : plugins )
+            final List<PluginView> plugins = pomView.getAllManagedBuildPlugins();
+            if ( plugins != null )
             {
-                final ProjectVersionRef ref = plugin.asProjectVersionRef();
-
-                final String profileId = plugin.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                if ( isValid( ref ) )
+                for ( final PluginView plugin : plugins )
                 {
+                    if ( !plugin.isValid() )
+                    {
+                        logger.warn( "Skipping invalid managed plugin: %s", plugin.asProjectVersionRef() );
+                        continue;
+                    }
+
+                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+
+                    final String profileId = plugin.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
                     builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
                                                                                                                                           true ),
                                                                  true ) );
@@ -198,21 +221,23 @@ public class MavenModelProcessor
             }
         }
 
-        plugins = pomView.getAllBuildPlugins();
+        final List<PluginView> plugins = pomView.getAllBuildPlugins();
         if ( plugins != null )
         {
             for ( final PluginView plugin : plugins )
             {
+                if ( !plugin.isValid() )
+                {
+                    logger.warn( "Skipping invalid plugin: %s", plugin.asProjectVersionRef() );
+                    continue;
+                }
+
                 final ProjectVersionRef ref = plugin.asProjectVersionRef();
                 final String profileId = plugin.getProfileId();
                 final URI location = RelationshipUtils.profileLocation( profileId );
 
-                if ( isValid( ref ) )
-                {
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                          false ),
-                                                                 false ) );
-                }
+                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                      false ), false ) );
             }
         }
     }
@@ -220,42 +245,51 @@ public class MavenModelProcessor
     public void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
         throws CartoDataException, InvalidVersionSpecificationException
     {
-        List<DependencyView> deps = pomView.getAllManagedDependencies();
-        if ( deps != null )
+        if ( processManagedInfo )
         {
-            for ( final DependencyView dep : deps )
+            final List<DependencyView> deps = pomView.getAllManagedDependencies();
+            if ( deps != null )
             {
-                final ProjectVersionRef ref = dep.asProjectVersionRef();
-
-                final String profileId = dep.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
-
-                if ( isValid( artifactRef ) )
+                for ( final DependencyView dep : deps )
                 {
+                    if ( !dep.isValid() )
+                    {
+                        logger.warn( "Skipping invalid managed dependency: %s", dep.asArtifactRef() );
+                        continue;
+                    }
+
+                    final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                    final String profileId = dep.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
+                    final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
                     builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
                                                                           builder.getNextDependencyIndex( true ), true ) );
                 }
             }
         }
 
-        deps = pomView.getAllDirectDependencies();
+        final List<DependencyView> deps = pomView.getAllDirectDependencies();
         if ( deps != null )
         {
             for ( final DependencyView dep : deps )
             {
+                if ( !dep.isValid() )
+                {
+                    logger.warn( "Skipping invalid dependency: %s", dep.asArtifactRef() );
+                    continue;
+                }
+
                 final ProjectVersionRef ref = dep.asProjectVersionRef();
                 final String profileId = dep.getProfileId();
                 final URI location = RelationshipUtils.profileLocation( profileId );
 
                 final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
-                if ( isValid( artifactRef ) )
-                {
-                    builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
-                                                                          builder.getNextDependencyIndex( false ), false ) );
-                }
+                builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
+                                                                      builder.getNextDependencyIndex( false ), false ) );
             }
         }
     }
@@ -266,32 +300,19 @@ public class MavenModelProcessor
         final ParentView parent = pomView.getParent();
         if ( parent != null )
         {
-            final ProjectVersionRef ref = parent.asProjectVersionRef();
-            if ( isValid( ref ) )
+            if ( !parent.isValid() )
             {
-                builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
+                logger.warn( "Skipping invalid parent declaration: %s", parent.asProjectVersionRef() );
+                return;
             }
+
+            final ProjectVersionRef ref = parent.asProjectVersionRef();
+            builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
         }
         else
         {
             builder.withParent( new ParentRelationship( source, builder.getProjectRef() ) );
         }
-    }
-
-    private boolean isValid( final ProjectVersionRef ref )
-    {
-        boolean valid = true;
-        try
-        {
-            ref.getVersionSpec();
-        }
-        catch ( final InvalidVersionSpecificationException e )
-        {
-            logger.error( "Invalid version: %s. Reason: %s", e, ref, e.getMessage() );
-            valid = false;
-        }
-
-        return valid;
     }
 
 }
