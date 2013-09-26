@@ -98,7 +98,7 @@ public class RepoContentCollector
     {
         try
         {
-            final Map<ArtifactRef, ConcreteResource> items = new HashMap<>();
+            items = new HashMap<>();
 
             logger.info( "%d/%d %d/%d. Including: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
 
@@ -190,7 +190,8 @@ public class RepoContentCollector
                                     break tsAndCs;
                                 }
 
-                                items.put( ar, item );
+                                logger.info( "+ %s (Wildcard addition)", extAR );
+                                items.put( extAR, item );
                                 break;
                             }
                         }
@@ -264,8 +265,6 @@ public class RepoContentCollector
                     }
                 }
             }
-
-            this.items = items;
         }
         finally
         {

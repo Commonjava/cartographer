@@ -1,5 +1,6 @@
 package org.commonjava.maven.cartographer.ops;
 
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectReferences;
 
 import java.net.URI;
@@ -260,7 +261,7 @@ public class ResolveOps
         }
         catch ( final InterruptedException e )
         {
-            logger.info( "Abandoning repo-content assembly for: %s", recipe );
+            logger.error( "Abandoning repo-content assembly for: %s", recipe );
         }
 
         for ( final RepoContentCollector collector : collectors )
@@ -269,7 +270,12 @@ public class ResolveOps
 
             if ( items != null && !items.isEmpty() )
             {
+                logger.info( "Returning for: %s\n\n  %s", collector.getRef(), join( items.entrySet(), "\n  " ) );
                 itemMap.put( collector.getRef(), items );
+            }
+            else
+            {
+                logger.warn( "No items returned for: %s", collector.getRef() );
             }
         }
 
