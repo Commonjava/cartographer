@@ -143,6 +143,7 @@ public class Cartographer
         final ExecutorService aggExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
         final ExecutorService transportExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
         final ExecutorService batchExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
+        final ExecutorService resolveExecutor = Executors.newFixedThreadPool( 10 );
 
         final DownloadHandler dh = new DownloadHandler( nfc, transportExecutor );
         final UploadHandler uh = new UploadHandler( nfc, transportExecutor );
@@ -155,7 +156,7 @@ public class Cartographer
         final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts, data, new PatcherSupport() );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
 
-        this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator, artifacts );
+        this.resolver = new ResolveOps( data, sourceFactory, discoverer, aggregator, artifacts, resolveExecutor );
     }
 
     public CalculationOps getCalculator()

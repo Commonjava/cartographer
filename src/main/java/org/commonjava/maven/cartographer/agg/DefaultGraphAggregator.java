@@ -46,7 +46,7 @@ public class DefaultGraphAggregator
     private ProjectRelationshipDiscoverer discoverer;
 
     @Inject
-    @ExecutorConfig( daemon = true, named = "carto-aggregator", priority = 9, threads = 2 )
+    @ExecutorConfig( daemon = true, named = "carto-aggregator", priority = 9, threads = 8 )
     private ExecutorService executor;
 
     protected DefaultGraphAggregator()
