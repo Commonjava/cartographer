@@ -46,7 +46,11 @@ public class SOBBuildablesFilter
     public boolean accept( final ProjectRelationship<?> rel )
     {
         boolean result;
-        if ( !acceptManaged && rel.isManaged() )
+        if ( isBOM( rel ) )
+        {
+            result = true;
+        }
+        else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }
@@ -59,6 +63,23 @@ public class SOBBuildablesFilter
         //                                              .toUpperCase(), rel );
 
         return result;
+    }
+
+    private boolean isBOM( final ProjectRelationship<?> rel )
+    {
+        if ( !rel.isManaged() )
+        {
+            return false;
+        }
+
+        if ( !( rel instanceof DependencyRelationship ) )
+        {
+            return false;
+        }
+
+        final DependencyRelationship dr = (DependencyRelationship) rel;
+        return ( dr.getScope() == DependencyScope._import && "pom".equals( dr.getTargetArtifact()
+                                                                             .getType() ) );
     }
 
     @Override

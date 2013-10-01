@@ -91,5 +91,8 @@ public final class PresetAssertions
 
         final DependencyRelationship runtimeManagedDep = new DependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true );
         assertThat( "Managed Dependency not rejected", filter.accept( runtimeManagedDep ), equalTo( false ) );
+
+        final DependencyRelationship bom = new DependencyRelationship( from, src, tgt.asPomArtifact(), DependencyScope._import, 0, true );
+        assertThat( "BOM Dependency rejected!", filter.accept( bom ), equalTo( true ) );
     }
 }

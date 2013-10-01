@@ -271,6 +271,29 @@ public class MavenModelProcessor
             }
         }
 
+        // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
+        final List<DependencyView> boms = pomView.getAllBOMs();
+        if ( boms != null )
+        {
+            for ( final DependencyView bom : boms )
+            {
+                if ( !bom.isValid() )
+                {
+                    logger.warn( "Skipping invalid dependency: %s", bom.asArtifactRef() );
+                    continue;
+                }
+
+                final ProjectVersionRef ref = bom.asProjectVersionRef();
+                final String profileId = bom.getProfileId();
+                final URI location = RelationshipUtils.profileLocation( profileId );
+
+                final ArtifactRef artifactRef = new ArtifactRef( ref, bom.getType(), bom.getClassifier(), bom.isOptional() );
+
+                builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, bom.getScope(),
+                                                                      builder.getNextDependencyIndex( true ), true ) );
+            }
+        }
+
         final List<DependencyView> deps = pomView.getAllDirectDependencies();
         if ( deps != null )
         {

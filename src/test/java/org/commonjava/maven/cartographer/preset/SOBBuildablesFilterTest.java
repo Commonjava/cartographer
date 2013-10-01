@@ -68,7 +68,7 @@ public class SOBBuildablesFilterTest
     }
 
     @Test
-    public void initialInstanceRejectsAllManagedRelationships()
+    public void initialInstanceRejectsAllManagedRelationships_EXCEPT_BOM()
     {
         assertRejectsAllManaged( filter, from, src, tgt );
     }
