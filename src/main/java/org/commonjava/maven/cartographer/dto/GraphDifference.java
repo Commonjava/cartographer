@@ -10,48 +10,45 @@ import org.commonjava.maven.cartographer.util.GraphUtils;
 public class GraphDifference
 {
 
-    private final Set<ProjectVersionRef> fromProjects;
+    private Set<ProjectRelationship<?>> added;
 
-    private final ProjectRelationshipFilter fromFilter;
+    private Set<ProjectRelationship<?>> removed;
 
-    private final Set<ProjectVersionRef> toProjects;
+    private GraphDescription toGraph;
 
-    private final ProjectRelationshipFilter toFilter;
+    private GraphDescription fromGraph;
 
-    private final Set<ProjectRelationship<?>> added;
-
-    private final Set<ProjectRelationship<?>> removed;
-
-    public GraphDifference( final Set<ProjectVersionRef> fromProjects, final ProjectRelationshipFilter fromFilter,
-                            final Set<ProjectVersionRef> toProjects, final ProjectRelationshipFilter toFilter,
-                            final Set<ProjectRelationship<?>> added, final Set<ProjectRelationship<?>> removed )
+    protected GraphDifference()
     {
-        this.fromProjects = fromProjects;
-        this.fromFilter = fromFilter;
-        this.toProjects = toProjects;
-        this.toFilter = toFilter;
+    }
+
+    public GraphDifference( final GraphDescription fromGraph, final GraphDescription toGraph, final Set<ProjectRelationship<?>> added,
+                            final Set<ProjectRelationship<?>> removed )
+    {
+        this.fromGraph = fromGraph;
+        this.toGraph = toGraph;
         this.added = added;
         this.removed = removed;
     }
 
     public Set<ProjectVersionRef> getFromProjects()
     {
-        return fromProjects;
+        return fromGraph.getRoots();
     }
 
     public ProjectRelationshipFilter getFromFilter()
     {
-        return fromFilter;
+        return fromGraph.getFilter();
     }
 
     public Set<ProjectVersionRef> getToProjects()
     {
-        return toProjects;
+        return toGraph.getRoots();
     }
 
     public ProjectRelationshipFilter getToFilter()
     {
-        return toFilter;
+        return toGraph.getFilter();
     }
 
     public Set<ProjectRelationship<?>> getAddedRelationships()
@@ -72,6 +69,46 @@ public class GraphDifference
     public Set<ProjectVersionRef> getRemovedProjects()
     {
         return GraphUtils.targets( removed );
+    }
+
+    public Set<ProjectRelationship<?>> getAdded()
+    {
+        return added;
+    }
+
+    public Set<ProjectRelationship<?>> getRemoved()
+    {
+        return removed;
+    }
+
+    public GraphDescription getToGraph()
+    {
+        return toGraph;
+    }
+
+    public GraphDescription getFromGraph()
+    {
+        return fromGraph;
+    }
+
+    protected void setAdded( final Set<ProjectRelationship<?>> added )
+    {
+        this.added = added;
+    }
+
+    protected void setRemoved( final Set<ProjectRelationship<?>> removed )
+    {
+        this.removed = removed;
+    }
+
+    protected void setToGraph( final GraphDescription toGraph )
+    {
+        this.toGraph = toGraph;
+    }
+
+    protected void setFromGraph( final GraphDescription fromGraph )
+    {
+        this.fromGraph = fromGraph;
     }
 
 }

@@ -1,18 +1,19 @@
 package org.commonjava.maven.cartographer.ops;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
+import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
+import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphDifference;
 
 @ApplicationScoped
@@ -31,20 +32,15 @@ public class CalculationOps
         this.data = data;
     }
 
-    public GraphDifference difference( final Set<ProjectVersionRef> firstProjects,
-                                       final ProjectRelationshipFilter firstFilter,
-                                       final Set<ProjectVersionRef> secondProjects,
-                                       final ProjectRelationshipFilter secondFilter )
+    public GraphDifference difference( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
-        final EProjectWeb first =
-            data.getProjectWeb( firstFilter, firstProjects.toArray( new ProjectVersionRef[firstProjects.size()] ) );
+        final EProjectWeb firstWeb = data.getProjectWeb( from.getFilter(), from.getRootsArray() );
 
-        final EProjectWeb second =
-            data.getProjectWeb( secondFilter, secondProjects.toArray( new ProjectVersionRef[secondProjects.size()] ) );
+        final EProjectWeb secondWeb = data.getProjectWeb( to.getFilter(), to.getRootsArray() );
 
-        final Set<ProjectRelationship<?>> firstAll = first.getAllRelationships();
-        final Set<ProjectRelationship<?>> secondAll = second.getAllRelationships();
+        final Set<ProjectRelationship<?>> firstAll = firstWeb.getAllRelationships();
+        final Set<ProjectRelationship<?>> secondAll = secondWeb.getAllRelationships();
 
         final Set<ProjectRelationship<?>> added = new HashSet<ProjectRelationship<?>>( secondAll );
         added.removeAll( firstAll );
@@ -52,73 +48,68 @@ public class CalculationOps
         final Set<ProjectRelationship<?>> removed = new HashSet<ProjectRelationship<?>>( firstAll );
         removed.removeAll( secondAll );
 
-        return new GraphDifference( firstProjects, firstFilter, secondProjects, secondFilter, added, removed );
+        return new GraphDifference( from, to, added, removed );
     }
 
-    public GraphCalculation subtract( final Set<ProjectVersionRef> firstProjects,
-                                      final ProjectRelationshipFilter firstFilter,
-                                      final Set<ProjectVersionRef> secondProjects,
-                                      final ProjectRelationshipFilter secondFilter )
+    public GraphCalculation subtract( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        final EProjectWeb first =
-            data.getProjectWeb( firstFilter, firstProjects.toArray( new ProjectVersionRef[firstProjects.size()] ) );
-
-        final EProjectWeb second =
-            data.getProjectWeb( secondFilter, secondProjects.toArray( new ProjectVersionRef[secondProjects.size()] ) );
-
-        final Set<ProjectRelationship<?>> firstAll = first.getAllRelationships();
-        final Set<ProjectRelationship<?>> secondAll = second.getAllRelationships();
-
-        final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>( firstAll );
-        result.removeAll( secondAll );
-
-        return new GraphCalculation( GraphCalculation.Type.SUBTRACTION, firstProjects, firstFilter, secondProjects,
-                                     secondFilter, result );
+        return calculate( Type.SUBTRACTION, graphs );
     }
 
-    public GraphCalculation add( final Set<ProjectVersionRef> firstProjects,
-                                 final ProjectRelationshipFilter firstFilter,
-                                 final Set<ProjectVersionRef> secondProjects,
-                                 final ProjectRelationshipFilter secondFilter )
+    public GraphCalculation add( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        final EProjectWeb first =
-            data.getProjectWeb( firstFilter, firstProjects.toArray( new ProjectVersionRef[firstProjects.size()] ) );
-
-        final EProjectWeb second =
-            data.getProjectWeb( secondFilter, secondProjects.toArray( new ProjectVersionRef[secondProjects.size()] ) );
-
-        final Set<ProjectRelationship<?>> firstAll = first.getAllRelationships();
-        final Set<ProjectRelationship<?>> secondAll = second.getAllRelationships();
-
-        final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>( firstAll );
-        result.addAll( secondAll );
-
-        return new GraphCalculation( GraphCalculation.Type.ADDITION, firstProjects, firstFilter, secondProjects,
-                                     secondFilter, result );
+        return calculate( Type.ADDITION, graphs );
     }
 
-    public GraphCalculation intersection( final Set<ProjectVersionRef> firstProjects,
-                                          final ProjectRelationshipFilter firstFilter,
-                                          final Set<ProjectVersionRef> secondProjects,
-                                          final ProjectRelationshipFilter secondFilter )
+    public GraphCalculation intersection( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        final EProjectWeb first =
-            data.getProjectWeb( firstFilter, firstProjects.toArray( new ProjectVersionRef[firstProjects.size()] ) );
+        return calculate( Type.INTERSECTION, graphs );
+    }
 
-        final EProjectWeb second =
-            data.getProjectWeb( secondFilter, secondProjects.toArray( new ProjectVersionRef[secondProjects.size()] ) );
+    public GraphCalculation calculate( final Type type, final List<GraphDescription> graphs )
+        throws CartoDataException
+    {
+        Set<ProjectRelationship<?>> result = null;
+        for ( final GraphDescription graph : graphs )
+        {
+            final EProjectWeb web = data.getProjectWeb( graph.getFilter(), graph.getRootsArray() );
 
-        final Set<ProjectRelationship<?>> firstAll = first.getAllRelationships();
-        final Set<ProjectRelationship<?>> secondAll = second.getAllRelationships();
+            if ( web == null )
+            {
+                throw new CartoDataException( "Cannot retrieve web for: %s.", graph );
+            }
 
-        final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>( firstAll );
-        result.retainAll( secondAll );
+            if ( result == null )
+            {
+                result = new HashSet<>( web.getAllRelationships() );
+            }
+            else
+            {
+                switch ( type )
+                {
+                    case SUBTRACTION:
+                    {
+                        result.removeAll( web.getAllRelationships() );
+                        break;
+                    }
+                    case ADDITION:
+                    {
+                        result.addAll( web.getAllRelationships() );
+                        break;
+                    }
+                    case INTERSECTION:
+                    {
+                        result.retainAll( web.getAllRelationships() );
+                        break;
+                    }
+                }
+            }
+        }
 
-        return new GraphCalculation( GraphCalculation.Type.INTERSECTION, firstProjects, firstFilter, secondProjects,
-                                     secondFilter, result );
+        return new GraphCalculation( type, graphs, result );
     }
 
 }

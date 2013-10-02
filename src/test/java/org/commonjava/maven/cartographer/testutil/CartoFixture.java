@@ -10,6 +10,7 @@ import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
+import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.junit.rules.TemporaryFolder;
@@ -25,6 +26,8 @@ public class CartoFixture
     private TestAggregatorDiscoverer discoverer;
 
     private DefaultGraphAggregator aggregator;
+
+    private CalculationOps calculationOps;
 
     private ResolveOps resolveOps;
 
@@ -83,9 +86,15 @@ public class CartoFixture
             sourceManager = new SourceManagerImpl();
         }
 
+        if ( calculationOps == null )
+        {
+            calculationOps = new CalculationOps( data );
+        }
+
         if ( resolveOps == null )
         {
-            resolveOps = new ResolveOps( data, sourceManager, discoverer, aggregator, getArtifacts(), Executors.newFixedThreadPool( 10 ) );
+            resolveOps =
+                new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, getArtifacts(), Executors.newFixedThreadPool( 10 ) );
         }
     }
 
@@ -185,6 +194,16 @@ public class CartoFixture
     public void setSourceManager( final SourceManagerImpl sourceManager )
     {
         this.sourceManager = sourceManager;
+    }
+
+    public CalculationOps getCalculationOps()
+    {
+        return calculationOps;
+    }
+
+    public void setCalculationOps( final CalculationOps calculationOps )
+    {
+        this.calculationOps = calculationOps;
     }
 
 }

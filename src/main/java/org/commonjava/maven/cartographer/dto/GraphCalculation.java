@@ -1,8 +1,8 @@
 package org.commonjava.maven.cartographer.dto;
 
+import java.util.List;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.util.GraphUtils;
@@ -10,27 +10,20 @@ import org.commonjava.maven.cartographer.util.GraphUtils;
 public class GraphCalculation
 {
 
-    private final Type operation;
+    private Type operation;
 
-    private final Set<ProjectVersionRef> firstProjects;
+    private Set<ProjectRelationship<?>> result;
 
-    private final ProjectRelationshipFilter firstFilter;
+    private List<GraphDescription> graphs;
 
-    private final Set<ProjectVersionRef> secondProjects;
+    protected GraphCalculation()
+    {
+    }
 
-    private final ProjectRelationshipFilter secondFilter;
-
-    private final Set<ProjectRelationship<?>> result;
-
-    public GraphCalculation( final Type operation, final Set<ProjectVersionRef> firstProjects,
-                             final ProjectRelationshipFilter firstFilter, final Set<ProjectVersionRef> secondProjects,
-                             final ProjectRelationshipFilter secondFilter, final Set<ProjectRelationship<?>> result )
+    public GraphCalculation( final Type operation, final List<GraphDescription> graphs, final Set<ProjectRelationship<?>> result )
     {
         this.operation = operation;
-        this.firstProjects = firstProjects;
-        this.firstFilter = firstFilter;
-        this.secondProjects = secondProjects;
-        this.secondFilter = secondFilter;
+        this.graphs = graphs;
         this.result = result;
     }
 
@@ -44,26 +37,6 @@ public class GraphCalculation
         return operation;
     }
 
-    public Set<ProjectVersionRef> getFirstProjects()
-    {
-        return firstProjects;
-    }
-
-    public ProjectRelationshipFilter getFirstFilter()
-    {
-        return firstFilter;
-    }
-
-    public Set<ProjectVersionRef> getSecondProjects()
-    {
-        return secondProjects;
-    }
-
-    public ProjectRelationshipFilter getSecondFilter()
-    {
-        return secondFilter;
-    }
-
     public Set<ProjectRelationship<?>> getResultingRelationships()
     {
         return result;
@@ -72,6 +45,37 @@ public class GraphCalculation
     public Set<ProjectVersionRef> getResultingProjects()
     {
         return GraphUtils.targets( result );
+    }
+
+    public Set<ProjectRelationship<?>> getResult()
+    {
+        return result;
+    }
+
+    public List<GraphDescription> getGraphs()
+    {
+        return graphs;
+    }
+
+    protected void setOperation( final Type operation )
+    {
+        this.operation = operation;
+    }
+
+    protected void setResult( final Set<ProjectRelationship<?>> result )
+    {
+        this.result = result;
+    }
+
+    protected void setGraphs( final List<GraphDescription> graphs )
+    {
+        this.graphs = graphs;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format( "GraphCalculation [operation=%s, result=%s, graphs=%s]", operation, result, graphs );
     }
 
 }

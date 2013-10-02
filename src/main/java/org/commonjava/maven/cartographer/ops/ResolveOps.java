@@ -5,10 +5,8 @@ import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProj
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,9 +31,13 @@ import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
+import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
+import org.commonjava.maven.cartographer.dto.GraphCalculation;
+import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.ArtifactManager;
@@ -69,6 +71,9 @@ public class ResolveOps
     private TypeMapper typeMapper;
 
     @Inject
+    private CalculationOps calculations;
+
+    @Inject
     @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 100 )
     private ExecutorService executor;
 
@@ -76,8 +81,9 @@ public class ResolveOps
     {
     }
 
-    public ResolveOps( final CartoDataManager data, final DiscoverySourceManager sourceManager, final ProjectRelationshipDiscoverer discoverer,
-                       final GraphAggregator aggregator, final ArtifactManager artifacts, final ExecutorService executor )
+    public ResolveOps( final CalculationOps calculations, final CartoDataManager data, final DiscoverySourceManager sourceManager,
+                       final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator, final ArtifactManager artifacts,
+                       final ExecutorService executor )
     {
         this.data = data;
         this.sourceManager = sourceManager;
@@ -187,33 +193,39 @@ public class ResolveOps
 
         sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
 
-        Collection<ProjectVersionRef> roots = recipe.getRoots();
-        for ( final Iterator<ProjectVersionRef> it = roots.iterator(); it.hasNext(); )
+        recipe.normalize();
+        if ( !recipe.isValid() )
         {
-            if ( it.next() == null )
-            {
-                it.remove();
-            }
+            throw new CartoDataException( "Invalid repository recipe: %s", recipe );
         }
 
-        ProjectVersionRef[] rootsArray = roots.toArray( new ProjectVersionRef[roots.size()] );
+        final GraphComposition graphs = recipe.getGraphs();
 
-        final AggregationOptions options = createAggregationOptions( recipe, sourceUri );
         if ( recipe.isResolve() )
         {
-            roots = resolve( recipe.getSourceLocation()
-                                   .toString(), options, rootsArray );
-
-            rootsArray = roots.toArray( new ProjectVersionRef[roots.size()] );
+            resolve( graphs, recipe );
         }
 
-        web = data.getProjectWeb( recipe.getFilter(), rootsArray );
-        if ( web == null )
+        final Map<ProjectRef, ProjectRefCollection> refMap;
+        if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
-            throw new CartoDataException( "Failed to retrieve web for roots: %s (attempted resolve? %s)", roots, recipe.isResolve() );
+            final GraphCalculation result = calculations.calculate( graphs.getCalculation(), graphs.getGraphs() );
+            refMap = collectProjectReferences( result.getResult() );
         }
+        else
+        {
+            final GraphDescription graphDesc = graphs.getGraphs()
+                                                     .get( 0 );
+            final ProjectVersionRef[] roots = graphDesc.getRootsArray();
+            web = data.getProjectWeb( graphDesc.getFilter(), roots );
 
-        final Map<ProjectRef, ProjectRefCollection> refMap = collectProjectReferences( web );
+            if ( web == null )
+            {
+                throw new CartoDataException( "Failed to retrieve web for roots: %s", join( roots, ", " ) );
+            }
+
+            refMap = collectProjectReferences( web );
+        }
 
         final Set<ArtifactRef> seen = new HashSet<>();
         final Location location = recipe.getSourceLocation();
@@ -229,6 +241,8 @@ public class ResolveOps
         int projectCounter = 1;
         final int projectSz = refMap.size();
         final List<RepoContentCollector> collectors = new ArrayList<>( projectSz );
+
+        final DiscoveryConfig dconf = createDiscoveryConfig( recipe, sourceUri );
         for ( final ProjectRefCollection refs : refMap.values() )
         {
             int artifactCounter = 1;
@@ -238,7 +252,7 @@ public class ResolveOps
             for ( final ArtifactRef ar : artifactRefs )
             {
                 final RepoContentCollector collector =
-                    new RepoContentCollector( ar, recipe, location, options, artifacts, discoverer, typeMapper, excluded, seen, projectCounter,
+                    new RepoContentCollector( ar, recipe, location, dconf, artifacts, discoverer, typeMapper, excluded, seen, projectCounter,
                                               projectSz, artifactCounter++, artifactSz );
 
                 collectors.add( collector );
@@ -282,23 +296,53 @@ public class ResolveOps
         return itemMap;
     }
 
-    private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final URI sourceUri )
+    public void resolve( final GraphComposition graphs, final RepositoryContentRecipe recipe )
+        throws CartoDataException
+    {
+        final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
+                                                                   .getUri() );
+        if ( sourceUri == null )
+        {
+            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
+                                          sourceManager.getFormatHint() );
+        }
+
+        for ( final GraphDescription graph : graphs )
+        {
+            final AggregationOptions options = createAggregationOptions( recipe, graph.getFilter(), sourceUri );
+
+            final ProjectVersionRef[] rootsArray = graph.getRootsArray();
+
+            final List<ProjectVersionRef> roots = resolve( recipe.getSourceLocation()
+                                                                 .toString(), options, rootsArray );
+
+            graph.setRoots( new HashSet<>( roots ) );
+        }
+    }
+
+    private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final ProjectRelationshipFilter filter,
+                                                         final URI sourceUri )
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
-        options.setFilter( recipe.getFilter() );
+        options.setFilter( filter );
 
+        options.setDiscoveryConfig( createDiscoveryConfig( recipe, sourceUri ) );
+
+        options.setProcessIncompleteSubgraphs( true );
+        options.setProcessVariableSubgraphs( true );
+
+        return options;
+    }
+
+    private DiscoveryConfig createDiscoveryConfig( final RepositoryContentRecipe recipe, final URI sourceUri )
+    {
         final DefaultDiscoveryConfig dconf = new DefaultDiscoveryConfig( sourceUri );
         dconf.setEnabledPatchers( recipe.getPatcherIds() );
 
         dconf.setEnabled( true );
         dconf.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );
 
-        options.setDiscoveryConfig( dconf );
-
-        options.setProcessIncompleteSubgraphs( true );
-        options.setProcessVariableSubgraphs( true );
-
-        return options;
+        return dconf;
     }
 
 }

@@ -24,6 +24,8 @@ import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
+import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.SOBBuildablesFilter;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
@@ -118,10 +120,12 @@ public class ResolveOpsTest
         assertThat( rejects.isEmpty(), equalTo( true ) );
 
         final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
-        recipe.setFilter( new SOBBuildablesFilter() );
+
+        recipe.setGraphs( new GraphComposition( null, Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
+                                                                                                       Collections.singleton( recipeRoot ) ) ) ) );
+
         recipe.setResolve( false );
         recipe.setSourceLocation( location );
-        recipe.setRoots( Collections.singleton( recipeRoot ) );
         recipe.setWorkspaceId( ws.getId() );
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents = fixture.getResolveOps()

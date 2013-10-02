@@ -19,9 +19,14 @@ public final class AggregationUtils
 
     public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final EProjectWeb web )
     {
+        final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
+        return collectProjectReferences( rels );
+    }
+
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Set<ProjectRelationship<?>> rels )
+    {
         final Map<ProjectRef, ProjectRefCollection> projects = new HashMap<ProjectRef, ProjectRefCollection>();
 
-        final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
         for ( final ProjectRelationship<?> rel : rels )
         {
             //            if ( !( rel instanceof DependencyRelationship ) )

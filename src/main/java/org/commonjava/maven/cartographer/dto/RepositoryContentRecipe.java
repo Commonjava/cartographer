@@ -1,11 +1,11 @@
 package org.commonjava.maven.cartographer.dto;
 
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.galley.model.Location;
@@ -23,7 +23,7 @@ public class RepositoryContentRecipe
         }
     };
 
-    private Set<ProjectVersionRef> roots;
+    private GraphComposition graphs;
 
     private Set<String> patcherIds;
 
@@ -35,20 +35,11 @@ public class RepositoryContentRecipe
 
     private Set<Location> excludedSourceLocations;
 
-    private boolean resolve;
-
     private boolean multiSourceGAVs;
 
     private Integer timeoutSecs;
 
     private Set<String> metas;
-
-    private ProjectRelationshipFilter filter;
-
-    public Set<ProjectVersionRef> getRoots()
-    {
-        return roots;
-    }
 
     public String getWorkspaceId()
     {
@@ -58,11 +49,6 @@ public class RepositoryContentRecipe
     public Location getSourceLocation()
     {
         return sourceLocation;
-    }
-
-    public void setRoots( final Set<ProjectVersionRef> roots )
-    {
-        this.roots = roots;
     }
 
     public void setWorkspaceId( final String workspaceId )
@@ -78,13 +64,12 @@ public class RepositoryContentRecipe
     @Override
     public String toString()
     {
-        return String.format( "RepositoryContentRecipe [roots=%s, workspaceId=%s, filter=%s, source-location=%s]", roots, workspaceId, getFilter(),
-                              getSourceLocation() );
+        return String.format( "RepositoryContentRecipe [graphs=%s, workspaceId=%s, source-location=%s]", graphs, workspaceId, getSourceLocation() );
     }
 
     public boolean isValid()
     {
-        return getWorkspaceId() != null && getSourceLocation() != null && roots != null && !roots.isEmpty() && filter != null;
+        return getWorkspaceId() != null && getSourceLocation() != null && graphs != null && graphs.isValid();
     }
 
     public DiscoveryConfig getDiscoveryConfig()
@@ -106,16 +91,6 @@ public class RepositoryContentRecipe
         this.extras = extras;
     }
 
-    public boolean isResolve()
-    {
-        return resolve;
-    }
-
-    public void setResolve( final boolean resolve )
-    {
-        this.resolve = resolve;
-    }
-
     public Integer getTimeoutSecs()
     {
         return timeoutSecs == null ? 10 : timeoutSecs;
@@ -134,16 +109,6 @@ public class RepositoryContentRecipe
     public void setMetas( final Set<String> metas )
     {
         this.metas = metas;
-    }
-
-    public ProjectRelationshipFilter getFilter()
-    {
-        return filter;
-    }
-
-    public void setFilter( final ProjectRelationshipFilter filter )
-    {
-        this.filter = filter;
     }
 
     public Set<Location> getExcludedSourceLocations()
@@ -190,6 +155,53 @@ public class RepositoryContentRecipe
     public void setMultiSourceGAVs( final boolean multiSourceGAVs )
     {
         this.multiSourceGAVs = multiSourceGAVs;
+    }
+
+    public GraphComposition getGraphs()
+    {
+        return graphs;
+    }
+
+    public void setGraphs( final GraphComposition graphs )
+    {
+        this.graphs = graphs;
+    }
+
+    public void normalize()
+    {
+        graphs.normalize();
+        normalize( patcherIds );
+        normalize( extras );
+        normalize( metas );
+        normalize( excludedSourceLocations );
+    }
+
+    private void normalize( final Collection<?> coll )
+    {
+        if ( coll == null )
+        {
+            return;
+        }
+
+        for ( final Iterator<?> it = coll.iterator(); it.hasNext(); )
+        {
+            if ( it.next() == null )
+            {
+                it.remove();
+            }
+        }
+    }
+
+    private boolean resolve;
+
+    public boolean isResolve()
+    {
+        return resolve;
+    }
+
+    public void setResolve( final boolean resolve )
+    {
+        this.resolve = resolve;
     }
 
 }

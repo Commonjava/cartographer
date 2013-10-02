@@ -9,8 +9,8 @@ import java.util.concurrent.CountDownLatch;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
-import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.dto.ExtraCT;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
@@ -34,8 +34,6 @@ public class RepoContentCollector
 
     private CountDownLatch latch;
 
-    private final AggregationOptions options;
-
     private final ProjectRelationshipDiscoverer discoverer;
 
     private final RepositoryContentRecipe recipe;
@@ -56,19 +54,22 @@ public class RepoContentCollector
 
     private final int artifactSz;
 
+    private final DiscoveryConfig discoveryConfig;
+
     private Map<ArtifactRef, ConcreteResource> items;
 
     private CartoDataException error;
 
     public RepoContentCollector( final ArtifactRef ar, final RepositoryContentRecipe recipe, final Location location,
-                                 final AggregationOptions options, final ArtifactManager artifacts, final ProjectRelationshipDiscoverer discoverer,
-                                 final TypeMapper typeMapper, final Set<Location> excluded, final Set<ArtifactRef> seen, final int projectCounter,
-                                 final int projectSz, final int artifactCounter, final int artifactSz )
+                                 final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
+                                 final ProjectRelationshipDiscoverer discoverer, final TypeMapper typeMapper, final Set<Location> excluded,
+                                 final Set<ArtifactRef> seen, final int projectCounter, final int projectSz, final int artifactCounter,
+                                 final int artifactSz )
     {
         this.ar = ar;
         this.recipe = recipe;
         this.location = location;
-        this.options = options;
+        this.discoveryConfig = discoveryConfig;
         this.artifacts = artifacts;
         this.discoverer = discoverer;
         this.typeMapper = typeMapper;
@@ -104,7 +105,7 @@ public class RepoContentCollector
 
             if ( ar.isVariableVersion() )
             {
-                final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, options.getDiscoveryConfig() );
+                final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
                 if ( specific == null )
                 {
                     logger.error( "No version available for variable reference: %s. Skipping.", ar.asProjectVersionRef() );
