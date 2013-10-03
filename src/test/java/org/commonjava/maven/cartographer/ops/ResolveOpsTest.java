@@ -122,7 +122,7 @@ public class ResolveOpsTest
 
         final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
 
-        recipe.setGraphs( new GraphComposition( null, Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
+        recipe.setGraphComposition( new GraphComposition( null, Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
                                                                                                        Collections.singleton( recipeRoot ) ) ) ) );
 
         recipe.setResolve( false );

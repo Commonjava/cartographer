@@ -199,7 +199,7 @@ public class ResolveOps
             throw new CartoDataException( "Invalid repository recipe: %s", recipe );
         }
 
-        final GraphComposition graphs = recipe.getGraphs();
+        final GraphComposition graphs = recipe.getGraphComposition();
 
         if ( recipe.isResolve() )
         {

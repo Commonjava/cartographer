@@ -24,7 +24,7 @@ public class RepositoryContentRecipe
         }
     };
 
-    private GraphComposition graphs;
+    private GraphComposition graphComposition;
 
     private Set<String> patcherIds;
 
@@ -65,12 +65,13 @@ public class RepositoryContentRecipe
     @Override
     public String toString()
     {
-        return String.format( "RepositoryContentRecipe [graphs=%s, workspaceId=%s, source-location=%s]", graphs, workspaceId, getSourceLocation() );
+        return String.format( "RepositoryContentRecipe [graphs=%s, workspaceId=%s, source-location=%s]", graphComposition, workspaceId,
+                              getSourceLocation() );
     }
 
     public boolean isValid()
     {
-        return getWorkspaceId() != null && getSourceLocation() != null && graphs != null && graphs.isValid();
+        return getWorkspaceId() != null && getSourceLocation() != null && graphComposition != null && graphComposition.isValid();
     }
 
     public DiscoveryConfig getDiscoveryConfig()
@@ -158,24 +159,24 @@ public class RepositoryContentRecipe
         this.multiSourceGAVs = multiSourceGAVs;
     }
 
-    public GraphComposition getGraphs()
+    public GraphComposition getGraphComposition()
     {
-        return graphs;
+        return graphComposition;
     }
 
-    public void setGraphs( final GraphComposition graphs )
+    public void setGraphComposition( final GraphComposition graphComposition )
     {
-        this.graphs = graphs;
+        this.graphComposition = graphComposition;
     }
 
     public void resolveFilters( final PresetSelector presets, final String defaultPreset )
     {
-        graphs.resolveFilters( presets, defaultPreset );
+        graphComposition.resolveFilters( presets, defaultPreset );
     }
 
     public void normalize()
     {
-        graphs.normalize();
+        graphComposition.normalize();
         normalize( patcherIds );
         normalize( extras );
         normalize( metas );
