@@ -16,8 +16,8 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.view.DependencyView;
-import org.commonjava.maven.galley.maven.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
 

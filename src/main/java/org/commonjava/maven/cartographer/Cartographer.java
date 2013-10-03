@@ -32,8 +32,6 @@ import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.cartographer.ops.WorkspaceOps;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
-import org.commonjava.maven.galley.ArtifactManager;
-import org.commonjava.maven.galley.ArtifactManagerImpl;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
@@ -47,6 +45,9 @@ import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
+import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -59,7 +60,6 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.maven.galley.type.StandardTypeMapper;
 
 @ApplicationScoped
 public class Cartographer

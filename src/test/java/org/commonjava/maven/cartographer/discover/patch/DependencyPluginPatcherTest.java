@@ -15,6 +15,8 @@ import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
+import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
@@ -48,8 +50,11 @@ public class DependencyPluginPatcherTest
         final String pom = BASE + "no-existing-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
 
-        galleyCore.getTransport()
-                  .registerDownload( location, pvr.asPomArtifact(), download );
+        final ConcreteResource resource =
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+
+        galleyFixture.getTransport()
+                     .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
@@ -79,8 +84,11 @@ public class DependencyPluginPatcherTest
         final String pom = BASE + "existing-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
 
-        galleyCore.getTransport()
-                  .registerDownload( location, pvr.asPomArtifact(), download );
+        final ConcreteResource resource =
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+
+        galleyFixture.getTransport()
+                     .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
@@ -110,8 +118,11 @@ public class DependencyPluginPatcherTest
         final String pom = BASE + "in-profile-no-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
 
-        galleyCore.getTransport()
-                  .registerDownload( location, pvr.asPomArtifact(), download );
+        final ConcreteResource resource =
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+
+        galleyFixture.getTransport()
+                     .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
@@ -141,8 +152,11 @@ public class DependencyPluginPatcherTest
         final String pom = BASE + "in-profile-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
 
-        galleyCore.getTransport()
-                  .registerDownload( location, pvr.asPomArtifact(), download );
+        final ConcreteResource resource =
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+
+        galleyFixture.getTransport()
+                     .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
@@ -172,8 +186,11 @@ public class DependencyPluginPatcherTest
         final String pom = BASE + "in-profile-root-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
 
-        galleyCore.getTransport()
-                  .registerDownload( location, pvr.asPomArtifact(), download );
+        final ConcreteResource resource =
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+
+        galleyFixture.getTransport()
+                     .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );

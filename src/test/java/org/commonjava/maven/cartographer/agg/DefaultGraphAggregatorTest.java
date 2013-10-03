@@ -19,6 +19,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
+import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.util.logging.Log4jUtil;
 import org.commonjava.util.logging.Logger;
 import org.junit.Before;
@@ -32,7 +33,7 @@ public class DefaultGraphAggregatorTest
     private final Logger logger = new Logger( getClass() );
 
     @Rule
-    public CartoFixture fixture = new CartoFixture();
+    public CartoFixture fixture = new CartoFixture( new CoreFixture() );
 
     @BeforeClass
     public static void logging()

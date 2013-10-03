@@ -14,12 +14,12 @@ import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.dto.ExtraCT;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
-import org.commonjava.maven.galley.ArtifactManager;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.type.TypeMapper;
+import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.type.TypeMapper;
-import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Logger;
 
 public class RepoContentCollector
@@ -183,7 +183,7 @@ public class RepoContentCollector
                                 ConcreteResource item;
                                 try
                                 {
-                                    item = new ConcreteResource( location, PathUtils.formatArtifactPath( extAR, typeMapper ) );
+                                    item = new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( extAR, typeMapper ) );
                                 }
                                 catch ( final TransferException e )
                                 {

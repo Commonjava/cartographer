@@ -40,10 +40,10 @@ import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
-import org.commonjava.maven.galley.ArtifactManager;
+import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.type.TypeMapper;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.type.TypeMapper;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped

@@ -13,7 +13,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
-import org.commonjava.maven.galley.maven.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;

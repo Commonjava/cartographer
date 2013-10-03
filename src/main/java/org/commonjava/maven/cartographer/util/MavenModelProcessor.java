@@ -36,11 +36,11 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
-import org.commonjava.maven.galley.maven.view.DependencyView;
-import org.commonjava.maven.galley.maven.view.ExtensionView;
-import org.commonjava.maven.galley.maven.view.MavenPomView;
-import org.commonjava.maven.galley.maven.view.ParentView;
-import org.commonjava.maven.galley.maven.view.PluginView;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.ExtensionView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.ParentView;
+import org.commonjava.maven.galley.maven.model.view.PluginView;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped

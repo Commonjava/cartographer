@@ -13,12 +13,13 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.galley.maven.view.DependencyView;
-import org.commonjava.maven.galley.maven.view.MavenPomView;
-import org.commonjava.maven.galley.maven.view.ProjectRefView;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.ProjectRefView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
+import org.commonjava.maven.galley.testing.maven.GalleyMavenFixture;
 import org.commonjava.util.logging.Log4jUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -27,7 +28,7 @@ public abstract class AbstractPatcherTest
 {
 
     @Rule
-    public CoreFixture galleyCore = new CoreFixture();
+    public GalleyMavenFixture galleyFixture = new GalleyMavenFixture( new CoreFixture() );
 
     @BeforeClass
     public static void logging()
@@ -37,16 +38,16 @@ public abstract class AbstractPatcherTest
 
     protected void setupGalley()
     {
-        galleyCore.initMissingComponents();
+        galleyFixture.initMissingComponents();
     }
 
     protected Map<String, Object> getContext( final ProjectVersionRef ref, final Location location )
         throws Exception
     {
-        final Transfer txfr = galleyCore.getArtifacts()
-                                        .retrieve( location, ref.asPomArtifact() );
-        final MavenPomView read = galleyCore.getPomReader()
-                                            .read( txfr, Arrays.asList( location ) );
+        final Transfer txfr = galleyFixture.getArtifacts()
+                                           .retrieve( location, ref.asPomArtifact() );
+        final MavenPomView read = galleyFixture.getPomReader()
+                                               .read( txfr, Arrays.asList( location ) );
 
         final Map<String, Object> ctx = new HashMap<>();
         ctx.put( DepgraphPatcher.POM_VIEW, read );
@@ -59,8 +60,8 @@ public abstract class AbstractPatcherTest
                                                                         final URI src )
     {
         final Set<ProjectRelationship<?>> discovered = new HashSet<>();
-        final MavenPomView pomView = galleyCore.getPomReader()
-                                               .read( pvr, Arrays.asList( location ) );
+        final MavenPomView pomView = galleyFixture.getPomReader()
+                                                  .read( pvr, Arrays.asList( location ) );
         List<DependencyView> deps = pomView.getAllDirectDependencies();
         int idx = 0;
         for ( final DependencyView dep : deps )

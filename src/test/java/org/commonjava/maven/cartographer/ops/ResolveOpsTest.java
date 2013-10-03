@@ -30,11 +30,12 @@ import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.SOBBuildablesFilter;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
+import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
+import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
-import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Log4jUtil;
 import org.commonjava.util.logging.Logger;
 import org.junit.Before;
@@ -48,7 +49,7 @@ public class ResolveOpsTest
     private final Logger logger = new Logger( getClass() );
 
     @Rule
-    public CartoFixture fixture = new CartoFixture();
+    public CartoFixture fixture = new CartoFixture( new CoreFixture() );
 
     private GraphWorkspace ws;
 
@@ -90,7 +91,7 @@ public class ResolveOpsTest
         ProjectVersionRef last = null;
         for ( final ProjectVersionRef ref : lineage )
         {
-            final String path = PathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
+            final String path = ArtifactPathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
 
             fixture.getTransport()
                    .registerExistence( new ConcreteResource( location, path ), new TestExistence( true ) );

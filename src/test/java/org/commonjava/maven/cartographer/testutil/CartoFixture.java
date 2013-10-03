@@ -13,10 +13,10 @@ import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
-import org.junit.rules.TemporaryFolder;
+import org.commonjava.maven.galley.testing.maven.GalleyMavenFixture;
 
 public class CartoFixture
-    extends CoreFixture
+    extends GalleyMavenFixture
 {
 
     private EGraphManager graphs;
@@ -37,14 +37,9 @@ public class CartoFixture
 
     private SourceManagerImpl sourceManager;
 
-    public CartoFixture()
+    public CartoFixture( final CoreFixture core )
     {
-        super();
-    }
-
-    public CartoFixture( final TemporaryFolder temp )
-    {
-        super( temp );
+        super( core );
     }
 
     @Override
@@ -149,7 +144,7 @@ public class CartoFixture
     }
 
     @Override
-    protected void after()
+    public void after()
     {
         try
         {
