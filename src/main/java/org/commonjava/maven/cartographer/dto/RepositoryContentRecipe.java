@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
+import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.galley.model.Location;
 
 public class RepositoryContentRecipe
@@ -165,6 +166,11 @@ public class RepositoryContentRecipe
     public void setGraphs( final GraphComposition graphs )
     {
         this.graphs = graphs;
+    }
+
+    public void resolveFilters( final PresetSelector presets, final String defaultPreset )
+    {
+        graphs.resolveFilters( presets, defaultPreset );
     }
 
     public void normalize()
