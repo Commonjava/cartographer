@@ -130,13 +130,13 @@ public class Cartographer
         final TransportManager transport =
             new TransportManagerImpl( new HttpClientTransport( http, globalConfig ), new FileTransport(), new ZipJarTransport() );
 
-        final CacheProvider cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator() );
-
         // TODO: This needs a real implementation, to make the system respond to resolver events.
         final FileEventManager fileEvents = new NoOpFileEventManager();
 
         // TODO: Probably need something here to verify checksums AT A MINIMUM
         final TransferDecorator decorator = new NoOpTransferDecorator();
+
+        final CacheProvider cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents, decorator );
 
         final NotFoundCache nfc = new MemoryNotFoundCache();
 
@@ -150,7 +150,7 @@ public class Cartographer
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
-        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, decorator, dh, uh, lh, eh, batchExecutor );
+        final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, dh, uh, lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
         final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts, data, new PatcherSupport() );

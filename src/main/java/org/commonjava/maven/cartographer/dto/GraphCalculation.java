@@ -29,7 +29,7 @@ public class GraphCalculation
 
     public enum Type
     {
-        ADDITION, SUBTRACTION, INTERSECTION;
+        ADD, SUBTRACT, INTERSECT;
     }
 
     public Type getOperation()

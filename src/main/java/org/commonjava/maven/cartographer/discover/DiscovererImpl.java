@@ -16,6 +16,7 @@ import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
@@ -86,19 +87,23 @@ public class DiscovererImpl
         final Location location = new SimpleLocation( discoveryConfig.getDiscoverySource()
                                                                      .toString() );
 
+        final List<? extends Location> locations = Arrays.asList( location );
+
         Transfer transfer;
+        final MavenPomView pomView;
         try
         {
             transfer = artifactManager.retrieve( location, specific.asPomArtifact() );
+            pomView = pomReader.read( transfer, locations );
         }
         catch ( final TransferException e )
         {
             throw new CartoDataException( "Failed to retrieve POM: %s from: %s. Reason: %s", e, specific, location, e.getMessage() );
         }
-
-        final List<? extends Location> locations = Arrays.asList( location );
-
-        final MavenPomView pomView = pomReader.read( transfer, locations );
+        catch ( final GalleyMavenException e )
+        {
+            throw new CartoDataException( "Failed to parse POM: %s from: %s. Reason: %s", e, specific, location, e.getMessage() );
+        }
 
         DiscoveryResult result = null;
         if ( pomView != null )

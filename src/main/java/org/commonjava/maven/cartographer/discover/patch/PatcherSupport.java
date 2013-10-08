@@ -56,7 +56,7 @@ public class PatcherSupport
                                   final MavenPomView pomView, final Transfer transfer )
     {
         logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
-        DiscoveryResult result = orig;
+        final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<>();
         ctx.put( DepgraphPatcher.POM_VIEW, pomView );
         ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, transfer );
@@ -71,7 +71,16 @@ public class PatcherSupport
             }
 
             logger.info( "Running project-relationship patcher: %s for: %s", patcherId, orig.getSelectedRef() );
-            result = patcher.patch( result, locations, ctx );
+            try
+            {
+                patcher.patch( result, locations, ctx );
+            }
+            catch ( final Exception e )
+            {
+                logger.error( "Failed to execute patcher: %s against: %s. Reason: %s", e, patcherId, result, e.getMessage() );
+            }
+
+            logger.info( "After patching with %s, result is: %s", patcherId, result );
         }
 
         return result;

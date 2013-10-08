@@ -11,9 +11,11 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
+import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
+import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
@@ -28,9 +30,8 @@ public class DependencyPluginPatcher
     private final Logger logger = new Logger( getClass() );
 
     @Override
-    public DiscoveryResult patch( final DiscoveryResult orig, final List<? extends Location> locations, final Map<String, Object> context )
+    public void patch( final DiscoveryResult result, final List<? extends Location> locations, final Map<String, Object> context )
     {
-        final DiscoveryResult result = orig;
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
@@ -44,11 +45,10 @@ public class DependencyPluginPatcher
             final List<DependencyView> depArtifactItems = pomView.getAllDependenciesMatching( depArtifactItemsPath );
             if ( depArtifactItems == null || depArtifactItems.isEmpty() )
             {
-                return orig;
+                return;
             }
 
-            final Set<ProjectRelationship<?>> accepted = new HashSet<>( orig.getAcceptedRelationships() );
-            final Set<ProjectRelationship<?>> rejected = new HashSet<>( orig.getRejectedRelationships() );
+            final Set<ProjectRelationship<?>> accepted = new HashSet<>( result.getAcceptedRelationships() );
 
             final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps = new HashMap<>();
             for ( final ProjectRelationship<?> rel : accepted )
@@ -61,69 +61,80 @@ public class DependencyPluginPatcher
                 }
             }
 
-            calculateDependencyPluginPatch( depArtifactItems, concreteDeps, ref, pomView, orig.getSource(), accepted, rejected );
-
-            final Set<ProjectRelationship<?>> all = new HashSet<>();
-            all.addAll( accepted );
-            all.addAll( rejected );
-
-            return new DiscoveryResult( orig.getSource(), ref, all, rejected );
+            calculateDependencyPluginPatch( depArtifactItems, concreteDeps, ref, pomView, result );
         }
-        catch ( final GalleyMavenException e )
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
         {
             logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
         }
-
-        return result;
     }
 
     private void calculateDependencyPluginPatch( final List<DependencyView> depArtifactItems,
                                                  final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
-                                                 final MavenPomView pomView, final URI source, final Set<ProjectRelationship<?>> accepted,
-                                                 final Set<ProjectRelationship<?>> rejected )
+                                                 final MavenPomView pomView, final DiscoveryResult result )
     {
         logger.info( "Detected %d dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
                         : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )
         {
+            final URI source = result.getSource();
             for ( final DependencyView depView : depArtifactItems )
             {
-                final URI pomLocation = RelationshipUtils.profileLocation( depView.getProfileId() );
-                final VersionlessArtifactRef depRef = depView.asVersionlessArtifactRef();
-                logger.info( "Detected dependency-plugin usage with key: %s", depRef );
-
-                final DependencyRelationship dep = concreteDeps.get( depRef );
-                if ( dep != null )
+                try
                 {
-                    if ( !DependencyScope.runtime.implies( dep.getScope() )
-                        && ( dep.getPomLocation()
-                                .equals( pomLocation ) || dep.getPomLocation() == RelationshipUtils.POM_ROOT_URI ) )
+                    final URI pomLocation = RelationshipUtils.profileLocation( depView.getProfileId() );
+                    final VersionlessArtifactRef depRef = depView.asVersionlessArtifactRef();
+                    logger.info( "Detected dependency-plugin usage with key: %s", depRef );
+
+                    final DependencyRelationship dep = concreteDeps.get( depRef );
+                    if ( dep != null )
                     {
-                        logger.info( "Correcting scope for: %s", dep );
-                        accepted.remove( dep );
-                        final Set<ProjectRef> excludes = dep.getExcludes();
-                        final ProjectRef[] excludedRefs = excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
+                        if ( !DependencyScope.runtime.implies( dep.getScope() )
+                            && ( dep.getPomLocation()
+                                    .equals( pomLocation ) || dep.getPomLocation() == RelationshipUtils.POM_ROOT_URI ) )
+                        {
+                            logger.info( "Correcting scope for: %s", dep );
 
-                        final DependencyRelationship replacement =
-                            new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
-                                                        false, excludedRefs );
+                            if ( !result.removeDiscoveredRelationship( dep ) )
+                            {
+                                logger.error( "Failed to remove: %s", dep );
+                            }
 
-                        accepted.add( replacement );
+                            final Set<ProjectRef> excludes = dep.getExcludes();
+                            final ProjectRef[] excludedRefs =
+                                excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
+
+                            final DependencyRelationship replacement =
+                                new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
+                                                            false, excludedRefs );
+
+                            if ( !result.addDiscoveredRelationship( replacement ) )
+                            {
+                                logger.error( "Failed to inject: %s", replacement );
+                            }
+                        }
+                    }
+                    else if ( depView.getVersion() != null )
+                    {
+                        logger.info( "Injecting new dep: %s", depView.asArtifactRef() );
+                        final DependencyRelationship injected =
+                            new DependencyRelationship( source, RelationshipUtils.profileLocation( depView.getProfileId() ), ref,
+                                                        depView.asArtifactRef(), DependencyScope.embedded, concreteDeps.size(), false );
+
+                        if ( !result.addDiscoveredRelationship( injected ) )
+                        {
+                            logger.error( "Failed to inject: %s", injected );
+                        }
+                    }
+                    else
+                    {
+                        logger.error( "Invalid dependency referenced in artifactItems of dependency plugin configuration: %s. "
+                            + "No version was specified, and it does not reference an actual dependency.", depRef );
                     }
                 }
-                else if ( depView.getVersion() != null )
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
-                    logger.info( "Injecting new dep: %s", depView.asArtifactRef() );
-                    final DependencyRelationship replacement =
-                        new DependencyRelationship( source, RelationshipUtils.profileLocation( depView.getProfileId() ), ref,
-                                                    depView.asArtifactRef(), DependencyScope.embedded, concreteDeps.size(), false );
-
-                    accepted.add( replacement );
-                }
-                else
-                {
-                    logger.error( "Invalid dependency referenced in artifactItems of dependency plugin configuration: %s. "
-                        + "No version was specified, and it does not reference an actual dependency.", depRef );
+                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
                 }
             }
         }

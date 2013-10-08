@@ -57,11 +57,10 @@ public class DependencyPluginPatcherTest
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
+        final DiscoveryResult result = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
+        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-        newRels.removeAll( origResult.getAcceptedRelationships() );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 1 ) );
@@ -91,11 +90,13 @@ public class DependencyPluginPatcherTest
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
+        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+
+        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-        newRels.removeAll( origResult.getAcceptedRelationships() );
+        newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );
@@ -125,11 +126,10 @@ public class DependencyPluginPatcherTest
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult origResult = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
+        final DiscoveryResult result = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
+        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-        newRels.removeAll( origResult.getAcceptedRelationships() );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 1 ) );
@@ -159,11 +159,13 @@ public class DependencyPluginPatcherTest
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
+        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+
+        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-        newRels.removeAll( origResult.getAcceptedRelationships() );
+        newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );
@@ -193,11 +195,13 @@ public class DependencyPluginPatcherTest
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult origResult = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final DiscoveryResult result = patcher.patch( origResult, Arrays.asList( location ), getContext( pvr, location ) );
+        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+
+        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
-        newRels.removeAll( origResult.getAcceptedRelationships() );
+        newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );

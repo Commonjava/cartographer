@@ -13,7 +13,7 @@ public interface DepgraphPatcher
 
     String POM_VIEW = "pom-view";
 
-    DiscoveryResult patch( DiscoveryResult result, List<? extends Location> locations, Map<String, Object> context );
+    void patch( DiscoveryResult result, List<? extends Location> locations, Map<String, Object> context );
 
     String getId();
 

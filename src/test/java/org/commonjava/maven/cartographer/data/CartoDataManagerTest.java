@@ -88,7 +88,9 @@ public class CartoDataManagerTest
 
         nfc = new MemoryNotFoundCache();
 
-        final CacheProvider cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
+        final CacheProvider cacheProvider =
+            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(), provider.getFileEventManager(),
+                                   provider.getTransferDecorator() );
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
         final ExecutorService batchExecutor = Executors.newFixedThreadPool( 2 );
@@ -98,8 +100,7 @@ public class CartoDataManagerTest
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
         final TransferManager transferManager =
-            new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), provider.getTransferDecorator(), dh, uh,
-                                     lh, eh, batchExecutor );
+            new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
         discoverer = new DiscovererImpl( processor, artifacts, dataManager, new PatcherSupport() );

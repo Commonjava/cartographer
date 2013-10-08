@@ -54,19 +54,19 @@ public class CalculationOps
     public GraphCalculation subtract( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( Type.SUBTRACTION, graphs );
+        return calculate( Type.SUBTRACT, graphs );
     }
 
     public GraphCalculation add( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( Type.ADDITION, graphs );
+        return calculate( Type.ADD, graphs );
     }
 
     public GraphCalculation intersection( final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( Type.INTERSECTION, graphs );
+        return calculate( Type.INTERSECT, graphs );
     }
 
     public GraphCalculation calculate( final Type type, final List<GraphDescription> graphs )
@@ -90,17 +90,17 @@ public class CalculationOps
             {
                 switch ( type )
                 {
-                    case SUBTRACTION:
+                    case SUBTRACT:
                     {
                         result.removeAll( web.getAllRelationships() );
                         break;
                     }
-                    case ADDITION:
+                    case ADD:
                     {
                         result.addAll( web.getAllRelationships() );
                         break;
                     }
-                    case INTERSECTION:
+                    case INTERSECT:
                     {
                         result.retainAll( web.getAllRelationships() );
                         break;

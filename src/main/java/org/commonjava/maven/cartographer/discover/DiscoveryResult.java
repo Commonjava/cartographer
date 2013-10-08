@@ -1,5 +1,7 @@
 package org.commonjava.maven.cartographer.discover;
 
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,9 +17,9 @@ public class DiscoveryResult
 
     private final URI source;
 
-    private final Set<ProjectRelationship<?>> rejected;
+    private Set<ProjectRelationship<?>> rejected;
 
-    private final Set<ProjectRelationship<?>> discovered;
+    private Set<ProjectRelationship<?>> discovered;
 
     private transient Set<ProjectRelationship<?>> accepted;
 
@@ -51,6 +53,18 @@ public class DiscoveryResult
         return source;
     }
 
+    public void setRejectedRelationships( final Set<ProjectRelationship<?>> rejected )
+    {
+        this.rejected = rejected;
+        this.accepted = null;
+    }
+
+    public void setDiscoveredRelationships( final Set<ProjectRelationship<?>> discovered )
+    {
+        this.discovered = discovered;
+        this.accepted = null;
+    }
+
     public ProjectVersionRef getSelectedRef()
     {
         return selected;
@@ -80,6 +94,44 @@ public class DiscoveryResult
         }
 
         return accepted;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected, discovered == null ? "-NONE-" : join( discovered, "\n  " ) );
+    }
+
+    public boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )
+    {
+        final boolean result = discovered.remove( rel );
+        accepted = null;
+
+        return result;
+    }
+
+    public boolean addDiscoveredRelationship( final ProjectRelationship<?> rel )
+    {
+        final boolean result = discovered.add( rel );
+        accepted = null;
+
+        return result;
+    }
+
+    public boolean removeRejectedRelationship( final ProjectRelationship<?> rel )
+    {
+        final boolean result = rejected.remove( rel );
+        accepted = null;
+
+        return result;
+    }
+
+    public boolean addRejectedRelationship( final ProjectRelationship<?> rel )
+    {
+        final boolean result = rejected.add( rel );
+        accepted = null;
+
+        return result;
     }
 
 }

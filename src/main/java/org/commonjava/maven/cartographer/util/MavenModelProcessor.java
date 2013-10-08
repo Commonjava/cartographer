@@ -31,11 +31,13 @@ import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.ExtensionView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -84,7 +86,7 @@ public class MavenModelProcessor
 
         try
         {
-            final ProjectVersionRef projectRef = pomView.asProjectVersionRef();
+            final ProjectVersionRef projectRef = pomView.getRef();
 
             final EProjectDirectRelationships.Builder builder = new EProjectDirectRelationships.Builder( source, projectRef );
 
@@ -103,19 +105,26 @@ public class MavenModelProcessor
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            throw new CartoDataException( "Failed to parse version string: '%s' for model: %s. Reason: %s", e, pomView.getVersion(), pomView,
-                                          e.getMessage() );
+            throw new CartoDataException( "Failed to parse version for model: %s. Reason: %s", e, pomView, e.getMessage() );
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new CartoDataException( "Failed to parse relationships for model: %s. Reason: %s", e, pomView.getVersion(), pomView, e.getMessage() );
+            throw new CartoDataException( "Failed to parse relationships for model: %s. Reason: %s", e, pomView, e.getMessage() );
         }
     }
 
     private void addExtensionUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
-        final List<ExtensionView> extensions = pomView.getBuildExtensions();
+        List<ExtensionView> extensions = null;
+        try
+        {
+            extensions = pomView.getBuildExtensions();
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Cannot retrieve build extensions: %s", e, e.getMessage() );
+        }
 
         for ( final ExtensionView ext : extensions )
         {
@@ -124,15 +133,16 @@ public class MavenModelProcessor
                 continue;
             }
 
-            if ( !ext.isValid() )
+            try
             {
-                logger.warn( "Skipping invalid build extension: %s", ext.asProjectVersionRef() );
-                continue;
+                final ProjectVersionRef ref = ext.asProjectVersionRef();
+
+                builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
             }
-
-            final ProjectVersionRef ref = ext.asProjectVersionRef();
-
-            builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
+            catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+            {
+                logger.error( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), ext.toXML() );
+            }
         }
     }
 
@@ -149,22 +159,33 @@ public class MavenModelProcessor
     {
         //        final List<ProjectVersionRefView> refs = pomView.getProjectVersionRefs( "//plugin[artifactId/text()=\"maven-site-plugin\"]//reportPlugin" );
 
-        final List<PluginView> plugins = pomView.getAllPluginsMatching( "//plugin[artifactId/text()=\"maven-site-plugin\"]//reportPlugin" );
+        List<PluginView> plugins = null;
+        try
+        {
+            plugins = pomView.getAllPluginsMatching( "//plugin[artifactId/text()=\"maven-site-plugin\"]//reportPlugin" );
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Cannot retrieve site-plugin nested reporting plugins: %s", e, e.getMessage() );
+        }
+
         if ( plugins != null )
         {
             for ( final PluginView plugin : plugins )
             {
-                if ( !plugin.isValid() )
+                try
                 {
-                    logger.warn( "Skipping invalid site reporting plugin: %s", plugin.asProjectVersionRef() );
-                    continue;
+                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    final String profileId = plugin.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
                 }
-
-                final ProjectVersionRef ref = plugin.asProjectVersionRef();
-                final String profileId = plugin.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Site-plugin nested reporting plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(),
+                                  plugin.toXML() );
+                }
             }
         }
     }
@@ -172,23 +193,34 @@ public class MavenModelProcessor
     public void addReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
-        final List<PluginView> plugins = pomView.getAllPluginsMatching( "//reporting/plugins/plugin" );
+        List<PluginView> plugins = null;
+        try
+        {
+            plugins = pomView.getAllPluginsMatching( "//reporting/plugins/plugin" );
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Cannot retrieve reporting plugins: %s", e, e.getMessage() );
+        }
+
         if ( plugins != null )
         {
-            for ( final PluginView refView : plugins )
+            for ( final PluginView plugin : plugins )
             {
-                if ( !refView.isValid() )
+                try
                 {
-                    logger.warn( "Skipping invalid old-style reporting plugin: %s", refView.asProjectVersionRef() );
-                    continue;
+                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    final String profileId = plugin.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                          false ),
+                                                                 false ) );
                 }
-
-                final ProjectVersionRef ref = refView.asProjectVersionRef();
-                final String profileId = refView.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                      false ), false ) );
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Reporting plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                }
             }
         }
     }
@@ -198,143 +230,192 @@ public class MavenModelProcessor
     {
         if ( processManagedInfo )
         {
-            final List<PluginView> plugins = pomView.getAllManagedBuildPlugins();
+            List<PluginView> plugins = null;
+            try
+            {
+                plugins = pomView.getAllManagedBuildPlugins();
+            }
+            catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+            {
+                logger.error( "Cannot retrieve managed plugins: %s", e, e.getMessage() );
+            }
+
             if ( plugins != null )
             {
                 for ( final PluginView plugin : plugins )
                 {
-                    if ( !plugin.isValid() )
+                    try
                     {
-                        logger.warn( "Skipping invalid managed plugin: %s", plugin.asProjectVersionRef() );
-                        continue;
+                        final ProjectVersionRef ref = plugin.asProjectVersionRef();
+
+                        final String profileId = plugin.getProfileId();
+                        final URI location = RelationshipUtils.profileLocation( profileId );
+
+                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref,
+                                                                     builder.getNextPluginDependencyIndex( projectRef, true ), true ) );
                     }
-
-                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
-
-                    final String profileId = plugin.getProfileId();
-                    final URI location = RelationshipUtils.profileLocation( profileId );
-
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                          true ),
-                                                                 true ) );
+                    catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                    {
+                        logger.error( "Managed plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    }
                 }
             }
         }
 
-        final List<PluginView> plugins = pomView.getAllBuildPlugins();
+        List<PluginView> plugins = null;
+        try
+        {
+            plugins = pomView.getAllBuildPlugins();
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Cannot retrieve build plugins: %s", e, e.getMessage() );
+        }
+
         if ( plugins != null )
         {
             for ( final PluginView plugin : plugins )
             {
-                if ( !plugin.isValid() )
+                try
                 {
-                    logger.warn( "Skipping invalid plugin: %s", plugin.asProjectVersionRef() );
-                    continue;
+                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    final String profileId = plugin.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                                                          false ),
+                                                                 false ) );
                 }
-
-                final ProjectVersionRef ref = plugin.asProjectVersionRef();
-                final String profileId = plugin.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                      false ), false ) );
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Build plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                }
             }
         }
     }
 
-    public void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
-        throws CartoDataException, InvalidVersionSpecificationException
+    protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
     {
         if ( processManagedInfo )
         {
-            final List<DependencyView> deps = pomView.getAllManagedDependencies();
+            List<DependencyView> deps = null;
+            try
+            {
+                deps = pomView.getAllManagedDependencies();
+            }
+            catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+            {
+                logger.error( "Failed to retrieve managed dependencies: %s. Skipping", e, e.getMessage() );
+            }
+
             if ( deps != null )
             {
                 for ( final DependencyView dep : deps )
                 {
-                    if ( !dep.isValid() )
+                    try
                     {
-                        logger.warn( "Skipping invalid managed dependency: %s", dep.asArtifactRef() );
-                        continue;
+                        final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                        final String profileId = dep.getProfileId();
+                        final URI location = RelationshipUtils.profileLocation( profileId );
+
+                        final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                        builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
+                                                                              builder.getNextDependencyIndex( true ), true ) );
                     }
+                    catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                    {
+                        logger.error( "Managed dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), dep.toXML() );
+                    }
+                }
+            }
+        }
 
+        // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
+        List<DependencyView> boms = null;
+        try
+        {
+            boms = pomView.getAllBOMs();
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Failed to retrieve BOM declarations: %s. Skipping", e, e.getMessage() );
+        }
+
+        if ( boms != null )
+        {
+            for ( final DependencyView bom : boms )
+            {
+                try
+                {
+                    final ProjectVersionRef ref = bom.asProjectVersionRef();
+                    final String profileId = bom.getProfileId();
+                    final URI location = RelationshipUtils.profileLocation( profileId );
+
+                    final ArtifactRef artifactRef = new ArtifactRef( ref, bom.getType(), bom.getClassifier(), bom.isOptional() );
+
+                    builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, bom.getScope(),
+                                                                          builder.getNextDependencyIndex( true ), true ) );
+                }
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "BOM declaration is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), bom.toXML() );
+                }
+            }
+        }
+
+        List<DependencyView> deps = null;
+        try
+        {
+            deps = pomView.getAllDirectDependencies();
+        }
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        {
+            logger.error( "Failed to retrieve direct dependencies: %s. Skipping", e, e.getMessage() );
+        }
+
+        if ( deps != null )
+        {
+            for ( final DependencyView dep : deps )
+            {
+                try
+                {
                     final ProjectVersionRef ref = dep.asProjectVersionRef();
-
                     final String profileId = dep.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
-                                                                          builder.getNextDependencyIndex( true ), true ) );
+                                                                          builder.getNextDependencyIndex( false ), false ) );
                 }
-            }
-        }
-
-        // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
-        final List<DependencyView> boms = pomView.getAllBOMs();
-        if ( boms != null )
-        {
-            for ( final DependencyView bom : boms )
-            {
-                if ( !bom.isValid() )
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
-                    logger.warn( "Skipping invalid dependency: %s", bom.asArtifactRef() );
-                    continue;
+                    logger.error( "Direct dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), dep.toXML() );
                 }
-
-                final ProjectVersionRef ref = bom.asProjectVersionRef();
-                final String profileId = bom.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                final ArtifactRef artifactRef = new ArtifactRef( ref, bom.getType(), bom.getClassifier(), bom.isOptional() );
-
-                builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, bom.getScope(),
-                                                                      builder.getNextDependencyIndex( true ), true ) );
-            }
-        }
-
-        final List<DependencyView> deps = pomView.getAllDirectDependencies();
-        if ( deps != null )
-        {
-            for ( final DependencyView dep : deps )
-            {
-                if ( !dep.isValid() )
-                {
-                    logger.warn( "Skipping invalid dependency: %s", dep.asArtifactRef() );
-                    continue;
-                }
-
-                final ProjectVersionRef ref = dep.asProjectVersionRef();
-                final String profileId = dep.getProfileId();
-                final URI location = RelationshipUtils.profileLocation( profileId );
-
-                final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
-
-                builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
-                                                                      builder.getNextDependencyIndex( false ), false ) );
             }
         }
     }
 
-    public void addParentRelationship( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
-        throws CartoDataException
+    protected void addParentRelationship( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
     {
-        final ParentView parent = pomView.getParent();
-        if ( parent != null )
+        try
         {
-            if ( !parent.isValid() )
+            final ParentView parent = pomView.getParent();
+            if ( parent != null )
             {
-                logger.warn( "Skipping invalid parent declaration: %s", parent.asProjectVersionRef() );
-                return;
+                final ProjectVersionRef ref = parent.asProjectVersionRef();
+                builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
             }
-
-            final ProjectVersionRef ref = parent.asProjectVersionRef();
-            builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
+            else
+            {
+                builder.withParent( new ParentRelationship( source, builder.getProjectRef() ) );
+            }
         }
-        else
+        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
         {
-            builder.withParent( new ParentRelationship( source, builder.getProjectRef() ) );
+            logger.error( "Parent refernce is invalid! Reason: %s. Skipping.", e, e.getMessage() );
         }
     }
 
