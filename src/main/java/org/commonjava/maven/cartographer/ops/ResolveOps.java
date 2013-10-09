@@ -1,7 +1,7 @@
 package org.commonjava.maven.cartographer.ops;
 
 import static org.apache.commons.lang.StringUtils.join;
-import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectReferences;
+import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectVersionReferences;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,7 +22,6 @@ import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
@@ -41,7 +40,6 @@ import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.maven.ArtifactManager;
-import org.commonjava.maven.galley.maven.type.TypeMapper;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
@@ -66,9 +64,6 @@ public class ResolveOps
 
     @Inject
     private ArtifactManager artifacts;
-
-    @Inject
-    private TypeMapper typeMapper;
 
     @Inject
     private CalculationOps calculations;
@@ -162,12 +157,7 @@ public class ResolveOps
     public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
         throws CartoDataException
     {
-        if ( recipe == null )
-        {
-            throw new CartoDataException( "Repository content recipe is missing." );
-        }
-
-        if ( !recipe.isValid() )
+        if ( recipe == null || !recipe.isValid() )
         {
             throw new CartoDataException( "Repository content recipe is invalid: %s", recipe );
         }
@@ -179,7 +169,84 @@ public class ResolveOps
             throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
                                           sourceManager.getFormatHint() );
         }
+        
+        final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
+        List<RepoContentCollector> collectors = collectContent( refMap, recipe, sourceUri );
 
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
+        for ( final RepoContentCollector collector : collectors )
+        {
+            final Map<ArtifactRef, ConcreteResource> items = collector.getItems();
+
+            if ( items != null && !items.isEmpty() )
+            {
+                logger.info( "%s Returning for: %s\n\n  %s", collector, collector.getRef(), join( items.entrySet(), "\n  " ) );
+                itemMap.put( collector.getRef(), items );
+            }
+            else
+            {
+                logger.warn( "%s No items returned for: %s", collector, collector.getRef() );
+            }
+        }
+
+        return itemMap;
+    }
+
+    private List<RepoContentCollector> collectContent( Map<ProjectVersionRef, ProjectRefCollection> refMap, RepositoryContentRecipe recipe,
+                                                       URI sourceUri )
+        throws CartoDataException
+    {
+        final Location location = recipe.getSourceLocation();
+        final Set<Location> excluded = recipe.getExcludedSourceLocations();
+
+        if ( excluded != null && excluded.contains( location ) )
+        {
+            // no sense in going through all the rest if everything is excluded...
+            throw new CartoDataException( "RepositoryContentRecipe is insane! Source location is among those excluded!" );
+        }
+
+        int projectCounter = 1;
+        final int projectSz = refMap.size();
+        final List<RepoContentCollector> collectors = new ArrayList<>( projectSz );
+
+        final DiscoveryConfig dconf = createDiscoveryConfig( recipe, sourceUri );
+
+        for ( final Map.Entry<ProjectVersionRef, ProjectRefCollection> entry : refMap.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final ProjectRefCollection refs = entry.getValue();
+
+            final RepoContentCollector collector =
+                new RepoContentCollector( ref, refs, recipe, location, dconf, artifacts, discoverer, excluded, projectCounter, projectSz );
+
+            collectors.add( collector );
+
+            projectCounter++;
+        }
+
+        final CountDownLatch latch = new CountDownLatch( collectors.size() );
+        for ( final RepoContentCollector collector : collectors )
+        {
+            collector.setLatch( latch );
+            executor.execute( collector );
+        }
+        
+        // TODO: timeout with loop...
+        try
+        {
+            latch.await();
+        }
+        catch ( final InterruptedException e )
+        {
+            logger.error( "Abandoning repo-content assembly for: %s", recipe );
+        }
+        
+        return collectors;
+    }
+
+    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( RepositoryContentRecipe recipe, URI sourceUri )
+        throws CartoDataException
+    {
         logger.info( "Building repository for: %s", recipe );
 
         EProjectWeb web = null;
@@ -206,11 +273,11 @@ public class ResolveOps
             resolve( graphs, recipe );
         }
 
-        final Map<ProjectRef, ProjectRefCollection> refMap;
+        final Map<ProjectVersionRef, ProjectRefCollection> refMap;
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
             final GraphCalculation result = calculations.calculate( graphs.getCalculation(), graphs.getGraphs() );
-            refMap = collectProjectReferences( result.getResult() );
+            refMap = collectProjectVersionReferences( result.getResult() );
         }
         else
         {
@@ -224,76 +291,10 @@ public class ResolveOps
                 throw new CartoDataException( "Failed to retrieve web for roots: %s", join( roots, ", " ) );
             }
 
-            refMap = collectProjectReferences( web );
+            refMap = collectProjectVersionReferences( web );
         }
 
-        final Set<ArtifactRef> seen = new HashSet<>();
-        final Location location = recipe.getSourceLocation();
-        final Set<Location> excluded = recipe.getExcludedSourceLocations();
-
-        if ( excluded != null && excluded.contains( location ) )
-        {
-            // no sense in going through all the rest if everything is excluded...
-            throw new CartoDataException( "RepositoryContentRecipe is insane! Source location is among those excluded!" );
-        }
-
-        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
-        int projectCounter = 1;
-        final int projectSz = refMap.size();
-        final List<RepoContentCollector> collectors = new ArrayList<>( projectSz );
-
-        final DiscoveryConfig dconf = createDiscoveryConfig( recipe, sourceUri );
-        for ( final ProjectRefCollection refs : refMap.values() )
-        {
-            int artifactCounter = 1;
-            final Set<ArtifactRef> artifactRefs = refs.getArtifactRefs();
-
-            final int artifactSz = artifactRefs.size();
-            for ( final ArtifactRef ar : artifactRefs )
-            {
-                final RepoContentCollector collector =
-                    new RepoContentCollector( ar, recipe, location, dconf, artifacts, discoverer, typeMapper, excluded, seen, projectCounter,
-                                              projectSz, artifactCounter++, artifactSz );
-
-                collectors.add( collector );
-            }
-
-            projectCounter++;
-        }
-
-        final CountDownLatch latch = new CountDownLatch( collectors.size() );
-        for ( final RepoContentCollector collector : collectors )
-        {
-            collector.setLatch( latch );
-            executor.execute( collector );
-        }
-
-        // TODO: timeout with loop...
-        try
-        {
-            latch.await();
-        }
-        catch ( final InterruptedException e )
-        {
-            logger.error( "Abandoning repo-content assembly for: %s", recipe );
-        }
-
-        for ( final RepoContentCollector collector : collectors )
-        {
-            final Map<ArtifactRef, ConcreteResource> items = collector.getItems();
-
-            if ( items != null && !items.isEmpty() )
-            {
-                logger.info( "Returning for: %s\n\n  %s", collector.getRef(), join( items.entrySet(), "\n  " ) );
-                itemMap.put( collector.getRef(), items );
-            }
-            else
-            {
-                logger.warn( "No items returned for: %s", collector.getRef() );
-            }
-        }
-
-        return itemMap;
+        return refMap;
     }
 
     public void resolve( final GraphComposition graphs, final RepositoryContentRecipe recipe )
@@ -313,8 +314,7 @@ public class ResolveOps
 
             final ProjectVersionRef[] rootsArray = graph.getRootsArray();
 
-            final List<ProjectVersionRef> roots = resolve( recipe.getSourceLocation()
-                                                                 .toString(), options, rootsArray );
+            final List<ProjectVersionRef> roots = resolve( sourceUri.toString(), options, rootsArray );
 
             graph.setRoots( new HashSet<>( roots ) );
         }

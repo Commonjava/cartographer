@@ -1,6 +1,7 @@
 package org.commonjava.maven.cartographer.ops;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
@@ -16,8 +18,6 @@ import org.commonjava.maven.cartographer.dto.ExtraCT;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
-import org.commonjava.maven.galley.maven.type.TypeMapper;
-import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
@@ -38,7 +38,7 @@ public class RepoContentCollector
 
     private final RepositoryContentRecipe recipe;
 
-    private final Set<ArtifactRef> seen;
+    private final Set<ArtifactRef> seen = new HashSet<>();
 
     private final Set<Location> excluded;
 
@@ -46,11 +46,7 @@ public class RepoContentCollector
 
     private final ArtifactManager artifacts;
 
-    private final TypeMapper typeMapper;
-
-    private ArtifactRef ar;
-
-    private final int artifactCounter;
+    private int counter;
 
     private final int artifactSz;
 
@@ -58,43 +54,61 @@ public class RepoContentCollector
 
     private Map<ArtifactRef, ConcreteResource> items;
 
-    private CartoDataException error;
+    private final Map<ArtifactRef, CartoDataException> errors = new HashMap<>();
 
-    public RepoContentCollector( final ArtifactRef ar, final RepositoryContentRecipe recipe, final Location location,
-                                 final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
-                                 final ProjectRelationshipDiscoverer discoverer, final TypeMapper typeMapper, final Set<Location> excluded,
-                                 final Set<ArtifactRef> seen, final int projectCounter, final int projectSz, final int artifactCounter,
-                                 final int artifactSz )
+    private String name;
+
+    private final Set<ArtifactRef> refs;
+
+    private final ProjectVersionRef ref;
+
+    public RepoContentCollector( final ProjectVersionRef ref, final ProjectRefCollection refs, final RepositoryContentRecipe recipe,
+                                 final Location location, final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
+                                 final ProjectRelationshipDiscoverer discoverer, final Set<Location> excluded, final int projectCounter,
+                                 final int projectSz )
     {
-        this.ar = ar;
+        this.ref = ref;
+        this.refs = refs.getArtifactRefs();
         this.recipe = recipe;
         this.location = location;
         this.discoveryConfig = discoveryConfig;
         this.artifacts = artifacts;
         this.discoverer = discoverer;
-        this.typeMapper = typeMapper;
         this.excluded = excluded;
-        this.seen = seen;
         this.projectCounter = projectCounter;
         this.projectSz = projectSz;
-        this.artifactCounter = artifactCounter;
-        this.artifactSz = artifactSz;
+        this.counter = 0;
+        this.artifactSz = refs.getArtifactRefs()
+                              .size();
     }
 
     @Override
     public void run()
     {
-        try
+        this.name = Thread.currentThread()
+                          .getName();
+
+        for ( final ArtifactRef ar : refs )
         {
-            execute();
-        }
-        catch ( final CartoDataException e )
-        {
-            this.error = e;
+            if ( refs.size() > 1 && "pom".equals( ar.getType() ) )
+            {
+                // handled later.
+                continue;
+            }
+
+            try
+            {
+                execute( ar, counter++ );
+            }
+            catch ( final CartoDataException e )
+            {
+                logger.error( "ERROR for %s: %s", e, ar, e.getMessage() );
+                this.errors.put( ar, e );
+            }
         }
     }
 
-    private void execute()
+    private void execute( ArtifactRef ar, final int artifactCounter )
         throws CartoDataException
     {
         try
@@ -148,7 +162,7 @@ public class RepoContentCollector
                 if ( recipe.hasWildcardExtras() )
                 {
                     // 1. scan for all classifier/type for the GAV
-                    TypeAndClassifier[] tcs;
+                    Map<TypeAndClassifier, ConcreteResource> tcs;
                     try
                     {
                         tcs = artifacts.listAvailableArtifacts( location, ar.asProjectVersionRef() );
@@ -160,8 +174,18 @@ public class RepoContentCollector
                     }
 
                     // 2. match up the resulting list against the extras we have
-                    tsAndCs: for ( final TypeAndClassifier tc : tcs )
+
+                    for ( final Entry<TypeAndClassifier, ConcreteResource> entry : tcs.entrySet() )
                     {
+                        final TypeAndClassifier tc = entry.getKey();
+                        final ConcreteResource res = entry.getValue();
+
+                        if ( isExcluded( res.getLocation() ) )
+                        {
+                            logger.info( "EXCLUDED: %s:%s (from: %s)", ar, tc, res );
+                            continue;
+                        }
+
                         for ( final ExtraCT extra : extras )
                         {
                             if ( extra == null )
@@ -173,26 +197,22 @@ public class RepoContentCollector
                             {
                                 final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
                                 logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve classifier/type artifact from listing: %s", projectCounter,
-                                             projectSz, artifactCounter, artifactSz, extCounter, tcs.length, extAR );
+                                             projectSz, artifactCounter, artifactSz, extCounter, tcs.size(), extAR );
 
                                 // if we're using a listing for wildcards, we've already established that these exist...
                                 // so don't waste the time on individual calls!
                                 //
                                 // addToContent( extAR, items, artifactLocation, excluded, seen );
                                 //
-                                ConcreteResource item;
-                                try
+                                if ( !seen.contains( extAR ) )
                                 {
-                                    item = new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( extAR, typeMapper ) );
+                                    logger.info( "+ %s (Wildcard addition)(resource: %s)", extAR, res );
+                                    items.put( extAR, res );
                                 }
-                                catch ( final TransferException e )
+                                else
                                 {
-                                    logger.error( "SHOULD NEVER HAPPEN: %s", e, e.getMessage() );
-                                    break tsAndCs;
+                                    logger.info( "- %s (Wildcard; ALREADY SEEN)(resource: %s)", extAR, res );
                                 }
-
-                                logger.info( "+ %s (Wildcard addition)", extAR );
-                                items.put( extAR, item );
                                 break;
                             }
                         }
@@ -287,7 +307,7 @@ public class RepoContentCollector
             final ConcreteResource item = resolve( ar, location, excluded, seen );
             if ( item != null )
             {
-                logger.info( "+ %s", ar );
+                logger.info( "+ %s (transfer: %s)", ar, item );
                 items.put( ar, item );
             }
             else
@@ -325,13 +345,29 @@ public class RepoContentCollector
         {
             logger.warn( "NOT FOUND: %s", ar );
         }
-        else if ( excluded != null && excluded.contains( item.getLocation() ) )
+        else if ( isExcluded( item.getLocation() ) )
         {
             logger.info( "EXCLUDED: %s (Location was: %s)", ar, item.getLocation() );
             return null;
         }
 
         return item;
+    }
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + "(" + name + ")";
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    private boolean isExcluded( final Location location )
+    {
+        return excluded != null && excluded.contains( location );
     }
 
     public void setLatch( final CountDownLatch latch )
@@ -341,7 +377,7 @@ public class RepoContentCollector
 
     public ProjectVersionRef getRef()
     {
-        return ar.asProjectVersionRef();
+        return ref;
     }
 
     public Map<ArtifactRef, ConcreteResource> getItems()
@@ -349,8 +385,8 @@ public class RepoContentCollector
         return items;
     }
 
-    public CartoDataException getError()
+    public Map<ArtifactRef, CartoDataException> getErrors()
     {
-        return error;
+        return errors;
     }
 }
