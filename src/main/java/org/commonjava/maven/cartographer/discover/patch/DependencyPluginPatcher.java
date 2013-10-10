@@ -1,5 +1,7 @@
 package org.commonjava.maven.cartographer.discover.patch;
 
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +37,7 @@ public class DependencyPluginPatcher
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
-            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
+            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW_CTX_KEY );
 
             // get all artifactItems with a version element. Only these need to be verified.
             final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";

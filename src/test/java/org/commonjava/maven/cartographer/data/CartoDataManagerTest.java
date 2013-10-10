@@ -23,6 +23,8 @@ import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
+import org.commonjava.maven.cartographer.meta.MetadataScannerSupport;
+import org.commonjava.maven.cartographer.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.testutil.TestCartoCoreProvider;
 import org.commonjava.maven.cartographer.testutil.TestCartoEventManager;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
@@ -35,7 +37,11 @@ import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
+import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -103,7 +109,14 @@ public class CartoDataManagerTest
             new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
-        discoverer = new DiscovererImpl( processor, artifacts, dataManager, new PatcherSupport() );
+
+        final MavenPomReader pomReader =
+            new MavenPomReader( new XMLInfrastructure(), artifacts, new XPathManager(), new StandardMaven304PluginDefaults() );
+
+        // TODO: Add some scanners.
+        final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
+
+        discoverer = new DiscovererImpl( processor, artifacts, dataManager, new PatcherSupport(), scannerSupport );
 
         aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
     }

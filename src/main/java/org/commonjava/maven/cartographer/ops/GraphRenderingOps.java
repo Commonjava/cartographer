@@ -3,6 +3,7 @@ package org.commonjava.maven.cartographer.ops;
 import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectReferences;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
@@ -55,8 +56,8 @@ public class GraphRenderingOps
         this.data = data;
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final DependencyScope scope, final boolean collapseTransitives )
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+                           final boolean collapseTransitives )
         throws CartoDataException
     {
         final EProjectGraph graph = data.getProjectGraph( ref );
@@ -72,8 +73,7 @@ public class GraphRenderingOps
                 t = new FilteringTraversal( filter );
             }
 
-            final StructurePrintingTraversal printer =
-                new StructurePrintingTraversal( t, new DependencyTreeRelationshipPrinter() );
+            final StructurePrintingTraversal printer = new StructurePrintingTraversal( t, new DependencyTreeRelationshipPrinter() );
 
             try
             {
@@ -81,8 +81,7 @@ public class GraphRenderingOps
             }
             catch ( final GraphDriverException e )
             {
-                throw new CartoDataException( "Failed to traverse for dependency-tree generation of: %s. Reason: %s",
-                                              ref, e.getMessage() );
+                throw new CartoDataException( "Failed to traverse for dependency-tree generation of: %s. Reason: %s", ref, e.getMessage() );
             }
 
             return printer.printStructure( ref );
@@ -91,11 +90,10 @@ public class GraphRenderingOps
         return null;
     }
 
-    public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter,
-                              final ProjectVersionRef... roots )
+    public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        final EProjectWeb web = data.getProjectWeb( filter, roots );
+        final EProjectNet web = data.getProjectWeb( filter, roots );
 
         if ( web == null )
         {
@@ -170,16 +168,15 @@ public class GraphRenderingOps
         return new CompoundVersionSpec( null, versions );
     }
 
-    public String dotfile( final ProjectVersionRef coord, final ProjectRelationshipFilter filter,
-                           final ProjectVersionRef... roots )
+    public String dotfile( final ProjectVersionRef coord, final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        final EProjectWeb web = data.getProjectWeb( filter, roots );
+        final EProjectNet web = data.getProjectWeb( filter, roots );
 
         if ( web != null )
         {
             final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>( web.getAllProjects() );
-            final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
+            final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
 
             final Map<ProjectVersionRef, String> aliases = new HashMap<ProjectVersionRef, String>();
 

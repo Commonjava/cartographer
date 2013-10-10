@@ -5,6 +5,7 @@ import static org.apache.commons.lang.StringUtils.join;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -22,6 +23,8 @@ public class DiscoveryResult
     private Set<ProjectRelationship<?>> discovered;
 
     private transient Set<ProjectRelationship<?>> accepted;
+
+    private Map<String, String> metadata;
 
     public DiscoveryResult( final URI source, final ProjectVersionRef selected, final Set<ProjectRelationship<?>> discovered )
     {
@@ -132,6 +135,16 @@ public class DiscoveryResult
         accepted = null;
 
         return result;
+    }
+
+    public void setMetadata( final Map<String, String> metadata )
+    {
+        this.metadata = metadata;
+    }
+
+    public Map<String, String> getMetadata()
+    {
+        return metadata;
     }
 
 }

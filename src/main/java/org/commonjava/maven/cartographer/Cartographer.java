@@ -1,8 +1,6 @@
 package org.commonjava.maven.cartographer;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,7 +22,8 @@ import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
-import org.commonjava.maven.cartographer.meta.MetadataScanner;
+import org.commonjava.maven.cartographer.meta.MetadataScannerSupport;
+import org.commonjava.maven.cartographer.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
@@ -46,7 +45,11 @@ import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
+import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -106,20 +109,16 @@ public class Cartographer
         // TODO: This needs to be replaced with a real implementation.
         final CartoEventManager events = new NoOpCartoEventManager();
 
-        final DiscoverySourceManager sourceFactory = new SourceManagerImpl();
+        final DiscoverySourceManager sourceManager = new SourceManagerImpl();
 
         final GraphWorkspaceHolder wsHolder = new GraphWorkspaceHolder();
 
         final CartoDataManager data = new DefaultCartoDataManager( graphs, wsHolder, events );
-        this.workspaces = new WorkspaceOps( data, sourceFactory );
+        this.workspaces = new WorkspaceOps( data, sourceManager );
 
         this.calculator = new CalculationOps( data );
         this.grapher = new GraphOps( data );
         this.renderer = new GraphRenderingOps( data );
-
-        final Set<MetadataScanner> scanners = new HashSet<>();
-        // TODO: Add some scanners.
-        this.metadata = new MetadataOps( data, scanners );
 
         final MavenModelProcessor mmp = new MavenModelProcessor( data );
 
@@ -153,10 +152,19 @@ public class Cartographer
         final TransferManager xferMgr = new TransferManagerImpl( transport, cache, nfc, fileEvents, dh, uh, lh, eh, batchExecutor );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
-        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts, data, new PatcherSupport() );
+
+        final MavenPomReader pomReader =
+            new MavenPomReader( new XMLInfrastructure(), artifacts, new XPathManager(), new StandardMaven304PluginDefaults() );
+
+        // TODO: Add some scanners.
+        final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
+
+        final ProjectRelationshipDiscoverer discoverer = new DiscovererImpl( mmp, artifacts, data, new PatcherSupport(), scannerSupport );
         final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
 
-        this.resolver = new ResolveOps( this.calculator, data, sourceFactory, discoverer, aggregator, artifacts, resolveExecutor );
+        this.resolver = new ResolveOps( this.calculator, data, sourceManager, discoverer, aggregator, artifacts, resolveExecutor );
+
+        this.metadata = new MetadataOps( data, artifacts, pomReader, scannerSupport, sourceManager, resolver, calculator );
     }
 
     public CalculationOps getCalculator()

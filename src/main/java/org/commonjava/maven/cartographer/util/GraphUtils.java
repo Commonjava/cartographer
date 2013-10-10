@@ -31,4 +31,23 @@ public final class GraphUtils
         return results;
     }
 
+    public static Set<ProjectVersionRef> gavs( final ProjectRelationship<?>... relationships )
+    {
+        return gavs( Arrays.asList( relationships ) );
+    }
+
+    public static Set<ProjectVersionRef> gavs( final Collection<ProjectRelationship<?>> relationships )
+    {
+        final Set<ProjectVersionRef> results = new HashSet<ProjectVersionRef>();
+        for ( final ProjectRelationship<?> rel : relationships )
+        {
+            results.add( rel.getDeclaring()
+                            .asProjectVersionRef() );
+
+            results.add( rel.getTarget()
+                            .asProjectVersionRef() );
+        }
+
+        return results;
+    }
 }

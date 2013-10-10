@@ -1,11 +1,12 @@
 package org.commonjava.maven.cartographer.agg;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -18,13 +19,13 @@ public final class AggregationUtils
     {
     }
 
-    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final EProjectWeb web )
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final EProjectNet web )
     {
-        final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
         return collectProjectReferences( rels );
     }
 
-    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Set<ProjectRelationship<?>> rels )
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Collection<ProjectRelationship<?>> rels )
     {
         final Map<ProjectRef, ProjectRefCollection> projects = new HashMap<ProjectRef, ProjectRefCollection>();
 
@@ -66,13 +67,13 @@ public final class AggregationUtils
         return projects;
     }
 
-    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final EProjectWeb web )
+    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final EProjectNet web )
     {
-        final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
         return collectProjectVersionReferences( rels );
     }
 
-    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Set<ProjectRelationship<?>> rels )
+    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?>> rels )
     {
         final Map<ProjectVersionRef, ProjectRefCollection> projects = new HashMap<>();
 
@@ -113,13 +114,13 @@ public final class AggregationUtils
         return projects;
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final EProjectWeb web, final boolean includePomArtifacts )
+    public static Set<ArtifactRef> collectArtifactReferences( final EProjectNet web, final boolean includePomArtifacts )
     {
-        final Set<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
         return collectArtifactReferences( rels, includePomArtifacts );
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final Set<ProjectRelationship<?>> rels, final boolean includePomArtifacts )
+    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels, final boolean includePomArtifacts )
     {
         final Set<ArtifactRef> artifacts = new HashSet<>();
 

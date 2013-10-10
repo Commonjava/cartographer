@@ -1,5 +1,8 @@
 package org.commonjava.maven.cartographer.discover.patch;
 
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,8 +55,8 @@ public abstract class AbstractPatcherTest
                                                .read( txfr, Arrays.asList( location ) );
 
         final Map<String, Object> ctx = new HashMap<>();
-        ctx.put( DepgraphPatcher.POM_VIEW, read );
-        ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, txfr );
+        ctx.put( POM_VIEW_CTX_KEY, read );
+        ctx.put( TRANSFER_CTX_KEY, txfr );
 
         return ctx;
     }

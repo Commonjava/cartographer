@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
@@ -150,7 +150,7 @@ public class GraphOps
         return data.getProjectGraph( filter, ref );
     }
 
-    public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
+    public EProjectNet getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
         throws CartoDataException
     {
         return data.getProjectWeb( filter, refs );

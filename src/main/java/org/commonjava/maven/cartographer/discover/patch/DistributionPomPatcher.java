@@ -1,5 +1,7 @@
 package org.commonjava.maven.cartographer.discover.patch;
 
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +33,7 @@ public class DistributionPomPatcher
         final ProjectVersionRef ref = result.getSelectedRef();
         try
         {
-            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW );
+            final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW_CTX_KEY );
 
             // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
             final String assemblyOnPomProjectPath =

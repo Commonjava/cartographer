@@ -68,7 +68,7 @@ public class DefaultGraphAggregator
     }
 
     @Override
-    public EProjectWeb connectIncomplete( final EProjectWeb web, final AggregationOptions config )
+    public EProjectNet connectIncomplete( final EProjectWeb web, final AggregationOptions config )
         throws CartoDataException
     {
         return connect( web, config );
@@ -187,6 +187,12 @@ public class DefaultGraphAggregator
             if ( result != null )
             {
                 final Set<ProjectRelationshipFilter> filters = todo.getFilters();
+
+                final Map<String, String> metadata = result.getMetadata();
+                if ( metadata != null )
+                {
+                    dataManager.addMetadata( result.getSelectedRef(), metadata );
+                }
 
                 final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
                 if ( discoveredRels != null )

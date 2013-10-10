@@ -1,6 +1,8 @@
 package org.commonjava.maven.cartographer.discover.patch;
 
 import static org.apache.commons.lang.StringUtils.join;
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,8 +60,8 @@ public class PatcherSupport
         logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<>();
-        ctx.put( DepgraphPatcher.POM_VIEW, pomView );
-        ctx.put( DepgraphPatcher.TRANSFER_CTX_KEY, transfer );
+        ctx.put( POM_VIEW_CTX_KEY, pomView );
+        ctx.put( TRANSFER_CTX_KEY, transfer );
 
         for ( final String patcherId : enabledPatchers )
         {

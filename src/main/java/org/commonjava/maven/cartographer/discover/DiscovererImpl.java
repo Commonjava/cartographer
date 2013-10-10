@@ -2,6 +2,7 @@ package org.commonjava.maven.cartographer.discover;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -13,6 +14,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.patch.PatcherSupport;
+import org.commonjava.maven.cartographer.meta.MetadataScannerSupport;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
@@ -42,6 +44,9 @@ public class DiscovererImpl
     private PatcherSupport patchers;
 
     @Inject
+    private MetadataScannerSupport metadataScanners;
+
+    @Inject
     private MavenPomReader pomReader;
 
     protected DiscovererImpl()
@@ -49,12 +54,13 @@ public class DiscovererImpl
     }
 
     public DiscovererImpl( final MavenModelProcessor modelProcessor, final ArtifactManager artifactManager, final CartoDataManager dataManager,
-                           final PatcherSupport patchers )
+                           final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
     {
         this.modelProcessor = modelProcessor;
         this.artifactManager = artifactManager;
         this.dataManager = dataManager;
         this.patchers = patchers;
+        this.metadataScanners = metadataScanners;
     }
 
     @Override
@@ -115,9 +121,14 @@ public class DiscovererImpl
         {
             result = patchers.patch( result, discoveryConfig.getEnabledPatchers(), locations, pomView, transfer );
 
+            final Map<String, String> metadata = metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
+            result.setMetadata( metadata );
+
             if ( storeRelationships )
             {
                 final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( result.getAcceptedRelationships() );
+                dataManager.addMetadata( result.getSelectedRef(), metadata );
+
                 result = new DiscoveryResult( result.getSource(), result, rejected );
             }
         }

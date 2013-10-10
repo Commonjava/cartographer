@@ -37,6 +37,7 @@ import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectKey;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
@@ -283,6 +284,13 @@ public class DefaultCartoDataManager
     public Map<String, String> getMetadata( final ProjectVersionRef ref )
     {
         return graphs.getMetadata( getCurrentWorkspace(), ref );
+    }
+
+    @Override
+    public Map<Map<String, String>, Set<ProjectVersionRef>> collateProjectsByMetadata( final Set<ProjectVersionRef> refs, final Set<String> keys )
+        throws CartoDataException
+    {
+        return graphs.collateByMetadata( getCurrentWorkspace(), refs, keys );
     }
 
     @Override
@@ -566,7 +574,7 @@ public class DefaultCartoDataManager
             return leaves;
         }
 
-        final EProjectWeb web = getProjectWeb( refs );
+        final EProjectNet web = getProjectWeb( refs );
 
         logger.info( "BEFORE filtering: %d leaf projects:\n  %s", leaves.size(), join( leaves, "\n  " ) );
 

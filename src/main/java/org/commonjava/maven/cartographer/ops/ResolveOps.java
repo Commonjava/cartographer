@@ -18,6 +18,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
@@ -38,6 +39,7 @@ import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
+import org.commonjava.maven.cartographer.dto.ResolverRecipe;
 import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -169,9 +171,9 @@ public class ResolveOps
             throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
                                           sourceManager.getFormatHint() );
         }
-        
+
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
-        List<RepoContentCollector> collectors = collectContent( refMap, recipe, sourceUri );
+        final List<RepoContentCollector> collectors = collectContent( refMap, recipe, sourceUri );
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
         for ( final RepoContentCollector collector : collectors )
@@ -192,8 +194,8 @@ public class ResolveOps
         return itemMap;
     }
 
-    private List<RepoContentCollector> collectContent( Map<ProjectVersionRef, ProjectRefCollection> refMap, RepositoryContentRecipe recipe,
-                                                       URI sourceUri )
+    private List<RepoContentCollector> collectContent( final Map<ProjectVersionRef, ProjectRefCollection> refMap,
+                                                       final RepositoryContentRecipe recipe, final URI sourceUri )
         throws CartoDataException
     {
         final Location location = recipe.getSourceLocation();
@@ -230,7 +232,7 @@ public class ResolveOps
             collector.setLatch( latch );
             executor.execute( collector );
         }
-        
+
         // TODO: timeout with loop...
         try
         {
@@ -240,16 +242,16 @@ public class ResolveOps
         {
             logger.error( "Abandoning repo-content assembly for: %s", recipe );
         }
-        
+
         return collectors;
     }
 
-    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( RepositoryContentRecipe recipe, URI sourceUri )
+    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe, final URI sourceUri )
         throws CartoDataException
     {
         logger.info( "Building repository for: %s", recipe );
 
-        EProjectWeb web = null;
+        EProjectNet web = null;
 
         if ( data.getCurrentWorkspace() == null || !recipe.getWorkspaceId()
                                                           .equals( data.getCurrentWorkspace()
@@ -270,13 +272,13 @@ public class ResolveOps
 
         if ( recipe.isResolve() )
         {
-            resolve( graphs, recipe );
+            resolve( recipe );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap;
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
-            final GraphCalculation result = calculations.calculate( graphs.getCalculation(), graphs.getGraphs() );
+            final GraphCalculation result = calculations.calculate( graphs );
             refMap = collectProjectVersionReferences( result.getResult() );
         }
         else
@@ -297,7 +299,7 @@ public class ResolveOps
         return refMap;
     }
 
-    public void resolve( final GraphComposition graphs, final RepositoryContentRecipe recipe )
+    public void resolve( final ResolverRecipe recipe )
         throws CartoDataException
     {
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
@@ -308,7 +310,7 @@ public class ResolveOps
                                           sourceManager.getFormatHint() );
         }
 
-        for ( final GraphDescription graph : graphs )
+        for ( final GraphDescription graph : recipe.getGraphComposition() )
         {
             final AggregationOptions options = createAggregationOptions( recipe, graph.getFilter(), sourceUri );
 
@@ -320,8 +322,7 @@ public class ResolveOps
         }
     }
 
-    private AggregationOptions createAggregationOptions( final RepositoryContentRecipe recipe, final ProjectRelationshipFilter filter,
-                                                         final URI sourceUri )
+    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final ProjectRelationshipFilter filter, final URI sourceUri )
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
         options.setFilter( filter );
@@ -334,7 +335,7 @@ public class ResolveOps
         return options;
     }
 
-    private DiscoveryConfig createDiscoveryConfig( final RepositoryContentRecipe recipe, final URI sourceUri )
+    private DiscoveryConfig createDiscoveryConfig( final ResolverRecipe recipe, final URI sourceUri )
     {
         final DefaultDiscoveryConfig dconf = new DefaultDiscoveryConfig( sourceUri );
         dconf.setEnabledPatchers( recipe.getPatcherIds() );

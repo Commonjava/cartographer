@@ -157,4 +157,7 @@ public interface CartoDataManager
     GraphWorkspace getWorkspace( String id )
         throws CartoDataException;
 
+    Map<Map<String, String>, Set<ProjectVersionRef>> collateProjectsByMetadata( Set<ProjectVersionRef> refs, Set<String> keys )
+        throws CartoDataException;
+
 }

@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.apache.log4j.Level;
+import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
@@ -93,7 +94,7 @@ public class DefaultGraphAggregatorTest
                                        .getProjectWeb( options.getFilter(), root );
         assertThat( web, notNullValue() );
 
-        EProjectWeb result = fixture.getAggregator()
+        EProjectNet result = fixture.getAggregator()
                                     .connectIncomplete( web, options );
         assertThat( result, notNullValue() );
 
