@@ -56,7 +56,7 @@ public class MavenModelProcessor
 
     private final boolean processManagedInfo = false;
 
-    private final boolean processBuildInfo = false;
+    private final boolean processBuildInfo = true;
 
     protected MavenModelProcessor()
     {
