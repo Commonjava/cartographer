@@ -1,8 +1,10 @@
 package org.commonjava.maven.cartographer.ops;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -10,6 +12,8 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
@@ -34,7 +38,7 @@ public class CalculationOps
         this.data = data;
     }
 
-    public GraphDifference difference( final GraphDescription from, final GraphDescription to )
+    public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
         final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), from.getRootsArray() );
@@ -44,13 +48,84 @@ public class CalculationOps
         final Collection<ProjectRelationship<?>> firstAll = firstWeb.getAllRelationships();
         final Collection<ProjectRelationship<?>> secondAll = secondWeb.getAllRelationships();
 
-        final Set<ProjectRelationship<?>> added = new HashSet<ProjectRelationship<?>>( secondAll );
-        added.removeAll( firstAll );
-
         final Set<ProjectRelationship<?>> removed = new HashSet<ProjectRelationship<?>>( firstAll );
         removed.removeAll( secondAll );
 
-        return new GraphDifference( from, to, added, removed );
+        final Set<ProjectRelationship<?>> added = new HashSet<ProjectRelationship<?>>( secondAll );
+        added.removeAll( firstAll );
+
+        return new GraphDifference<ProjectRelationship<?>>( from, to, added, removed );
+    }
+
+    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from, final GraphDescription to )
+        throws CartoDataException
+    {
+        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), from.getRootsArray() );
+        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), to.getRootsArray() );
+
+        final Map<ProjectRef, Set<ProjectVersionRef>> firstAll = mapTargetsToGA( firstWeb );
+        final Map<ProjectRef, Set<ProjectVersionRef>> secondAll = mapTargetsToGA( secondWeb );
+
+        reduceToIntersection( firstAll, secondAll );
+
+        final Set<ProjectVersionRef> removed = new HashSet<>();
+        for ( final Set<ProjectVersionRef> refSet : firstAll.values() )
+        {
+            if ( refSet != null )
+            {
+                removed.addAll( refSet );
+            }
+        }
+
+        final Set<ProjectVersionRef> added = new HashSet<>();
+        for ( final Set<ProjectVersionRef> refSet : secondAll.values() )
+        {
+            if ( refSet != null )
+            {
+                added.addAll( refSet );
+            }
+        }
+
+        return new GraphDifference<ProjectVersionRef>( from, to, added, removed );
+    }
+
+    private void reduceToIntersection( final Map<ProjectRef, Set<ProjectVersionRef>> first, final Map<ProjectRef, Set<ProjectVersionRef>> second )
+    {
+        for ( final ProjectRef ref : new HashSet<>( first.keySet() ) )
+        {
+            if ( !second.containsKey( ref ) )
+            {
+                first.remove( ref );
+            }
+        }
+
+        for ( final ProjectRef ref : new HashSet<>( second.keySet() ) )
+        {
+            if ( !first.containsKey( ref ) )
+            {
+                second.remove( ref );
+            }
+        }
+    }
+
+    private Map<ProjectRef, Set<ProjectVersionRef>> mapTargetsToGA( final EProjectNet net )
+    {
+        final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<>();
+        for ( final ProjectVersionRef ref : net.getAllProjects() )
+        {
+            final ProjectRef pr = ref.asProjectRef();
+
+            Set<ProjectVersionRef> pvrs = result.get( pr );
+            if ( pvrs == null )
+            {
+                pvrs = new HashSet<>();
+                result.put( pr, pvrs );
+            }
+
+            pvrs.add( ref );
+        }
+
+        return result;
     }
 
     public GraphCalculation subtract( final List<GraphDescription> graphs )

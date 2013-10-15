@@ -12,6 +12,7 @@ import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
+import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.maven.GalleyMavenFixture;
 
@@ -36,6 +37,8 @@ public class CartoFixture
     private GraphWorkspaceHolder wsHolder;
 
     private SourceManagerImpl sourceManager;
+
+    private MavenModelProcessor modelProcessor;
 
     public CartoFixture( final CoreFixture core )
     {
@@ -90,6 +93,11 @@ public class CartoFixture
         {
             resolveOps =
                 new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, getArtifacts(), Executors.newFixedThreadPool( 10 ) );
+        }
+
+        if ( modelProcessor == null )
+        {
+            modelProcessor = new MavenModelProcessor( getData() );
         }
     }
 
@@ -199,6 +207,16 @@ public class CartoFixture
     public void setCalculationOps( final CalculationOps calculationOps )
     {
         this.calculationOps = calculationOps;
+    }
+
+    public MavenModelProcessor getModelProcessor()
+    {
+        return modelProcessor;
+    }
+
+    public void setModelProcessor( final MavenModelProcessor modelProcessor )
+    {
+        this.modelProcessor = modelProcessor;
     }
 
 }
