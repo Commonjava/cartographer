@@ -27,6 +27,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships.Builde
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
+import org.commonjava.maven.atlas.graph.rel.PluginDependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
@@ -42,9 +43,11 @@ import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.ExtensionView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.ParentView;
+import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
 import org.commonjava.util.logging.Logger;
 
+// TODO: Refactor the methods in here...there is a LOT of copy/paste programming!
 @ApplicationScoped
 public class MavenModelProcessor
 {
@@ -173,18 +176,61 @@ public class MavenModelProcessor
         {
             for ( final PluginView plugin : plugins )
             {
+                ProjectVersionRef pluginRef = null;
                 try
                 {
-                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    pluginRef = plugin.asProjectVersionRef();
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginIndex( false ), false ) );
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef, builder.getNextPluginIndex( false ), false ) );
                 }
                 catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Site-plugin nested reporting plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(),
                                   plugin.toXML() );
+                    continue;
+                }
+
+                List<PluginDependencyView> pluginDependencies = null;
+                try
+                {
+                    pluginDependencies = plugin.getLocalPluginDependencies();
+                }
+                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Cannot retrieve site-plugin nested reporting plugin dependencies for: %s. Reason: %s", e, pluginRef,
+                                  e.getMessage() );
+                }
+
+                if ( pluginDependencies != null )
+                {
+                    for ( final PluginDependencyView dep : pluginDependencies )
+                    {
+                        try
+                        {
+                            final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                            final String profileId = dep.getProfileId();
+                            final URI location = RelationshipUtils.profileLocation( profileId );
+
+                            final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                            builder.withPluginDependencies( new PluginDependencyRelationship(
+                                                                                              source,
+                                                                                              location,
+                                                                                              projectRef,
+                                                                                              pluginRef,
+                                                                                              artifactRef,
+                                                                                              builder.getNextPluginDependencyIndex( pluginRef, false ),
+                                                                                              false ) );
+                        }
+                        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                        {
+                            logger.error( "Site-plugin nested plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef,
+                                          e.getMessage(), dep.toXML() );
+                        }
+                    }
                 }
             }
         }
@@ -207,19 +253,59 @@ public class MavenModelProcessor
         {
             for ( final PluginView plugin : plugins )
             {
+                ProjectVersionRef pluginRef = null;
                 try
                 {
-                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    pluginRef = plugin.asProjectVersionRef();
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                          false ),
-                                                                 false ) );
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef, builder.getNextPluginIndex( false ), false ) );
                 }
                 catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Reporting plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    continue;
+                }
+
+                List<PluginDependencyView> pluginDependencies = null;
+                try
+                {
+                    pluginDependencies = plugin.getLocalPluginDependencies();
+                }
+                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Cannot retrieve report plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                }
+
+                if ( pluginDependencies != null )
+                {
+                    for ( final PluginDependencyView dep : pluginDependencies )
+                    {
+                        try
+                        {
+                            final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                            final String profileId = dep.getProfileId();
+                            final URI location = RelationshipUtils.profileLocation( profileId );
+
+                            final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                            builder.withPluginDependencies( new PluginDependencyRelationship(
+                                                                                              source,
+                                                                                              location,
+                                                                                              projectRef,
+                                                                                              pluginRef,
+                                                                                              artifactRef,
+                                                                                              builder.getNextPluginDependencyIndex( pluginRef, false ),
+                                                                                              false ) );
+                        }
+                        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                        {
+                            logger.error( "Report plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef,
+                                          e.getMessage(), dep.toXML() );
+                        }
+                    }
                 }
             }
         }
@@ -244,19 +330,57 @@ public class MavenModelProcessor
             {
                 for ( final PluginView plugin : plugins )
                 {
+                    ProjectVersionRef pluginRef = null;
                     try
                     {
-                        final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                        pluginRef = plugin.asProjectVersionRef();
 
                         final String profileId = plugin.getProfileId();
                         final URI location = RelationshipUtils.profileLocation( profileId );
 
-                        builder.withPlugins( new PluginRelationship( source, location, projectRef, ref,
+                        builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef,
                                                                      builder.getNextPluginDependencyIndex( projectRef, true ), true ) );
                     }
                     catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                     {
                         logger.error( "Managed plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                        continue;
+                    }
+
+                    List<PluginDependencyView> pluginDependencies = null;
+                    try
+                    {
+                        pluginDependencies = plugin.getLocalPluginDependencies();
+                    }
+                    catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                    {
+                        logger.error( "Cannot retrieve managed plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                    }
+
+                    if ( pluginDependencies != null )
+                    {
+                        for ( final PluginDependencyView dep : pluginDependencies )
+                        {
+                            try
+                            {
+                                final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                                final String profileId = dep.getProfileId();
+                                final URI location = RelationshipUtils.profileLocation( profileId );
+
+                                final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                                builder.withPluginDependencies( new PluginDependencyRelationship( source, location, projectRef, pluginRef,
+                                                                                                  artifactRef,
+                                                                                                  builder.getNextPluginDependencyIndex( pluginRef,
+                                                                                                                                        true ), true ) );
+                            }
+                            catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                            {
+                                logger.error( "Managed plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef,
+                                              e.getMessage(), dep.toXML() );
+                            }
+                        }
                     }
                 }
             }
@@ -276,19 +400,60 @@ public class MavenModelProcessor
         {
             for ( final PluginView plugin : plugins )
             {
+                ProjectVersionRef pluginRef = null;
                 try
                 {
-                    final ProjectVersionRef ref = plugin.asProjectVersionRef();
+                    pluginRef = plugin.asProjectVersionRef();
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, ref, builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                                                          false ),
-                                                                 false ) );
+                    builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef,
+                                                                 builder.getNextPluginDependencyIndex( projectRef, false ), false ) );
                 }
                 catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Build plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    continue;
+                }
+
+                List<PluginDependencyView> pluginDependencies = null;
+                try
+                {
+                    pluginDependencies = plugin.getLocalPluginDependencies();
+                }
+                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                {
+                    logger.error( "Cannot retrieve build plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                }
+
+                if ( pluginDependencies != null )
+                {
+                    for ( final PluginDependencyView dep : pluginDependencies )
+                    {
+                        try
+                        {
+                            final ProjectVersionRef ref = dep.asProjectVersionRef();
+
+                            final String profileId = dep.getProfileId();
+                            final URI location = RelationshipUtils.profileLocation( profileId );
+
+                            final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                            builder.withPluginDependencies( new PluginDependencyRelationship(
+                                                                                              source,
+                                                                                              location,
+                                                                                              projectRef,
+                                                                                              pluginRef,
+                                                                                              artifactRef,
+                                                                                              builder.getNextPluginDependencyIndex( pluginRef, false ),
+                                                                                              false ) );
+                        }
+                        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                        {
+                            logger.error( "Build plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef, e.getMessage(),
+                                          dep.toXML() );
+                        }
+                    }
                 }
             }
         }
