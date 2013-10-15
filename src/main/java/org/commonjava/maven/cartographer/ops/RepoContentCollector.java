@@ -88,6 +88,8 @@ public class RepoContentCollector
         this.name = Thread.currentThread()
                           .getName();
 
+        items = new HashMap<>();
+
         for ( final ArtifactRef ar : refs )
         {
             if ( refs.size() > 1 && "pom".equals( ar.getType() ) )
@@ -113,8 +115,6 @@ public class RepoContentCollector
     {
         try
         {
-            items = new HashMap<>();
-
             logger.info( "%d/%d %d/%d. Including: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
 
             if ( ar.isVariableVersion() )

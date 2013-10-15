@@ -41,13 +41,13 @@ public class ShippingOrientedBuildFilter
         this.filter = null;
     }
 
-    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final Set<ProjectRef> excludes )
+    private ShippingOrientedBuildFilter( final boolean runtimeOnly, final boolean acceptManaged, final Set<ProjectRef> excludes )
     {
         //        logger.info( "Creating filter %s",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
         //                                     : "for any artifact" );
         this.runtimeOnly = runtimeOnly;
-        this.acceptManaged = false;
+        this.acceptManaged = acceptManaged;
         this.filter =
             runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
                                         new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
@@ -108,14 +108,14 @@ public class ShippingOrientedBuildFilter
             case EXTENSION:
             case PLUGIN:
             {
-                return new ShippingOrientedBuildFilter( true, excludes );
+                return new ShippingOrientedBuildFilter( true, false, excludes );
             }
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
 
                 // reset selections map to simulate classloader isolation.
-                return new ShippingOrientedBuildFilter( true, excludes );
+                return new ShippingOrientedBuildFilter( true, false, excludes );
             }
             case PARENT:
             {
@@ -136,7 +136,8 @@ public class ShippingOrientedBuildFilter
 
                 // As long as the scope is runtime or compile, this is still in the train to be rebuilt.
                 // Otherwise, it's test or provided scope, and it's a build-requires situation...we don't need to rebuild it.
-                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), exc );
+                return new ShippingOrientedBuildFilter( !DependencyScope.runtime.implies( dr.getScope() ), acceptManaged
+                    && DependencyScope.runtime.implies( dr.getScope() ), exc );
             }
         }
     }
