@@ -46,6 +46,7 @@ import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
@@ -153,8 +154,10 @@ public class Cartographer
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( xferMgr, new NoOpLocationExpander(), new StandardTypeMapper() );
 
+        final XMLInfrastructure xml = new XMLInfrastructure();
+
         final MavenPomReader pomReader =
-            new MavenPomReader( new XMLInfrastructure(), artifacts, new XPathManager(), new StandardMaven304PluginDefaults() );
+            new MavenPomReader( xml, artifacts, new XPathManager(), new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ) );
 
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
