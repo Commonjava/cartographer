@@ -197,7 +197,7 @@ public class MavenModelProcessor
                 {
                     pluginDependencies = plugin.getLocalPluginDependencies();
                 }
-                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Cannot retrieve site-plugin nested reporting plugin dependencies for: %s. Reason: %s", e, pluginRef,
                                   e.getMessage() );
@@ -273,7 +273,7 @@ public class MavenModelProcessor
                 {
                     pluginDependencies = plugin.getLocalPluginDependencies();
                 }
-                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Cannot retrieve report plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
                 }
@@ -352,7 +352,7 @@ public class MavenModelProcessor
                     {
                         pluginDependencies = plugin.getLocalPluginDependencies();
                     }
-                    catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                    catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                     {
                         logger.error( "Cannot retrieve managed plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
                     }
@@ -421,7 +421,7 @@ public class MavenModelProcessor
                 {
                     pluginDependencies = plugin.getLocalPluginDependencies();
                 }
-                catch ( final InvalidVersionSpecificationException | InvalidRefException e )
+                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
                 {
                     logger.error( "Cannot retrieve build plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
                 }
