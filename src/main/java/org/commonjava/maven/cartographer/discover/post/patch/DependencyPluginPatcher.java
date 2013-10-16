@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.discover.patch;
+package org.commonjava.maven.cartographer.discover.post.patch;
 
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 

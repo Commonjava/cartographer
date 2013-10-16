@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.meta;
+package org.commonjava.maven.cartographer.discover.post.meta;
 
 import java.util.List;
 import java.util.Map;

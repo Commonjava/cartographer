@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.discover.patch;
+package org.commonjava.maven.cartographer.discover.post.patch;
 
 import java.util.List;
 import java.util.Map;

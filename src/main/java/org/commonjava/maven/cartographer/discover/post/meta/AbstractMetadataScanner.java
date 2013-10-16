@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.meta;
+package org.commonjava.maven.cartographer.discover.post.meta;
 
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;

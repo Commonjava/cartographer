@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.meta;
+package org.commonjava.maven.cartographer.discover.post.meta;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,16 +8,16 @@ import javax.enterprise.context.ApplicationScoped;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 
 @ApplicationScoped
-public class LicenseScanner
+public class ScmUrlScanner
     extends AbstractMetadataScanner
     implements MetadataScanner
 {
 
-    protected LicenseScanner()
+    protected ScmUrlScanner()
     {
     }
 
-    public LicenseScanner( final MavenPomReader pomReader )
+    public ScmUrlScanner( final MavenPomReader pomReader )
     {
         super( pomReader );
     }
@@ -25,8 +25,8 @@ public class LicenseScanner
     private static final Map<String, String> KEYS_TO_PATHS = new HashMap<String, String>()
     {
         {
-            put( "license-url", "/project/licenses/license/url/text()" );
-            put( "license-name", "/project/licenses/license/name/text()" );
+            put( "scm-connection", "/project/scm/connection/text()" );
+            put( "scm-url", "/project/scm/url/text()" );
         }
 
         private static final long serialVersionUID = 1L;
@@ -37,5 +37,4 @@ public class LicenseScanner
     {
         return KEYS_TO_PATHS;
     }
-
 }

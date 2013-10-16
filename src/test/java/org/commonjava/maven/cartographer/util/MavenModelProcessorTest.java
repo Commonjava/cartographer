@@ -102,6 +102,7 @@ public class MavenModelProcessorTest
 
         final DiscoveryResult result = fixture.getModelProcessor()
                                               .readRelationships( pomView, src );
+
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
         logger.info( "Found %d relationships:\n\n  %s", rels.size(), join( rels, "\n  " ) );
