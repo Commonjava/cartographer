@@ -99,14 +99,14 @@ public class DefaultGraphAggregator
                     final HashSet<DiscoveryTodo> current = new HashSet<>( pending );
                     done.addAll( current );
 
-                    logger.info( "%d. Next batch of TODOs:\n  %s", pass, new JoinString( "\n  ", current ) );
+                    logger.info( "%d. Next batch of TODOs:\n  %s", pass, join( current, "\n  " ) );
                     pending.clear();
 
                     final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
                     if ( newTodos != null )
                     {
                         newTodos.removeAll( done );
-                        logger.info( "%d. Uncovered new batch of TODOs:\n  %s", pass, new JoinString( "\n  ", newTodos ) );
+                        logger.info( "%d. Uncovered new batch of TODOs:\n  %s", pass, join( newTodos, "\n  " ) );
 
                         pending.addAll( newTodos );
                     }
@@ -124,8 +124,7 @@ public class DefaultGraphAggregator
                                          final int pass )
         throws CartoDataException
     {
-        logger.debug( "%d. Performing discovery and cycle-detection on %d missing subgraphs:\n  %s", pass, todos.size(), new JoinString( "\n  ",
-                                                                                                                                         todos ) );
+        logger.debug( "%d. Performing discovery and cycle-detection on %d missing subgraphs:\n  %s", pass, todos.size(), join( todos, "\n  " ) );
 
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
 

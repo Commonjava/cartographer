@@ -14,7 +14,7 @@ import javax.enterprise.inject.Produces;
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
+import org.commonjava.maven.atlas.graph.spi.jung.JungWorkspaceFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -87,7 +87,8 @@ public class TestCartoCoreProvider
         locationExpander = new NoOpLocationExpander();
         nfc = new NoOpNotFoundCache();
 
-        wsFactory = new FileNeo4jWorkspaceFactory( dbDir, false );
+        wsFactory = new JungWorkspaceFactory();
+        //        wsFactory = new FileNeo4jWorkspaceFactory( dbDir, false );
         graphs = new EGraphManager( wsFactory );
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );

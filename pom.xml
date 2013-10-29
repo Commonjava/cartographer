@@ -37,12 +37,12 @@
         <artifactId>atlas-relationships-api</artifactId>
         <version>${atlasVersion}</version>
       </dependency>
-      <dependency>
+      <!-- <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-driver-neo4j-embedded</artifactId>
         <version>${atlasVersion}</version>
         <scope>test</scope>
-      </dependency>
+      </dependency> -->
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-driver-jung</artifactId>
@@ -202,7 +202,7 @@
     </dependency>
     <dependency>
       <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-neo4j-embedded</artifactId>
+      <artifactId>atlas-driver-jung</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
