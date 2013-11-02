@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.commonjava.maven.atlas.graph.filter.BOMFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
@@ -26,6 +27,8 @@ public class ShippingOrientedBuildFilter
     private final Set<ProjectRef> excludes = new HashSet<ProjectRef>();
 
     private final boolean acceptManaged;
+
+    private static final BOMFilter BOM_FILTER = new BOMFilter();
 
     public ShippingOrientedBuildFilter()
     {
@@ -59,7 +62,7 @@ public class ShippingOrientedBuildFilter
     {
         boolean result = false;
 
-        if ( isBOM( rel ) )
+        if ( BOM_FILTER.accept( rel ) )
         {
             result = true;
         }
@@ -81,23 +84,6 @@ public class ShippingOrientedBuildFilter
         //                                              .toUpperCase(), rel );
 
         return result;
-    }
-
-    private boolean isBOM( final ProjectRelationship<?> rel )
-    {
-        if ( !rel.isManaged() )
-        {
-            return false;
-        }
-
-        if ( !( rel instanceof DependencyRelationship ) )
-        {
-            return false;
-        }
-
-        final DependencyRelationship dr = (DependencyRelationship) rel;
-        return ( dr.getScope() == DependencyScope._import && "pom".equals( dr.getTargetArtifact()
-                                                                             .getType() ) );
     }
 
     @Override

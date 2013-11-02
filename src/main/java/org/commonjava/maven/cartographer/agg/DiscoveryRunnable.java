@@ -50,6 +50,12 @@ public class DiscoveryRunnable
     @Override
     public void run()
     {
+        if ( Thread.currentThread()
+                   .isInterrupted() )
+        {
+            return;
+        }
+
         final ProjectVersionRef ref = todo.getRef();
 
         logger.info( "\n\n\n\n%d.%d. Processing missing project: %s\n\n\n\n", pass, idx, ref );

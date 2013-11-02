@@ -3,6 +3,7 @@ package org.commonjava.maven.cartographer.preset;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.commonjava.maven.atlas.graph.filter.BOMFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -36,7 +37,8 @@ public class MavenRuntimeFilter
         this.acceptManaged = acceptManaged;
         this.selected = new HashMap<>();
         this.filter =
-            new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( new ParentFilter( false ), new BOMFilter(), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
+                                                                                            true, true, null ) );
     }
 
     private MavenRuntimeFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
@@ -44,8 +46,9 @@ public class MavenRuntimeFilter
         this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
-                                                                                                 false, true, true, null ) ) : childFilter;
+            childFilter == null ? new OrFilter( new ParentFilter( false ), new BOMFilter(), new DependencyFilter( DependencyScope.runtime,
+                                                                                                                  ScopeTransitivity.maven, false,
+                                                                                                                  true, true, null ) ) : childFilter;
     }
 
     @Override

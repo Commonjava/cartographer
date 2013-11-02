@@ -144,11 +144,11 @@ public class DefaultGraphAggregator
                 logger.info( "%d.%d. Skipping cycle-participant reference: %s", pass, idx++, todoRef );
                 continue;
             }
-            else if ( net.containsGraph( todoRef ) )
-            {
-                logger.info( "%d.%d. Skipping already-discovered reference: %s", pass, idx++, todoRef );
-                continue;
-            }
+            //            else if ( allProjects.contains( todoRef ) )
+            //            {
+            //                logger.info( "%d.%d. Skipping already-discovered reference: %s", pass, idx++, todoRef );
+            //                continue;
+            //            }
 
             //            logger.info( "DISCOVER += %s", todo );
             final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, roMissing, discoverer, false, pass, idx );
@@ -178,6 +178,7 @@ public class DefaultGraphAggregator
 
         final Set<ProjectRelationship<?>> newRels = new HashSet<>();
         final Set<DiscoveryTodo> newTodos = new HashSet<>();
+        final Set<ProjectVersionRef> allProjects = net.getAllProjects();
         for ( final DiscoveryRunnable r : runnables )
         {
             final DiscoveryResult result = r.getResult();
@@ -205,7 +206,7 @@ public class DefaultGraphAggregator
                     {
                         final ProjectVersionRef relTarget = rel.getTarget()
                                                                .asProjectVersionRef();
-                        if ( !net.containsGraph( relTarget ) )
+                        if ( !allProjects.contains( relTarget ) )
                         {
                             final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
                             int fidx = 0;

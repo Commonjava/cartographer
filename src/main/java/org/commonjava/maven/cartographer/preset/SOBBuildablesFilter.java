@@ -1,5 +1,6 @@
 package org.commonjava.maven.cartographer.preset;
 
+import org.commonjava.maven.atlas.graph.filter.BOMFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -17,6 +18,8 @@ public class SOBBuildablesFilter
     private final ProjectRelationshipFilter filter;
 
     private final boolean acceptManaged;
+
+    private static final BOMFilter BOM_FILTER = new BOMFilter();
 
     public SOBBuildablesFilter()
     {
@@ -46,7 +49,7 @@ public class SOBBuildablesFilter
     public boolean accept( final ProjectRelationship<?> rel )
     {
         boolean result;
-        if ( isBOM( rel ) )
+        if ( BOM_FILTER.accept( rel ) )
         {
             result = true;
         }
@@ -63,23 +66,6 @@ public class SOBBuildablesFilter
         //                                              .toUpperCase(), rel );
 
         return result;
-    }
-
-    private boolean isBOM( final ProjectRelationship<?> rel )
-    {
-        if ( !rel.isManaged() )
-        {
-            return false;
-        }
-
-        if ( !( rel instanceof DependencyRelationship ) )
-        {
-            return false;
-        }
-
-        final DependencyRelationship dr = (DependencyRelationship) rel;
-        return ( dr.getScope() == DependencyScope._import && "pom".equals( dr.getTargetArtifact()
-                                                                             .getType() ) );
     }
 
     @Override

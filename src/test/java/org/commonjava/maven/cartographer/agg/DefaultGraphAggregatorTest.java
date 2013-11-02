@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.apache.log4j.Level;
+import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -123,5 +124,58 @@ public class DefaultGraphAggregatorTest
                            .sawDiscovery( c2 ), equalTo( false ) );
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( gc3 ), equalTo( false ) );
+    }
+
+    @Test
+    public void connectIncompleteWithDiscovery_FilterOutTestDeps()
+        throws Exception
+    {
+        final URI src = new URI( "test:source" );
+        final String baseG = "org.foo";
+
+        final ProjectVersionRef root = new ProjectVersionRef( baseG, "root", "1" );
+        final ProjectVersionRef c1 = new ProjectVersionRef( baseG, "child-1", "1.0" );
+        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG + ".child", "grandchild-1", "1.0" );
+        final ProjectVersionRef c2 = new ProjectVersionRef( "org.bar", "child-2", "1.0" );
+        final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
+
+        fixture.getData()
+               .createWorkspace( new GraphWorkspaceConfiguration() );
+
+        /* @formatter:off */
+        fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList(
+            new DependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.test, 0, false ),
+            new DependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new DependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new DependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
+        ) );
+        
+        fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
+            src,
+            gc1,
+            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?>>()
+        ) );
+        /* @formatter:on */
+
+        final DefaultAggregatorOptions options = new DefaultAggregatorOptions().setDiscoveryEnabled( true )
+                                                                               .setDiscoverySource( src )
+                                                                               .setFilter( new DependencyFilter( DependencyScope.runtime ) )
+                                                                               .setProcessIncompleteSubgraphs( true )
+                                                                               .setProcessVariableSubgraphs( true )
+                                                                               .setDiscoveryTimeoutMillis( 10 );
+
+        final EProjectWeb web = fixture.getData()
+                                       .getProjectWeb( options.getFilter(), root );
+        assertThat( web, notNullValue() );
+
+        final EProjectNet result = fixture.getAggregator()
+                                          .connectIncomplete( web, options );
+        assertThat( result, notNullValue() );
+
+        assertThat( fixture.getDiscoverer()
+                           .sawDiscovery( gc1 ), equalTo( false ) );
+        assertThat( fixture.getDiscoverer()
+                           .sawDiscovery( c2 ), equalTo( true ) );
     }
 }
