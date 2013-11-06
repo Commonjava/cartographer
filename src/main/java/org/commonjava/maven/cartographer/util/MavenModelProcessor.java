@@ -59,7 +59,7 @@ public class MavenModelProcessor
     @Inject
     private CartoDataManager dataManager;
 
-    private final boolean processManagedInfo = true;
+    private final boolean processManagedInfo = false;
 
     private final boolean processBuildInfo = true;
 
