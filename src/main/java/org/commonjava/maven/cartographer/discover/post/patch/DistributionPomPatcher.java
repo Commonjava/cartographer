@@ -16,9 +16,9 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.NodeRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
-import org.w3c.dom.Element;
 
 public class DistributionPomPatcher
     implements DepgraphPatcher
@@ -39,7 +39,7 @@ public class DistributionPomPatcher
             final String assemblyOnPomProjectPath =
                 "/project[packaging/text()=\"pom\"]//plugin[artifactId/text()=\"maven-assembly-plugin\"]//configuration[appendAssemblyId/text()=\"false\"]";
 
-            final Element assemblyConfigTest = pomView.resolveXPathToElement( assemblyOnPomProjectPath, false );
+            final NodeRef assemblyConfigTest = pomView.resolveXPathToNode( assemblyOnPomProjectPath, false );
             if ( assemblyConfigTest == null )
             {
                 return;

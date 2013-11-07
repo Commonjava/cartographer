@@ -40,9 +40,7 @@ import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
-import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
-import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -111,9 +109,7 @@ public class CartoDataManagerTest
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
 
-        final XMLInfrastructure xml = new XMLInfrastructure();
-        final MavenPomReader pomReader =
-            new MavenPomReader( xml, artifacts, new XPathManager(), new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ) );
+        final MavenPomReader pomReader = new MavenPomReader( artifacts, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications() );
 
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
