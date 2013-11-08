@@ -79,27 +79,24 @@ public class CartoEventManagerImpl
      */
     public void notifyOfGraph( final ProjectVersionRef ref )
     {
-        logger.info( "\n\nLooking up lock for: %s\n\n", ref );
+        //        logger.info( "\n\nLooking up lock for: %s\n\n", ref );
         LockState lock;
         synchronized ( ref )
         {
             lock = locks.get( ref );
             if ( lock == null )
             {
-                logger.info( "No lock found. Creating an unlocked one for: %s", ref );
+                //                logger.info( "No lock found. Creating an unlocked one for: %s", ref );
                 lock = new LockState();
-                lock.unlock();
                 locks.put( ref, lock );
             }
-            else
-            {
-                synchronized ( lock )
-                {
-                    logger.info( "Found lock. Unlocking and notifying all watchers." );
-                    lock.unlock();
-                    lock.notifyAll();
-                }
-            }
+        }
+
+        synchronized ( lock )
+        {
+            //            logger.info( "Found lock. Unlocking and notifying all watchers." );
+            lock.unlock();
+            lock.notifyAll();
         }
 
         final LockState lck = lock;
@@ -108,7 +105,7 @@ public class CartoEventManagerImpl
             @Override
             public void run()
             {
-                logger.info( "Starting notification timer on: %s for lagging callers.", ref );
+                //                logger.info( "Starting notification timer on: %s for lagging callers.", ref );
                 for ( int i = 0; i < 10; i++ )
                 {
                     if ( !locks.containsKey( ref ) )
@@ -121,16 +118,19 @@ public class CartoEventManagerImpl
                         try
                         {
                             lck.wait( 500 );
+                            lck.unlock();
                             lck.notifyAll();
                         }
                         catch ( final InterruptedException e )
                         {
+                            Thread.currentThread()
+                                  .interrupt();
                             break;
                         }
                     }
                 }
 
-                logger.info( "Removing lock: %s", ref );
+                //                logger.info( "Removing lock: %s", ref );
                 locks.remove( ref );
             }
         } );
