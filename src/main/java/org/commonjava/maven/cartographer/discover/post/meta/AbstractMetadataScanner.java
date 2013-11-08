@@ -47,7 +47,7 @@ public abstract class AbstractMetadataScanner
                 final Transfer transfer = (Transfer) context.get( TRANSFER_CTX_KEY );
                 if ( transfer != null )
                 {
-                    pomView = pomReader.read( transfer, locations );
+                    pomView = pomReader.read( ref, transfer, locations );
                 }
                 else
                 {

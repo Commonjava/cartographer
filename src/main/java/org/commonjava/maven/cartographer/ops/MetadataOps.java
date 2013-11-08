@@ -127,7 +127,7 @@ public class MetadataOps
                     logger.error( "Cannot find POM: %s in locations: %s. Skipping for metadata scanning...", ref.asPomArtifact(), locations );
                 }
 
-                pomView = pomReader.read( transfer, locations );
+                pomView = pomReader.read( ref, transfer, locations );
             }
             catch ( final TransferException e )
             {

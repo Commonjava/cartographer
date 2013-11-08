@@ -52,7 +52,7 @@ public abstract class AbstractPatcherTest
         final Transfer txfr = galleyFixture.getArtifacts()
                                            .retrieve( location, ref.asPomArtifact() );
         final MavenPomView read = galleyFixture.getPomReader()
-                                               .read( txfr, Arrays.asList( location ) );
+                                               .read( ref, txfr, Arrays.asList( location ) );
 
         final Map<String, Object> ctx = new HashMap<>();
         ctx.put( POM_VIEW_CTX_KEY, read );

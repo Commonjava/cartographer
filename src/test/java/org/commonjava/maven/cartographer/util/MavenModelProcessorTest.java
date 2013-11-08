@@ -89,7 +89,7 @@ public class MavenModelProcessorTest
                                          .retrieve( location, childRef.asPomArtifact() );
 
         final MavenPomView pomView = fixture.getPomReader()
-                                            .read( transfer, Collections.singletonList( location ) );
+                                            .read( childRef, transfer, Collections.singletonList( location ) );
 
         final List<PluginView> buildPlugins = pomView.getAllBuildPlugins();
 
@@ -160,7 +160,7 @@ public class MavenModelProcessorTest
                                          .retrieve( location, childRef.asPomArtifact() );
 
         final MavenPomView pomView = fixture.getPomReader()
-                                            .read( transfer, Collections.singletonList( location ) );
+                                            .read( childRef, transfer, Collections.singletonList( location ) );
 
         final List<PluginView> buildPlugins = pomView.getAllBuildPlugins();
 

@@ -100,7 +100,7 @@ public class DiscovererImpl
         try
         {
             transfer = artifactManager.retrieve( location, specific.asPomArtifact() );
-            pomView = pomReader.read( transfer, locations );
+            pomView = pomReader.read( specific, transfer, locations );
         }
         catch ( final TransferException e )
         {
