@@ -102,8 +102,7 @@ public class DefaultGraphAggregator
                     logger.info( "%d. Next batch of TODOs:\n  %s", pass, new JoinString( "\n  ", current ) );
                     pending.clear();
 
-                    final Set<ProjectVersionRef> allProjects = Collections.unmodifiableSet( net.getAllProjects() );
-                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, allProjects, missing, pass );
+                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
                     if ( newTodos != null )
                     {
                         newTodos.removeAll( done );
@@ -121,8 +120,8 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> allProjects,
-                                         final Set<ProjectVersionRef> missing, final int pass )
+                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing, final EProjectNet net,
+                                         final int pass )
         throws CartoDataException
     {
         logger.debug( "%d. Performing discovery and cycle-detection on %d missing subgraphs:\n  %s", pass, todos.size(), new JoinString( "\n  ",
@@ -146,14 +145,14 @@ public class DefaultGraphAggregator
                 logger.info( "%d.%d. Skipping cycle-participant reference: %s", pass, idx++, todoRef );
                 continue;
             }
-            else if ( allProjects.contains( todoRef ) )
+            else if ( net.containsGraph( todoRef ) )
             {
                 logger.info( "%d.%d. Skipping already-discovered reference: %s", pass, idx++, todoRef );
                 continue;
             }
 
             //            logger.info( "DISCOVER += %s", todo );
-            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, allProjects, roMissing, discoverer, false, pass, idx );
+            final DiscoveryRunnable runnable = new DiscoveryRunnable( todo, config, roMissing, discoverer, false, pass, idx );
             runnables.add( runnable );
             idx++;
         }
@@ -179,39 +178,73 @@ public class DefaultGraphAggregator
                      new JoinString( "\n  ", missing ) );
 
         final Set<ProjectRelationship<?>> newRels = new HashSet<>();
-        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> acceptingFilters = new HashMap<>();
-
+        final Set<DiscoveryTodo> newTodos = new HashSet<>();
         for ( final DiscoveryRunnable r : runnables )
         {
             final DiscoveryResult result = r.getResult();
             final DiscoveryTodo todo = r.getTodo();
 
-            final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> ntd = r.getNewTodos();
-
-            for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : ntd.entrySet() )
-            {
-                final ProjectVersionRef ref = entry.getKey();
-                final Set<ProjectRelationshipFilter> filters = entry.getValue();
-
-                final Set<ProjectRelationshipFilter> existing = acceptingFilters.get( ref );
-                if ( existing == null )
-                {
-                    acceptingFilters.put( ref, filters );
-                }
-                else
-                {
-                    existing.addAll( filters );
-                }
-            }
-
             if ( result != null )
             {
-                newRels.addAll( result.getAcceptedRelationships() );
+                final Set<ProjectRelationshipFilter> filters = todo.getFilters();
 
                 final Map<String, String> metadata = result.getMetadata();
                 if ( metadata != null )
                 {
                     dataManager.addMetadata( result.getSelectedRef(), metadata );
+                }
+
+                final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
+                if ( discoveredRels != null )
+                {
+                    logger.info( "%d.%d. Processing %d new relationships for: %s\n\n  %s", pass, r.getIndex(), discoveredRels.size(),
+                                 result.getSelectedRef(), join( discoveredRels, "\n  " ) );
+
+                    final int index = r.getIndex();
+                    idx = 0;
+                    for ( final ProjectRelationship<?> rel : discoveredRels )
+                    {
+                        final ProjectVersionRef relTarget = rel.getTarget()
+                                                               .asProjectVersionRef();
+                        if ( !net.containsGraph( relTarget ) )
+                        {
+                            final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                            int fidx = 0;
+                            for ( final ProjectRelationshipFilter filter : filters )
+                            {
+                                final boolean accepted = filter.accept( rel );
+                                logger.info( "%d.%d.%d.%d. CHECK: %s\n  vs.\n\n  %s\n\n  Accepted? %s", pass, index, idx, fidx, rel, filter, accepted );
+                                if ( accepted )
+                                {
+                                    acceptingChildren.add( filter.getChildFilter( rel ) );
+                                }
+                                fidx++;
+                            }
+
+                            if ( !acceptingChildren.isEmpty() )
+                            {
+                                logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, relTarget,
+                                             new JoinString( "\n    ", acceptingChildren ) );
+
+                                newRels.add( rel );
+                                newTodos.add( new DiscoveryTodo( relTarget, acceptingChildren ) );
+                            }
+                            else
+                            {
+                                logger.info( "%d.%d.%d. SKIP: %s", pass, index, idx, relTarget );
+                            }
+                        }
+                        else
+                        {
+                            logger.info( "%d.%d.%d. SKIP (already discovered): %s", pass, index, idx, relTarget );
+                        }
+
+                        idx++;
+                    }
+                }
+                else
+                {
+                    logger.info( "discovered relationships NULL for: %s", result.getSelectedRef() );
                 }
             }
             else
@@ -227,19 +260,9 @@ public class DefaultGraphAggregator
             addToCycleParticipants( rejected, cycleParticipants );
         }
 
-        final Set<DiscoveryTodo> newTodos = new HashSet<>();
-
-        for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : acceptingFilters.entrySet() )
-        {
-            final ProjectVersionRef ref = entry.getKey();
-            final Set<ProjectRelationshipFilter> filters = entry.getValue();
-
-            newTodos.add( new DiscoveryTodo( ref, filters ) );
-        }
-
         logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
 
-        return new HashSet<>( newTodos );
+        return newTodos;
     }
 
     private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
