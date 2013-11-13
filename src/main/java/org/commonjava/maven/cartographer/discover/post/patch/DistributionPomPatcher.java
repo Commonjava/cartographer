@@ -1,5 +1,6 @@
 package org.commonjava.maven.cartographer.discover.post.patch;
 
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 
 import java.util.List;
@@ -16,13 +17,23 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
-import org.commonjava.maven.galley.maven.model.view.NodeRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.util.logging.Logger;
 
 public class DistributionPomPatcher
     implements DepgraphPatcher
 {
+
+    private static final String[] PATHS =
+        {
+            "/project[packaging/text()=\"pom\"]/build/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/executions/execution/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/executions/execution/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/build/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/profiles/profile/build/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/executions/execution/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/executions/execution/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/profiles/profile/build/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]",
+            "/project[packaging/text()=\"pom\"]/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]" };
 
     private final Logger logger = new Logger( getClass() );
 
@@ -36,11 +47,9 @@ public class DistributionPomPatcher
             final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW_CTX_KEY );
 
             // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
-            final String assemblyOnPomProjectPath =
-                "/project[packaging/text()=\"pom\"]//plugin[artifactId/text()=\"maven-assembly-plugin\"]//configuration[appendAssemblyId/text()=\"false\"]";
+            final String assemblyOnPomProjectPath = join( PATHS, "|" );
 
-            final NodeRef assemblyConfigTest = pomView.resolveXPathToNode( assemblyOnPomProjectPath, false );
-            if ( assemblyConfigTest == null )
+            if ( pomView.resolveXPathToNode( assemblyOnPomProjectPath, false ) != null )
             {
                 return;
             }

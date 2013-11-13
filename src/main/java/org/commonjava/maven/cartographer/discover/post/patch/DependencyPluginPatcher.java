@@ -1,5 +1,6 @@
 package org.commonjava.maven.cartographer.discover.post.patch;
 
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 
 import java.net.URI;
@@ -29,6 +30,17 @@ public class DependencyPluginPatcher
     implements DepgraphPatcher
 {
 
+    private static final String[] PATHS =
+        {
+            "/project/build/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/executions/execution/configuration/artifactItems/artifactItem",
+            "/project/build/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/configuration/artifactItems/artifactItem",
+            "/project/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/executions/execution/configuration/artifactItems/artifactItem",
+            "/project/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/configuration/artifactItems/artifactItem",
+            "/project/profiles/profile/build/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/executions/execution/configuration/artifactItems/artifactItem",
+            "/project/profiles/profile/build/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/configuration/artifactItems/artifactItem",
+            "/project/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/executions/execution/configuration/artifactItems/artifactItem",
+            "/project/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/configuration/artifactItems/artifactItem" };
+
     private final Logger logger = new Logger( getClass() );
 
     @Override
@@ -40,7 +52,7 @@ public class DependencyPluginPatcher
             final MavenPomView pomView = (MavenPomView) context.get( POM_VIEW_CTX_KEY );
 
             // get all artifactItems with a version element. Only these need to be verified.
-            final String depArtifactItemsPath = "//plugin[artifactId/text()=\"maven-dependency-plugin\"]//artifactItem";
+            final String depArtifactItemsPath = join( PATHS, "|" );
 
             logger.info( "Looking for dependency-plugin usages matching: '%s'", depArtifactItemsPath );
             // TODO: Switch to a DependencyView here, with path to dependencyManagement...

@@ -36,7 +36,7 @@ public class DiscoveryResult
     {
         this.source = source;
         this.selected = selected;
-        this.discovered = discovered;
+        this.discovered = discovered == null ? null : new HashSet<>( discovered );
         this.rejected = rejected;
     }
 
@@ -45,6 +45,10 @@ public class DiscoveryResult
         this.source = source;
         this.selected = original.getSelectedRef();
         this.discovered = original.getAllDiscoveredRelationships();
+        if ( this.discovered != null )
+        {
+            this.discovered = new HashSet<>( this.discovered );
+        }
 
         this.rejected = new HashSet<>();
         rejected.addAll( original.getRejectedRelationships() );
@@ -102,7 +106,8 @@ public class DiscoveryResult
     @Override
     public String toString()
     {
-        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected, discovered == null ? "-NONE-" : join( discovered, "\n  " ) );
+        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
+                              discovered == null ? "-NONE-" : join( new HashSet<>( discovered ), "\n  " ) );
     }
 
     public boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )

@@ -228,9 +228,7 @@ public class DefaultGraphAggregator
 
                                 newRels.add( rel );
 
-                                // FIXME: This may not capture all of the filters if multiple results have the same target and different filters!!
                                 // Just map the target to the filter set and allow those to accumulate, then go back and assemble todo's from them afterward.
-                                // NOTE: THIS may be why we keep missing small numbers of artifacts!!! Subsequent runs would probably go back and catch them. 
                                 final Set<ProjectRelationshipFilter> targetFilters = newTargets.get( relTarget );
                                 if ( targetFilters == null )
                                 {

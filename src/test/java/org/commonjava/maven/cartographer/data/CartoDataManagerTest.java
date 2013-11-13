@@ -40,7 +40,9 @@ import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
+import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -62,6 +64,10 @@ public class CartoDataManagerTest
     private ProjectRelationshipDiscoverer discoverer;
 
     private TestCartoCoreProvider provider;
+
+    private XMLInfrastructure xml;
+
+    private XPathManager xpath;
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
@@ -109,7 +115,11 @@ public class CartoDataManagerTest
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
 
-        final MavenPomReader pomReader = new MavenPomReader( artifacts, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications() );
+        xml = new XMLInfrastructure();
+        xpath = new XPathManager();
+
+        final MavenPomReader pomReader =
+            new MavenPomReader( xml, artifacts, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ) );
 
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
@@ -137,6 +147,16 @@ public class CartoDataManagerTest
         throws Exception
     {
         return aggregator;
+    }
+
+    public XMLInfrastructure getXML()
+    {
+        return xml;
+    }
+
+    public XPathManager getXPath()
+    {
+        return xpath;
     }
 
 }

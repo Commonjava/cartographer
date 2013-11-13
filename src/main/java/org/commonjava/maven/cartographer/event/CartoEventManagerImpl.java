@@ -1,9 +1,9 @@
 package org.commonjava.maven.cartographer.event;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
@@ -23,7 +23,7 @@ public class CartoEventManagerImpl
 
     protected final Logger logger = new Logger( getClass() );
 
-    private final Map<ProjectVersionRef, LockState> locks = new HashMap<ProjectVersionRef, LockState>();
+    private final Map<ProjectVersionRef, LockState> locks = new WeakHashMap<ProjectVersionRef, LockState>();
 
     @Override
     public void fireStorageEvent( final RelationshipStorageEvent evt )
@@ -92,52 +92,47 @@ public class CartoEventManagerImpl
             }
         }
 
-        synchronized ( lock )
-        {
-            //            logger.info( "Found lock. Unlocking and notifying all watchers." );
-            lock.unlock();
-            lock.notifyAll();
-        }
+        lock.unlock();
 
-        final LockState lck = lock;
-        final Thread t = new Thread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                //                logger.info( "Starting notification timer on: %s for lagging callers.", ref );
-                for ( int i = 0; i < 10; i++ )
-                {
-                    if ( !locks.containsKey( ref ) )
-                    {
-                        break;
-                    }
-
-                    synchronized ( lck )
-                    {
-                        try
-                        {
-                            lck.wait( 500 );
-                            lck.unlock();
-                            lck.notifyAll();
-                        }
-                        catch ( final InterruptedException e )
-                        {
-                            Thread.currentThread()
-                                  .interrupt();
-                            break;
-                        }
-                    }
-                }
-
-                //                logger.info( "Removing lock: %s", ref );
-                locks.remove( ref );
-            }
-        } );
-
-        t.setDaemon( true );
-        t.setPriority( Thread.MIN_PRIORITY );
-        t.start();
+        // NOTE: IF we have to reinstate this, use a different mech. that won't clog the system with untamed threads...
+        //        final LockState lck = lock;
+        //        final Thread t = new Thread( new Runnable()
+        //        {
+        //            @Override
+        //            public void run()
+        //            {
+        //                //                logger.info( "Starting notification timer on: %s for lagging callers.", ref );
+        //                for ( int i = 0; i < 10; i++ )
+        //                {
+        //                    if ( !locks.containsKey( ref ) )
+        //                    {
+        //                        break;
+        //                    }
+        //
+        //                    synchronized ( lck )
+        //                    {
+        //                        try
+        //                        {
+        //                            lck.wait( 500 );
+        //                        }
+        //                        catch ( final InterruptedException e )
+        //                        {
+        //                            Thread.currentThread()
+        //                                  .interrupt();
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //
+        //                //                logger.info( "Removing lock: %s", ref );
+        //                lck.unlock();
+        //                locks.remove( ref );
+        //            }
+        //        } );
+        //
+        //        t.setDaemon( true );
+        //        t.setPriority( Thread.MIN_PRIORITY );
+        //        t.start();
     }
 
     @Override
@@ -193,6 +188,8 @@ public class CartoEventManagerImpl
                 }
                 catch ( final InterruptedException e )
                 {
+                    Thread.currentThread()
+                          .interrupt();
                     return;
                 }
             }
@@ -205,9 +202,10 @@ public class CartoEventManagerImpl
     {
         private boolean locked = true;
 
-        void unlock()
+        synchronized void unlock()
         {
             locked = false;
+            notifyAll();
         }
 
         boolean isLocked()

@@ -296,6 +296,11 @@ public class DefaultCartoDataManager
     @Override
     public void addMetadata( final ProjectVersionRef ref, final String name, final String value )
     {
+        if ( ref == null || name == null || value == null )
+        {
+            return;
+        }
+
         logger.info( "Adding metadata: '%s' = '%s' for: %s", name, value, ref );
         graphs.addMetadata( getCurrentWorkspace(), ref, name, value );
     }
@@ -303,6 +308,11 @@ public class DefaultCartoDataManager
     @Override
     public void addMetadata( final ProjectVersionRef ref, final Map<String, String> metadata )
     {
+        if ( metadata == null )
+        {
+            return;
+        }
+
         logger.info( "Adding metadata for: %s:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
         graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
     }
