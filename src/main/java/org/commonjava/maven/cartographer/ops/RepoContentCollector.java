@@ -58,6 +58,8 @@ public class RepoContentCollector
 
     private String name;
 
+    private String originalName;
+
     private final Set<ArtifactRef> refs;
 
     private final ProjectVersionRef ref;
@@ -85,27 +87,45 @@ public class RepoContentCollector
     @Override
     public void run()
     {
-        this.name = Thread.currentThread()
-                          .getName();
-
-        items = new HashMap<>();
-
-        for ( final ArtifactRef ar : refs )
+        this.originalName = Thread.currentThread()
+                                  .getName();
+        try
         {
-            if ( refs.size() > 1 && "pom".equals( ar.getType() ) )
-            {
-                // handled later.
-                continue;
-            }
+            Thread.currentThread()
+                  .setName( originalName + ":" + ref );
 
-            try
+            this.name = Thread.currentThread()
+                              .getName();
+
+            items = new HashMap<>();
+
+            for ( final ArtifactRef ar : refs )
             {
-                execute( ar, counter++ );
+                if ( refs.size() > 1 && "pom".equals( ar.getType() ) )
+                {
+                    // handled later.
+                    continue;
+                }
+
+                try
+                {
+                    execute( ar, counter++ );
+                }
+                catch ( final CartoDataException e )
+                {
+                    logger.error( "ERROR for %s: %s", e, ar, e.getMessage() );
+                    this.errors.put( ar, e );
+                }
             }
-            catch ( final CartoDataException e )
+        }
+        finally
+        {
+            Thread.currentThread()
+                  .setName( originalName );
+
+            if ( latch != null )
             {
-                logger.error( "ERROR for %s: %s", e, ar, e.getMessage() );
-                this.errors.put( ar, e );
+                latch.countDown();
             }
         }
     }
@@ -113,185 +133,172 @@ public class RepoContentCollector
     private void execute( ArtifactRef ar, final int artifactCounter )
         throws CartoDataException
     {
-        try
+        logger.info( "%d/%d %d/%d. Including: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
+
+        if ( ar.isVariableVersion() )
         {
-            logger.info( "%d/%d %d/%d. Including: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
-
-            if ( ar.isVariableVersion() )
+            final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
+            if ( specific == null )
             {
-                final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
-                if ( specific == null )
-                {
-                    logger.error( "No version available for variable reference: %s. Skipping.", ar.asProjectVersionRef() );
-                    return;
-                }
-
-                ar =
-                    new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(),
-                                     ar.isOptional() );
-            }
-
-            logger.info( "%d/%d %d/%d 1. Resolving referenced artifact: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
-            final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
-            if ( mainArtifact == null )
-            {
-                logger.info( "Referenced artifact %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+                logger.error( "No version available for variable reference: %s. Skipping.", ar.asProjectVersionRef() );
                 return;
             }
 
-            // if multi-source GAVs are enabled, use the main location still
-            // otherwise, restrict results for this GAV to the place where the main artifact came from.
-            final Location artifactLocation = recipe.isMultiSourceGAVs() ? location : mainArtifact.getLocation();
+            ar = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(), ar.isOptional() );
+        }
 
-            if ( !"pom".equals( ar.getType() ) )
+        logger.info( "%d/%d %d/%d 1. Resolving referenced artifact: %s", projectCounter, projectSz, artifactCounter, artifactSz, ar );
+        final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
+        if ( mainArtifact == null )
+        {
+            logger.info( "Referenced artifact %s was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+            return;
+        }
+
+        // if multi-source GAVs are enabled, use the main location still
+        // otherwise, restrict results for this GAV to the place where the main artifact came from.
+        final Location artifactLocation = recipe.isMultiSourceGAVs() ? location : mainArtifact.getLocation();
+
+        if ( !"pom".equals( ar.getType() ) )
+        {
+            final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
+
+            logger.info( "%d/%d %d/%d 2. Resolving POM: %s", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
+            addToContent( pomAR, items, artifactLocation, excluded, seen );
+        }
+        else
+        {
+            logger.info( "Referenced artifact: %s WAS a POM. Skipping special POM resolution.", ar );
+        }
+
+        final Set<ExtraCT> extras = recipe.getExtras();
+        int extCounter = 3;
+        if ( extras != null )
+        {
+            if ( recipe.hasWildcardExtras() )
             {
-                final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
+                // 1. scan for all classifier/type for the GAV
+                Map<TypeAndClassifier, ConcreteResource> tcs;
+                try
+                {
+                    tcs = artifacts.listAvailableArtifacts( location, ar.asProjectVersionRef() );
+                }
+                catch ( final TransferException e )
+                {
+                    throw new CartoDataException( "Failed to list available type-classifier combinations for: %s from: %s. Reason: %s", e, ar,
+                                                  location, e.getMessage() );
+                }
 
-                logger.info( "%d/%d %d/%d 2. Resolving POM: %s", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
-                addToContent( pomAR, items, artifactLocation, excluded, seen );
+                // 2. match up the resulting list against the extras we have
+
+                for ( final Entry<TypeAndClassifier, ConcreteResource> entry : tcs.entrySet() )
+                {
+                    final TypeAndClassifier tc = entry.getKey();
+                    final ConcreteResource res = entry.getValue();
+
+                    if ( isExcluded( res.getLocation() ) )
+                    {
+                        logger.info( "EXCLUDED: %s:%s (from: %s)", ar, tc, res );
+                        continue;
+                    }
+
+                    for ( final ExtraCT extra : extras )
+                    {
+                        if ( extra == null )
+                        {
+                            continue;
+                        }
+
+                        if ( extra.matches( tc ) )
+                        {
+                            final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
+                            logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve classifier/type artifact from listing: %s", projectCounter,
+                                         projectSz, artifactCounter, artifactSz, extCounter, tcs.size(), extAR );
+
+                            // if we're using a listing for wildcards, we've already established that these exist...
+                            // so don't waste the time on individual calls!
+                            //
+                            // addToContent( extAR, items, artifactLocation, excluded, seen );
+                            //
+                            if ( !seen.contains( extAR ) )
+                            {
+                                logger.info( "+ %s (Wildcard addition)(resource: %s)", extAR, res );
+                                items.put( extAR, res );
+                            }
+                            else
+                            {
+                                logger.info( "- %s (Wildcard; ALREADY SEEN)(resource: %s)", extAR, res );
+                            }
+                            break;
+                        }
+                    }
+
+                    extCounter++;
+                }
             }
             else
             {
-                logger.info( "Referenced artifact: %s WAS a POM. Skipping special POM resolution.", ar );
-            }
-
-            final Set<ExtraCT> extras = recipe.getExtras();
-            int extCounter = 3;
-            if ( extras != null )
-            {
-                if ( recipe.hasWildcardExtras() )
+                for ( final ExtraCT extraCT : extras )
                 {
-                    // 1. scan for all classifier/type for the GAV
-                    Map<TypeAndClassifier, ConcreteResource> tcs;
-                    try
+                    if ( extraCT == null )
                     {
-                        tcs = artifacts.listAvailableArtifacts( location, ar.asProjectVersionRef() );
-                    }
-                    catch ( final TransferException e )
-                    {
-                        throw new CartoDataException( "Failed to list available type-classifier combinations for: %s from: %s. Reason: %s", e, ar,
-                                                      location, e.getMessage() );
+                        continue;
                     }
 
-                    // 2. match up the resulting list against the extras we have
+                    final ArtifactRef extAR =
+                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(), extraCT.getClassifier(), false );
 
-                    for ( final Entry<TypeAndClassifier, ConcreteResource> entry : tcs.entrySet() )
-                    {
-                        final TypeAndClassifier tc = entry.getKey();
-                        final ConcreteResource res = entry.getValue();
-
-                        if ( isExcluded( res.getLocation() ) )
-                        {
-                            logger.info( "EXCLUDED: %s:%s (from: %s)", ar, tc, res );
-                            continue;
-                        }
-
-                        for ( final ExtraCT extra : extras )
-                        {
-                            if ( extra == null )
-                            {
-                                continue;
-                            }
-
-                            if ( extra.matches( tc ) )
-                            {
-                                final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
-                                logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve classifier/type artifact from listing: %s", projectCounter,
-                                             projectSz, artifactCounter, artifactSz, extCounter, tcs.size(), extAR );
-
-                                // if we're using a listing for wildcards, we've already established that these exist...
-                                // so don't waste the time on individual calls!
-                                //
-                                // addToContent( extAR, items, artifactLocation, excluded, seen );
-                                //
-                                if ( !seen.contains( extAR ) )
-                                {
-                                    logger.info( "+ %s (Wildcard addition)(resource: %s)", extAR, res );
-                                    items.put( extAR, res );
-                                }
-                                else
-                                {
-                                    logger.info( "- %s (Wildcard; ALREADY SEEN)(resource: %s)", extAR, res );
-                                }
-                                break;
-                            }
-                        }
-
-                        extCounter++;
-                    }
-                }
-                else
-                {
-                    for ( final ExtraCT extraCT : extras )
-                    {
-                        if ( extraCT == null )
-                        {
-                            continue;
-                        }
-
-                        final ArtifactRef extAR =
-                            new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(), extraCT.getClassifier(),
-                                             false );
-
-                        logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve specifically listed classifier/type artifact: %s", projectCounter,
-                                     projectSz, artifactCounter, artifactSz, extCounter, extras.size(), extAR );
-                        addToContent( extAR, items, artifactLocation, excluded, seen );
-                        extCounter++;
-                    }
-                }
-            }
-
-            final Set<String> metas = recipe.getMetas();
-            if ( metas != null && !metas.isEmpty() )
-            {
-                logger.info( "Attempting to resolve metadata files for: %s", metas );
-
-                int metaCounter = extCounter;
-                final int metaSz = ( items.size() * metas.size() ) + extCounter;
-                for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<>( items ).entrySet() )
-                {
-                    final ArtifactRef ref = entry.getKey();
-
-                    // Let's see if we can skip iterating through the meta-type extensions
-                    final String type = ref.getType();
-                    final int idx = type.lastIndexOf( '.' );
-                    if ( idx > 0 )
-                    {
-                        final String last = type.substring( idx + 1 );
-                        if ( metas != null && metas.contains( last ) )
-                        {
-                            continue;
-                        }
-                    }
-
-                    for ( final String meta : metas )
-                    {
-                        if ( meta == null )
-                        {
-                            continue;
-                        }
-
-                        if ( ref.getType()
-                                .endsWith( meta ) )
-                        {
-                            continue;
-                        }
-
-                        final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
-
-                        logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve 'meta' artifact: %s", projectCounter, projectSz, artifactCounter,
-                                     artifactSz, metaCounter, metaSz, metaAR );
-                        addToContent( metaAR, items, artifactLocation, excluded, seen );
-                        metaCounter++;
-                    }
+                    logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve specifically listed classifier/type artifact: %s", projectCounter,
+                                 projectSz, artifactCounter, artifactSz, extCounter, extras.size(), extAR );
+                    addToContent( extAR, items, artifactLocation, excluded, seen );
+                    extCounter++;
                 }
             }
         }
-        finally
+
+        final Set<String> metas = recipe.getMetas();
+        if ( metas != null && !metas.isEmpty() )
         {
-            if ( latch != null )
+            logger.info( "Attempting to resolve metadata files for: %s", metas );
+
+            int metaCounter = extCounter;
+            final int metaSz = ( items.size() * metas.size() ) + extCounter;
+            for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<>( items ).entrySet() )
             {
-                latch.countDown();
+                final ArtifactRef ref = entry.getKey();
+
+                // Let's see if we can skip iterating through the meta-type extensions
+                final String type = ref.getType();
+                final int idx = type.lastIndexOf( '.' );
+                if ( idx > 0 )
+                {
+                    final String last = type.substring( idx + 1 );
+                    if ( metas != null && metas.contains( last ) )
+                    {
+                        continue;
+                    }
+                }
+
+                for ( final String meta : metas )
+                {
+                    if ( meta == null )
+                    {
+                        continue;
+                    }
+
+                    if ( ref.getType()
+                            .endsWith( meta ) )
+                    {
+                        continue;
+                    }
+
+                    final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
+
+                    logger.info( "%d/%d %d/%d %d/%d. Attempting to resolve 'meta' artifact: %s", projectCounter, projectSz, artifactCounter,
+                                 artifactSz, metaCounter, metaSz, metaAR );
+                    addToContent( metaAR, items, artifactLocation, excluded, seen );
+                    metaCounter++;
+                }
             }
         }
     }

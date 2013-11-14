@@ -183,7 +183,18 @@ public class ResolveOps
             if ( items != null && !items.isEmpty() )
             {
                 logger.info( "%s Returning for: %s\n\n  %s", collector, collector.getRef(), join( items.entrySet(), "\n  " ) );
-                itemMap.put( collector.getRef(), items );
+                Map<ArtifactRef, ConcreteResource> existingItems = itemMap.get( collector.getRef() );
+                if ( existingItems == null )
+                {
+                    itemMap.put( collector.getRef(), items );
+                    existingItems = items;
+                }
+                else
+                {
+                    existingItems.putAll( items );
+                }
+
+                logger.info( "%s Accumulated for: %s\n\n  %s", collector, collector.getRef(), join( existingItems.entrySet(), "\n  " ) );
             }
             else
             {
