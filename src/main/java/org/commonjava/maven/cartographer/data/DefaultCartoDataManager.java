@@ -676,6 +676,13 @@ public class DefaultCartoDataManager
         return createWorkspace( new GraphWorkspaceConfiguration().withSource( sourceUri ) );
     }
 
+    @Override
+    public GraphWorkspace createWorkspace( final String id, final URI sourceUri )
+        throws CartoDataException
+    {
+        return createWorkspace( id, new GraphWorkspaceConfiguration().withSource( sourceUri ) );
+    }
+
     private void checkForCurrentWorkspace()
         throws CartoDataException
     {
@@ -698,6 +705,31 @@ public class DefaultCartoDataManager
                               .addListener( this );
 
             workspaceHolder.setCurrentWorkspace( workspace, true );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
+        }
+
+        return workspace;
+    }
+
+    @Override
+    public GraphWorkspace createWorkspace( final String id, final GraphWorkspaceConfiguration config )
+        throws CartoDataException
+    {
+        checkForCurrentWorkspace();
+
+        GraphWorkspace workspace;
+        try
+        {
+            workspace = graphs.createWorkspace( id, config );
+
+            if ( workspace != null )
+            {
+                workspace.addListener( this );
+                workspaceHolder.setCurrentWorkspace( workspace, true );
+            }
         }
         catch ( final GraphDriverException e )
         {

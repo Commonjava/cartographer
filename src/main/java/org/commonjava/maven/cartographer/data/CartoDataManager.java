@@ -127,7 +127,13 @@ public interface CartoDataManager
     Set<ProjectVersionRef> pathFilter( ProjectRelationshipFilter filter, Set<ProjectVersionRef> leaves, ProjectVersionRef... roots )
         throws CartoDataException;
 
+    GraphWorkspace createWorkspace( String id, URI sourceUri )
+        throws CartoDataException;
+
     GraphWorkspace createWorkspace( URI sourceUri )
+        throws CartoDataException;
+
+    GraphWorkspace createWorkspace( String id, GraphWorkspaceConfiguration config )
         throws CartoDataException;
 
     GraphWorkspace createWorkspace( GraphWorkspaceConfiguration config )

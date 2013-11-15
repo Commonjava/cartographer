@@ -52,6 +52,18 @@ public class WorkspaceOps
         return data.createTemporaryWorkspace( config );
     }
 
+    public GraphWorkspace create( final String id )
+        throws CartoDataException
+    {
+        return create( id, new GraphWorkspaceConfiguration() );
+    }
+
+    public GraphWorkspace create( final String id, final GraphWorkspaceConfiguration config )
+        throws CartoDataException
+    {
+        return data.createWorkspace( id, config );
+    }
+
     public GraphWorkspace create()
         throws CartoDataException
     {

@@ -264,11 +264,19 @@ public class ResolveOps
 
         EProjectNet web = null;
 
-        if ( data.getCurrentWorkspace() == null || !recipe.getWorkspaceId()
-                                                          .equals( data.getCurrentWorkspace()
-                                                                       .getId() ) )
+        final String wsid = recipe.getWorkspaceId();
+        if ( data.getCurrentWorkspace() == null || !wsid.equals( data.getCurrentWorkspace()
+                                                                     .getId() ) )
         {
-            data.setCurrentWorkspace( recipe.getWorkspaceId() );
+            GraphWorkspace ws = data.getWorkspace( wsid );
+            if ( ws == null )
+            {
+                ws = data.createWorkspace( wsid, sourceUri );
+            }
+            else
+            {
+                data.setCurrentWorkspace( wsid );
+            }
         }
 
         sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
