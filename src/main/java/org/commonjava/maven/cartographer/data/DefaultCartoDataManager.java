@@ -277,7 +277,7 @@ public class DefaultCartoDataManager
     @Override
     public Set<ProjectVersionRef> getAllStoredProjectRefs()
     {
-        return graphs.getAllProjects();
+        return graphs.getAllProjects( getCurrentWorkspace() );
     }
 
     @Override

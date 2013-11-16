@@ -104,13 +104,13 @@ public class DiscoveryResult
     }
 
     @Override
-    public String toString()
+    public synchronized String toString()
     {
         return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
                               discovered == null ? "-NONE-" : join( new HashSet<>( discovered ), "\n  " ) );
     }
 
-    public boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )
+    public synchronized boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )
     {
         final boolean result = discovered.remove( rel );
         accepted = null;
@@ -118,7 +118,7 @@ public class DiscoveryResult
         return result;
     }
 
-    public boolean addDiscoveredRelationship( final ProjectRelationship<?> rel )
+    public synchronized boolean addDiscoveredRelationship( final ProjectRelationship<?> rel )
     {
         final boolean result = discovered.add( rel );
         accepted = null;
