@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
@@ -180,10 +181,16 @@ public class CartographerBuilder
 
         final NotFoundCache nfc = new MemoryNotFoundCache();
 
-        final ExecutorService aggExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
-        final ExecutorService transportExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
-        final ExecutorService batchExecutor = Executors.newFixedThreadPool( resolverThreads < 2 ? 2 : resolverThreads );
-        final ExecutorService resolveExecutor = Executors.newFixedThreadPool( 10 );
+        final ExecutorService aggExecutor =
+            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "carto-aggregator", true, 8 ) );
+
+        final ExecutorService transportExecutor =
+            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-transport", true, 8 ) );
+
+        final ExecutorService batchExecutor =
+            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-batch", true, 8 ) );
+
+        final ExecutorService resolveExecutor = Executors.newScheduledThreadPool( 10, new NamedThreadFactory( "carto-resolve", true, 8 ) );
 
         final DownloadHandler dh = new DownloadHandler( nfc, transportExecutor );
         final UploadHandler uh = new UploadHandler( nfc, transportExecutor );

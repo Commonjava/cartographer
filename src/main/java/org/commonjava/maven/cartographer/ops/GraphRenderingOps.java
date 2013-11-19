@@ -23,12 +23,9 @@ import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
-import org.commonjava.maven.atlas.graph.traverse.FilteringTraversal;
-import org.commonjava.maven.atlas.graph.traverse.ProjectNetTraversal;
-import org.commonjava.maven.atlas.graph.traverse.TransitiveDependencyTraversal;
 import org.commonjava.maven.atlas.graph.traverse.print.DependencyTreeRelationshipPrinter;
-import org.commonjava.maven.atlas.graph.traverse.print.StructurePrintingTraversal;
+import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
+import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -39,6 +36,8 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.util.ListPrinter;
+import org.commonjava.maven.cartographer.util.TreePrinter;
 
 @ApplicationScoped
 public class GraphRenderingOps
@@ -57,34 +56,58 @@ public class GraphRenderingOps
     }
 
     public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
-                           final boolean collapseTransitives )
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
         throws CartoDataException
     {
-        final EProjectGraph graph = data.getProjectGraph( ref );
+        return depTree( ref, filter, scope, collapseTransitives, labels, null );
+    }
+
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
+                           StructureRelationshipPrinter relPrinter )
+        throws CartoDataException
+    {
+        final EProjectGraph graph = data.getProjectGraph( filter, ref );
         if ( graph != null )
         {
-            ProjectNetTraversal t;
-            if ( collapseTransitives )
+            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
+            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring = RelationshipUtils.mapByDeclaring( rels );
+
+            if ( relPrinter == null )
             {
-                t = new TransitiveDependencyTraversal( filter );
-            }
-            else
-            {
-                t = new FilteringTraversal( filter );
+                relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            final StructurePrintingTraversal printer = new StructurePrintingTraversal( t, new DependencyTreeRelationshipPrinter() );
+            return new TreePrinter( relPrinter ).printStructure( ref, byDeclaring, labels );
+        }
 
-            try
+        return null;
+    }
+
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
+        throws CartoDataException
+    {
+        return depList( ref, filter, scope, collapseTransitives, labels, null );
+    }
+
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
+                           StructureRelationshipPrinter relPrinter )
+        throws CartoDataException
+    {
+        final EProjectGraph graph = data.getProjectGraph( filter, ref );
+        if ( graph != null )
+        {
+            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
+            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring = RelationshipUtils.mapByDeclaring( rels );
+
+            if ( relPrinter == null )
             {
-                graph.traverse( printer );
-            }
-            catch ( final GraphDriverException e )
-            {
-                throw new CartoDataException( "Failed to traverse for dependency-tree generation of: %s. Reason: %s", ref, e.getMessage() );
+                relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            return printer.printStructure( ref );
+            return new ListPrinter( relPrinter ).printStructure( ref, byDeclaring, labels );
         }
 
         return null;

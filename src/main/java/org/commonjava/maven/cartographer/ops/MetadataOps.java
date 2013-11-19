@@ -1,6 +1,7 @@
 package org.commonjava.maven.cartographer.ops;
 
 import static org.apache.commons.lang.StringUtils.join;
+import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.gavs;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -25,7 +26,6 @@ import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.MetadataCollation;
 import org.commonjava.maven.cartographer.dto.MetadataCollationRecipe;
-import org.commonjava.maven.cartographer.util.GraphUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -161,7 +161,7 @@ public class MetadataOps
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
             final GraphCalculation result = calculations.calculate( graphs );
-            gavs = GraphUtils.gavs( result.getResult() );
+            gavs = gavs( result.getResult() );
         }
         else
         {

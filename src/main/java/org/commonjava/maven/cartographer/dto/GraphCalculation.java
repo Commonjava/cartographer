@@ -1,11 +1,12 @@
 package org.commonjava.maven.cartographer.dto;
 
+import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.targets;
+
 import java.util.List;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.cartographer.util.GraphUtils;
 
 public class GraphCalculation
 {
@@ -44,7 +45,7 @@ public class GraphCalculation
 
     public Set<ProjectVersionRef> getResultingProjects()
     {
-        return GraphUtils.targets( result );
+        return targets( result );
     }
 
     public Set<ProjectRelationship<?>> getResult()
