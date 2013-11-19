@@ -10,7 +10,7 @@
 
   <groupId>org.commonjava.maven.cartographer</groupId>
   <artifactId>cartographer</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.3.2</version>
 
   <name>Cartographer Project-Discovery API</name>
   
