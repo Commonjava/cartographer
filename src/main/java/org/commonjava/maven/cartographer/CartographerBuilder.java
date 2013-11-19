@@ -3,10 +3,10 @@ package org.commonjava.maven.cartographer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.EGraphManager;
@@ -14,7 +14,6 @@ import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.DiscovererImpl;
@@ -24,7 +23,6 @@ import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScanner;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
-import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
@@ -64,16 +62,12 @@ import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.type.TypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
-import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
@@ -108,7 +102,7 @@ public class CartographerBuilder
 
     private ProjectRelationshipDiscoverer discoverer;
 
-    private Set<Transport> transports;
+    private Set<Transport> transports = new LinkedHashSet<Transport>();
 
     private PasswordManager passwordManager;
 
@@ -117,6 +111,48 @@ public class CartographerBuilder
     private MavenMetadataReader metadataReader;
 
     private ArtifactMetadataManager artifactMetadataManager;
+
+    private HttpImpl http;
+
+    private GlobalHttpConfiguration globalHttpConfig;
+
+    private EGraphManager graphs;
+
+    private NoOpCartoEventManager events;
+
+    private GraphWorkspaceHolder wsHolder;
+
+    private NoOpFileEventManager fileEvents;
+
+    private FileCacheProvider cache;
+
+    private MemoryNotFoundCache nfc;
+
+    private ScheduledExecutorService aggregatorExecutor;
+
+    private ScheduledExecutorService transportExecutor;
+
+    private ScheduledExecutorService batchExecutor;
+
+    private ScheduledExecutorService resolveExecutor;
+
+    private DownloadHandler downloadHandler;
+
+    private UploadHandler uploadHandler;
+
+    private ListingHandler listingHandler;
+
+    private ExistenceHandler existenceHandler;
+
+    private XMLInfrastructure xml;
+
+    private XPathManager xpath;
+
+    private MavenPomReader pomReader;
+
+    private MetadataScannerSupport scannerSupport;
+
+    private DefaultCartoDataManager database;
 
     public CartographerBuilder( final String workspaceId, final File resolverCacheDir, final int resolverThreads,
                                 final GraphWorkspaceFactory wsFactory )
@@ -127,41 +163,67 @@ public class CartographerBuilder
         this.wsFactory = wsFactory;
     }
 
-    public Cartographer build()
-        throws CartoDataException
+    public CartographerBuilder initHttpComponents()
     {
-        final EGraphManager graphs = new EGraphManager( wsFactory );
-
-        // TODO: This needs to be replaced with a real implementation.
-        final CartoEventManager events = new NoOpCartoEventManager();
-
-        if ( this.sourceManager == null )
-        {
-            this.sourceManager = new SourceManagerImpl();
-        }
-
-        final GraphWorkspaceHolder wsHolder = new GraphWorkspaceHolder();
-
         if ( passwordManager == null )
         {
             passwordManager = new MemoryPasswordManager();
         }
 
         // TODO: which password manager makes sense here??
-        final Http http = new HttpImpl( passwordManager );
-        final GlobalHttpConfiguration globalConfig = new GlobalHttpConfiguration();
-
-        if ( this.transports == null )
+        if ( http == null )
         {
-            this.transports = new HashSet<Transport>();
+            http = new HttpImpl( passwordManager );
+        }
+        if ( globalHttpConfig == null )
+        {
+            globalHttpConfig = new GlobalHttpConfiguration();
         }
 
-        if ( this.transports.isEmpty() )
+        return this;
+    }
+
+    public CartographerBuilder withDefaultTransports()
+    {
+        initHttpComponents();
+        transports.add( new HttpClientTransport( http, globalHttpConfig ) );
+        transports.add( new FileTransport() );
+        transports.add( new ZipJarTransport() );
+
+        return this;
+    }
+
+    public CartographerBuilder withTransport( final Transport transport )
+    {
+        transports.add( transport );
+        return this;
+    }
+
+    public Cartographer build()
+        throws CartoDataException
+    {
+        if ( graphs == null )
         {
-            transports.add( new HttpClientTransport( http, globalConfig ) );
-            transports.add( new FileTransport() );
-            transports.add( new ZipJarTransport() );
+            graphs = new EGraphManager( wsFactory );
         }
+
+        // TODO: This needs to be replaced with a real implementation.
+        if ( events == null )
+        {
+            events = new NoOpCartoEventManager();
+        }
+
+        if ( this.sourceManager == null )
+        {
+            this.sourceManager = new SourceManagerImpl();
+        }
+
+        if ( wsHolder == null )
+        {
+            wsHolder = new GraphWorkspaceHolder();
+        }
+
+        initHttpComponents();
 
         if ( this.transportManager == null )
         {
@@ -169,7 +231,10 @@ public class CartographerBuilder
         }
 
         // TODO: This needs a real implementation, to make the system respond to resolver events.
-        final FileEventManager fileEvents = new NoOpFileEventManager();
+        if ( fileEvents == null )
+        {
+            fileEvents = new NoOpFileEventManager();
+        }
 
         // TODO: Probably need something here to verify checksums AT A MINIMUM
         if ( this.transferDecorator == null )
@@ -177,29 +242,61 @@ public class CartographerBuilder
             this.transferDecorator = new NoOpTransferDecorator();
         }
 
-        final CacheProvider cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents, transferDecorator );
+        if ( cache == null )
+        {
+            cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents, transferDecorator );
+        }
 
-        final NotFoundCache nfc = new MemoryNotFoundCache();
+        if ( nfc == null )
+        {
+            nfc = new MemoryNotFoundCache();
+        }
 
-        final ExecutorService aggExecutor =
-            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "carto-aggregator", true, 8 ) );
+        if ( aggregatorExecutor == null )
+        {
+            aggregatorExecutor =
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "carto-aggregator", true, 8 ) );
+        }
 
-        final ExecutorService transportExecutor =
-            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-transport", true, 8 ) );
+        if ( transportExecutor == null )
+        {
+            transportExecutor =
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-transport", true, 8 ) );
+        }
 
-        final ExecutorService batchExecutor =
-            Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-batch", true, 8 ) );
+        if ( batchExecutor == null )
+        {
+            batchExecutor =
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-batch", true, 8 ) );
+        }
 
-        final ExecutorService resolveExecutor = Executors.newScheduledThreadPool( 10, new NamedThreadFactory( "carto-resolve", true, 8 ) );
+        if ( resolveExecutor == null )
+        {
+            resolveExecutor = Executors.newScheduledThreadPool( 10, new NamedThreadFactory( "carto-resolve", true, 8 ) );
+        }
 
-        final DownloadHandler dh = new DownloadHandler( nfc, transportExecutor );
-        final UploadHandler uh = new UploadHandler( nfc, transportExecutor );
-        final ListingHandler lh = new ListingHandler( nfc );
-        final ExistenceHandler eh = new ExistenceHandler( nfc );
+        if ( downloadHandler == null )
+        {
+            downloadHandler = new DownloadHandler( nfc, transportExecutor );
+        }
+        if ( uploadHandler == null )
+        {
+            uploadHandler = new UploadHandler( nfc, transportExecutor );
+        }
+        if ( listingHandler == null )
+        {
+            listingHandler = new ListingHandler( nfc );
+        }
+        if ( existenceHandler == null )
+        {
+            existenceHandler = new ExistenceHandler( nfc );
+        }
 
         if ( this.transferMgr == null )
         {
-            this.transferMgr = new TransferManagerImpl( transportManager, cache, nfc, fileEvents, dh, uh, lh, eh, batchExecutor );
+            this.transferMgr =
+                new TransferManagerImpl( transportManager, cache, nfc, fileEvents, downloadHandler, uploadHandler, listingHandler, existenceHandler,
+                                         batchExecutor );
         }
 
         if ( this.locationExpander == null )
@@ -211,7 +308,10 @@ public class CartographerBuilder
             this.typeMapper = new StandardTypeMapper();
         }
 
-        final XMLInfrastructure xml = new XMLInfrastructure();
+        if ( xml == null )
+        {
+            xml = new XMLInfrastructure();
+        }
 
         if ( this.pluginImplications == null )
         {
@@ -227,7 +327,10 @@ public class CartographerBuilder
             this.artifactMetadataManager = new ArtifactMetadataManagerImpl( transferMgr, locationExpander );
         }
 
-        final XPathManager xpath = new XPathManager();
+        if ( xpath == null )
+        {
+            xpath = new XPathManager();
+        }
 
         if ( this.metadataReader == null )
         {
@@ -244,7 +347,10 @@ public class CartographerBuilder
             this.artifactManager = new ArtifactManagerImpl( transferMgr, locationExpander, typeMapper, versionResolver );
         }
 
-        final MavenPomReader pomReader = new MavenPomReader( xml, artifactManager, xpath, pluginDefaults, pluginImplications );
+        if ( pomReader == null )
+        {
+            pomReader = new MavenPomReader( xml, artifactManager, xpath, pluginDefaults, pluginImplications );
+        }
 
         if ( this.metadataScanners == null )
         {
@@ -252,28 +358,36 @@ public class CartographerBuilder
         }
 
         // TODO: Add some scanners.
-        final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( metadataScanners );
+        if ( scannerSupport == null )
+        {
+            scannerSupport = new MetadataScannerSupport( metadataScanners );
+        }
 
-        final CartoDataManager data = new DefaultCartoDataManager( graphs, wsHolder, events );
+        if ( database == null )
+        {
+            database = new DefaultCartoDataManager( graphs, wsHolder, events );
+        }
 
-        final MavenModelProcessor mmp = new MavenModelProcessor( data );
+        final MavenModelProcessor mmp = new MavenModelProcessor( database );
 
         if ( this.discoverer == null )
         {
-            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, data, new PatcherSupport(), scannerSupport );
+            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, database, new PatcherSupport(), scannerSupport );
         }
 
-        final GraphAggregator aggregator = new DefaultGraphAggregator( data, discoverer, aggExecutor );
+        final GraphAggregator aggregator = new DefaultGraphAggregator( database, discoverer, aggregatorExecutor );
 
-        final WorkspaceOps workspaceOps = new WorkspaceOps( data, sourceManager );
-        final CalculationOps calculationOps = new CalculationOps( data );
-        final GraphOps graphOps = new GraphOps( data );
-        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( data );
-        final ResolveOps resolveOps = new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
+        final WorkspaceOps workspaceOps = new WorkspaceOps( database, sourceManager );
+        final CalculationOps calculationOps = new CalculationOps( database );
+        final GraphOps graphOps = new GraphOps( database );
+        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( database );
+        final ResolveOps resolveOps =
+            new ResolveOps( calculationOps, database, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
 
-        final MetadataOps metadataOps = new MetadataOps( data, artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
+        final MetadataOps metadataOps =
+            new MetadataOps( database, artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
 
-        return new Cartographer( data, calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
+        return new Cartographer( database, calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
     }
 
     public GraphWorkspaceFactory getWsFactory()
@@ -452,83 +566,267 @@ public class CartographerBuilder
         return passwordManager;
     }
 
-    public void setWsFactory( final GraphWorkspaceFactory wsFactory )
+    public VersionResolver getVersionResolver()
     {
-        this.wsFactory = wsFactory;
+        return versionResolver;
     }
 
-    public void setResolverThreads( final int resolverThreads )
+    public MavenMetadataReader getMetadataReader()
     {
-        this.resolverThreads = resolverThreads;
+        return metadataReader;
     }
 
-    public void setResolverCacheDir( final File resolverCacheDir )
+    public ArtifactMetadataManager getArtifactMetadataManager()
     {
-        this.resolverCacheDir = resolverCacheDir;
+        return artifactMetadataManager;
     }
 
-    public void setSourceManager( final DiscoverySourceManager sourceManager )
+    public HttpImpl getHttp()
     {
-        this.sourceManager = sourceManager;
+        return http;
     }
 
-    public void setTransportManager( final TransportManager transportManager )
+    public GlobalHttpConfiguration getGlobalHttpConfig()
     {
-        this.transportManager = transportManager;
+        return globalHttpConfig;
     }
 
-    public void setTransferDecorator( final TransferDecorator transferDecorator )
+    public EGraphManager getGraphs()
     {
-        this.transferDecorator = transferDecorator;
+        return graphs;
     }
 
-    public void setTransferMgr( final TransferManager transferMgr )
+    public NoOpCartoEventManager getEvents()
     {
-        this.transferMgr = transferMgr;
+        return events;
     }
 
-    public void setArtifactManager( final ArtifactManager artifactManager )
+    public GraphWorkspaceHolder getWsHolder()
     {
-        this.artifactManager = artifactManager;
+        return wsHolder;
     }
 
-    public void setLocationExpander( final LocationExpander locationExpander )
+    public NoOpFileEventManager getFileEvents()
     {
-        this.locationExpander = locationExpander;
+        return fileEvents;
     }
 
-    public void setTypeMapper( final TypeMapper typeMapper )
+    public FileCacheProvider getCache()
     {
-        this.typeMapper = typeMapper;
+        return cache;
     }
 
-    public void setPluginImplications( final MavenPluginImplications pluginImplications )
+    public MemoryNotFoundCache getNfc()
     {
-        this.pluginImplications = pluginImplications;
+        return nfc;
     }
 
-    public void setPluginDefaults( final MavenPluginDefaults pluginDefaults )
+    public ScheduledExecutorService getAggregatorExecutor()
     {
-        this.pluginDefaults = pluginDefaults;
+        return aggregatorExecutor;
     }
 
-    public void setMetadataScanners( final Collection<MetadataScanner> metadataScanners )
+    public ScheduledExecutorService getTransportExecutor()
     {
-        this.metadataScanners = metadataScanners;
+        return transportExecutor;
     }
 
-    public void setDiscoverer( final ProjectRelationshipDiscoverer discoverer )
+    public ScheduledExecutorService getBatchExecutor()
     {
-        this.discoverer = discoverer;
+        return batchExecutor;
     }
 
-    public void setTransports( final Set<Transport> transports )
+    public ScheduledExecutorService getResolveExecutor()
     {
-        this.transports = transports;
+        return resolveExecutor;
     }
 
-    public void setPasswordManager( final PasswordManager passwordManager )
+    public DownloadHandler getDownloadHandler()
     {
-        this.passwordManager = passwordManager;
+        return downloadHandler;
+    }
+
+    public UploadHandler getUploadHandler()
+    {
+        return uploadHandler;
+    }
+
+    public ListingHandler getListingHandler()
+    {
+        return listingHandler;
+    }
+
+    public ExistenceHandler getExistenceHandler()
+    {
+        return existenceHandler;
+    }
+
+    public XMLInfrastructure getXml()
+    {
+        return xml;
+    }
+
+    public XPathManager getXpath()
+    {
+        return xpath;
+    }
+
+    public MavenPomReader getPomReader()
+    {
+        return pomReader;
+    }
+
+    public MetadataScannerSupport getScannerSupport()
+    {
+        return scannerSupport;
+    }
+
+    public DefaultCartoDataManager getDatabase()
+    {
+        return database;
+    }
+
+    public CartographerBuilder withVersionResolver( final VersionResolver versionResolver )
+    {
+        this.versionResolver = versionResolver;
+        return this;
+    }
+
+    public CartographerBuilder withMetadataReader( final MavenMetadataReader metadataReader )
+    {
+        this.metadataReader = metadataReader;
+        return this;
+    }
+
+    public CartographerBuilder withArtifactMetadataManager( final ArtifactMetadataManager artifactMetadataManager )
+    {
+        this.artifactMetadataManager = artifactMetadataManager;
+        return this;
+    }
+
+    public CartographerBuilder withHttp( final HttpImpl http )
+    {
+        this.http = http;
+        return this;
+    }
+
+    public CartographerBuilder withGlobalHttpConfig( final GlobalHttpConfiguration globalHttpConfig )
+    {
+        this.globalHttpConfig = globalHttpConfig;
+        return this;
+    }
+
+    public CartographerBuilder withGraphs( final EGraphManager graphs )
+    {
+        this.graphs = graphs;
+        return this;
+    }
+
+    public CartographerBuilder withEvents( final NoOpCartoEventManager events )
+    {
+        this.events = events;
+        return this;
+    }
+
+    public CartographerBuilder withWsHolder( final GraphWorkspaceHolder wsHolder )
+    {
+        this.wsHolder = wsHolder;
+        return this;
+    }
+
+    public CartographerBuilder withFileEvents( final NoOpFileEventManager fileEvents )
+    {
+        this.fileEvents = fileEvents;
+        return this;
+    }
+
+    public CartographerBuilder withCache( final FileCacheProvider cache )
+    {
+        this.cache = cache;
+        return this;
+    }
+
+    public CartographerBuilder withNfc( final MemoryNotFoundCache nfc )
+    {
+        this.nfc = nfc;
+        return this;
+    }
+
+    public CartographerBuilder withAggregatorExecutor( final ScheduledExecutorService aggregatorExecutor )
+    {
+        this.aggregatorExecutor = aggregatorExecutor;
+        return this;
+    }
+
+    public CartographerBuilder withTransportExecutor( final ScheduledExecutorService transportExecutor )
+    {
+        this.transportExecutor = transportExecutor;
+        return this;
+    }
+
+    public CartographerBuilder withBatchExecutor( final ScheduledExecutorService batchExecutor )
+    {
+        this.batchExecutor = batchExecutor;
+        return this;
+    }
+
+    public CartographerBuilder withResolveExecutor( final ScheduledExecutorService resolveExecutor )
+    {
+        this.resolveExecutor = resolveExecutor;
+        return this;
+    }
+
+    public CartographerBuilder withDownloadHandler( final DownloadHandler downloadHandler )
+    {
+        this.downloadHandler = downloadHandler;
+        return this;
+    }
+
+    public CartographerBuilder withUploadHandler( final UploadHandler uploadHandler )
+    {
+        this.uploadHandler = uploadHandler;
+        return this;
+    }
+
+    public CartographerBuilder withListingHandler( final ListingHandler listingHandler )
+    {
+        this.listingHandler = listingHandler;
+        return this;
+    }
+
+    public CartographerBuilder withExistenceHandler( final ExistenceHandler existenceHandler )
+    {
+        this.existenceHandler = existenceHandler;
+        return this;
+    }
+
+    public CartographerBuilder withXml( final XMLInfrastructure xml )
+    {
+        this.xml = xml;
+        return this;
+    }
+
+    public CartographerBuilder withXpath( final XPathManager xpath )
+    {
+        this.xpath = xpath;
+        return this;
+    }
+
+    public CartographerBuilder withPomReader( final MavenPomReader pomReader )
+    {
+        this.pomReader = pomReader;
+        return this;
+    }
+
+    public CartographerBuilder withScannerSupport( final MetadataScannerSupport scannerSupport )
+    {
+        this.scannerSupport = scannerSupport;
+        return this;
+    }
+
+    public CartographerBuilder withDatabase( final DefaultCartoDataManager database )
+    {
+        this.database = database;
+        return this;
     }
 }
