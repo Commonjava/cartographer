@@ -20,7 +20,7 @@ public class MetadataCollation
 
     public MetadataCollation( final Map<Map<String, String>, Set<ProjectVersionRef>> collations )
     {
-        final Set<MetadataCollationEntry> entries = new HashSet<>();
+        final Set<MetadataCollationEntry> entries = new HashSet<MetadataCollationEntry>();
         for ( final Entry<Map<String, String>, Set<ProjectVersionRef>> entry : collations.entrySet() )
         {
             final Map<String, String> key = entry.getKey();

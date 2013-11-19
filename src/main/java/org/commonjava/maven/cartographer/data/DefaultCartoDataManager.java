@@ -112,7 +112,7 @@ public class DefaultCartoDataManager
 
     private void fireStorageEvents( final Collection<ProjectRelationship<?>> original, final Set<ProjectRelationship<?>> rejected )
     {
-        final Set<ProjectRelationship<?>> relationships = new HashSet<>( original );
+        final Set<ProjectRelationship<?>> relationships = new HashSet<ProjectRelationship<?>>( original );
         relationships.removeAll( rejected );
 
         funnel.fireStorageEvent( new RelationshipStorageEvent( relationships, rejected ) );
@@ -441,7 +441,7 @@ public class DefaultCartoDataManager
 
             if ( md == null )
             {
-                md = new HashMap<>();
+                md = new HashMap<String, String>();
             }
         }
 

@@ -47,7 +47,7 @@ public class PatcherSupport
 
     private void mapPatchers( final Iterable<DepgraphPatcher> patcherInstances )
     {
-        this.patchers = new HashMap<>();
+        this.patchers = new HashMap<String, DepgraphPatcher>();
         for ( final DepgraphPatcher patcher : patcherInstances )
         {
             patchers.put( patcher.getId(), patcher );
@@ -59,7 +59,7 @@ public class PatcherSupport
     {
         logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
         final DiscoveryResult result = orig;
-        final Map<String, Object> ctx = new HashMap<>();
+        final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
         ctx.put( TRANSFER_CTX_KEY, transfer );
 

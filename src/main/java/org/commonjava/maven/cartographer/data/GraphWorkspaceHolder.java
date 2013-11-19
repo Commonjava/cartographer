@@ -22,7 +22,7 @@ public class GraphWorkspaceHolder
         {
             if ( workspace == null )
             {
-                workspace = new InheritableThreadLocal<>();
+                workspace = new InheritableThreadLocal<GraphWorkspace>();
             }
         }
     }

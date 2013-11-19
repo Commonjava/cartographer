@@ -68,7 +68,7 @@ public class CalculationOps
 
         reduceToIntersection( firstAll, secondAll );
 
-        final Set<ProjectVersionRef> removed = new HashSet<>();
+        final Set<ProjectVersionRef> removed = new HashSet<ProjectVersionRef>();
         for ( final Set<ProjectVersionRef> refSet : firstAll.values() )
         {
             if ( refSet != null )
@@ -77,7 +77,7 @@ public class CalculationOps
             }
         }
 
-        final Set<ProjectVersionRef> added = new HashSet<>();
+        final Set<ProjectVersionRef> added = new HashSet<ProjectVersionRef>();
         for ( final Set<ProjectVersionRef> refSet : secondAll.values() )
         {
             if ( refSet != null )
@@ -91,7 +91,7 @@ public class CalculationOps
 
     private void reduceToIntersection( final Map<ProjectRef, Set<ProjectVersionRef>> first, final Map<ProjectRef, Set<ProjectVersionRef>> second )
     {
-        for ( final ProjectRef ref : new HashSet<>( first.keySet() ) )
+        for ( final ProjectRef ref : new HashSet<ProjectRef>( first.keySet() ) )
         {
             if ( !second.containsKey( ref ) )
             {
@@ -99,7 +99,7 @@ public class CalculationOps
             }
         }
 
-        for ( final ProjectRef ref : new HashSet<>( second.keySet() ) )
+        for ( final ProjectRef ref : new HashSet<ProjectRef>( second.keySet() ) )
         {
             if ( !first.containsKey( ref ) )
             {
@@ -110,7 +110,7 @@ public class CalculationOps
 
     private Map<ProjectRef, Set<ProjectVersionRef>> mapTargetsToGA( final EProjectNet net )
     {
-        final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<>();
+        final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<ProjectRef, Set<ProjectVersionRef>>();
         for ( final ProjectVersionRef ref : net.getAllProjects() )
         {
             final ProjectRef pr = ref.asProjectRef();
@@ -118,7 +118,7 @@ public class CalculationOps
             Set<ProjectVersionRef> pvrs = result.get( pr );
             if ( pvrs == null )
             {
-                pvrs = new HashSet<>();
+                pvrs = new HashSet<ProjectVersionRef>();
                 result.put( pr, pvrs );
             }
 
@@ -161,7 +161,7 @@ public class CalculationOps
 
             if ( result == null )
             {
-                result = new HashSet<>( web.getAllRelationships() );
+                result = new HashSet<ProjectRelationship<?>>( web.getAllRelationships() );
             }
             else
             {

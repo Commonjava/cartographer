@@ -69,7 +69,7 @@ public abstract class AbstractMetadataScanner
     protected Map<String, String> scan( final ProjectVersionRef ref, final MavenPomView pomView )
     {
         final Map<String, String> xpaths = getMetadataKeyXPathMappings();
-        final Map<String, String> metadata = new HashMap<>( xpaths.size() );
+        final Map<String, String> metadata = new HashMap<String, String>( xpaths.size() );
         for ( final Map.Entry<String, String> entry : xpaths.entrySet() )
         {
             final String key = entry.getKey();

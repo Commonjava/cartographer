@@ -111,7 +111,7 @@ public class ResolveOps
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
 
-        final List<ProjectVersionRef> results = new ArrayList<>();
+        final List<ProjectVersionRef> results = new ArrayList<ProjectVersionRef>();
         for ( final ProjectVersionRef root : roots )
         {
             ProjectVersionRef specific = discoverer.resolveSpecificVersion( root, config );
@@ -179,7 +179,8 @@ public class ResolveOps
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
         final List<RepoContentCollector> collectors = collectContent( refMap, recipe, sourceUri );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap =
+            new HashMap<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>>();
         for ( final RepoContentCollector collector : collectors )
         {
             final Map<ArtifactRef, ConcreteResource> items = collector.getItems();
@@ -224,7 +225,7 @@ public class ResolveOps
 
         int projectCounter = 1;
         final int projectSz = refMap.size();
-        final List<RepoContentCollector> collectors = new ArrayList<>( projectSz );
+        final List<RepoContentCollector> collectors = new ArrayList<RepoContentCollector>( projectSz );
 
         final DiscoveryConfig dconf = createDiscoveryConfig( recipe, sourceUri );
 
@@ -328,7 +329,7 @@ public class ResolveOps
 
             final List<ProjectVersionRef> roots = resolve( sourceUri.toString(), options, rootsArray );
 
-            graph.setRoots( new HashSet<>( roots ) );
+            graph.setRoots( new HashSet<ProjectVersionRef>( roots ) );
         }
     }
 

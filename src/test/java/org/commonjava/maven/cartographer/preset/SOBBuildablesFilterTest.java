@@ -64,7 +64,8 @@ public class SOBBuildablesFilterTest
     public void initialInstanceAcceptsRuntimeAndCompileDependencies_AndParent()
         throws Exception
     {
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
     }
 
     @Test

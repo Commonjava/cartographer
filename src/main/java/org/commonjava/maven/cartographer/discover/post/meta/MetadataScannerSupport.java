@@ -36,12 +36,12 @@ public class MetadataScannerSupport
 
     public MetadataScannerSupport( final MetadataScanner... scanners )
     {
-        this.scanners = new HashSet<>( Arrays.asList( scanners ) );
+        this.scanners = new HashSet<MetadataScanner>( Arrays.asList( scanners ) );
     }
 
     public MetadataScannerSupport( final Collection<MetadataScanner> scanners )
     {
-        this.scanners = new HashSet<>( scanners );
+        this.scanners = new HashSet<MetadataScanner>( scanners );
     }
 
     @PostConstruct
@@ -59,11 +59,11 @@ public class MetadataScannerSupport
             return null;
         }
 
-        final Map<String, Object> ctx = new HashMap<>();
+        final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
         ctx.put( TRANSFER_CTX_KEY, transfer );
 
-        final Map<String, String> result = new HashMap<>();
+        final Map<String, String> result = new HashMap<String, String>();
         for ( final MetadataScanner scanner : scanners )
         {
             if ( scanner == null )

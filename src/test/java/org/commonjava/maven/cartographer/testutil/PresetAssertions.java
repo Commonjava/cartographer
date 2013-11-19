@@ -41,7 +41,7 @@ public final class PresetAssertions
                                                  final ArtifactRef tgt, final Set<DependencyScope> acceptedScopes,
                                                  final RelationshipType... acceptances )
     {
-        final Set<RelationshipType> accepted = new HashSet<>( Arrays.asList( acceptances ) );
+        final Set<RelationshipType> accepted = new HashSet<RelationshipType>( Arrays.asList( acceptances ) );
 
         // Initially, it should accept any relationship (because they should all be necessary to build the current project)
         final ParentRelationship parent = new ParentRelationship( from, src, tgt.asProjectVersionRef() );

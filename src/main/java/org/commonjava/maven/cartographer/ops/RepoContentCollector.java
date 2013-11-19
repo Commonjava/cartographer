@@ -38,7 +38,7 @@ public class RepoContentCollector
 
     private final RepositoryContentRecipe recipe;
 
-    private final Set<ArtifactRef> seen = new HashSet<>();
+    private final Set<ArtifactRef> seen = new HashSet<ArtifactRef>();
 
     private final Set<Location> excluded;
 
@@ -54,7 +54,7 @@ public class RepoContentCollector
 
     private Map<ArtifactRef, ConcreteResource> items;
 
-    private final Map<ArtifactRef, CartoDataException> errors = new HashMap<>();
+    private final Map<ArtifactRef, CartoDataException> errors = new HashMap<ArtifactRef, CartoDataException>();
 
     private String name;
 
@@ -97,7 +97,7 @@ public class RepoContentCollector
             this.name = Thread.currentThread()
                               .getName();
 
-            items = new HashMap<>();
+            items = new HashMap<ArtifactRef, ConcreteResource>();
 
             for ( final ArtifactRef ar : refs )
             {
@@ -263,7 +263,7 @@ public class RepoContentCollector
 
             int metaCounter = extCounter;
             final int metaSz = ( items.size() * metas.size() ) + extCounter;
-            for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<>( items ).entrySet() )
+            for ( final Entry<ArtifactRef, ConcreteResource> entry : new HashMap<ArtifactRef, ConcreteResource>( items ).entrySet() )
             {
                 final ArtifactRef ref = entry.getKey();
 

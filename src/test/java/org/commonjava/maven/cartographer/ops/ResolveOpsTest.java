@@ -74,7 +74,7 @@ public class ResolveOpsTest
     {
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
 
-        final LinkedList<ProjectVersionRef> lineage = new LinkedList<>();
+        final LinkedList<ProjectVersionRef> lineage = new LinkedList<ProjectVersionRef>();
         lineage.add( new ProjectVersionRef( "group.id", "my-project", "1.0" ) );
         lineage.add( new ProjectVersionRef( "group.id", "parent-level1", "1" ) );
         lineage.add( new ProjectVersionRef( "group.id", "parent-level2", "1" ) );
@@ -84,7 +84,7 @@ public class ResolveOpsTest
 
         final ProjectVersionRef recipeRoot = lineage.getFirst();
 
-        final List<ProjectRelationship<?>> rels = new ArrayList<>();
+        final List<ProjectRelationship<?>> rels = new ArrayList<ProjectRelationship<?>>();
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, 10 );
 
@@ -122,8 +122,9 @@ public class ResolveOpsTest
 
         final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
 
-        recipe.setGraphComposition( new GraphComposition( null, Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
-                                                                                                       Collections.singleton( recipeRoot ) ) ) ) );
+        recipe.setGraphComposition( new GraphComposition( null,
+                                                          Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
+                                                                                                           Collections.singleton( recipeRoot ) ) ) ) );
 
         recipe.setResolve( false );
         recipe.setSourceLocation( location );

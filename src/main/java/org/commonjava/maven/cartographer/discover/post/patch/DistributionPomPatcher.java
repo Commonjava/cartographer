@@ -82,7 +82,15 @@ public class DistributionPomPatcher
                 }
             }
         }
-        catch ( GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        catch ( final GalleyMavenException e )
+        {
+            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+        }
+        catch ( final InvalidVersionSpecificationException e )
+        {
+            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+        }
+        catch ( final InvalidRefException e )
         {
             logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
         }

@@ -66,7 +66,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new ProjectVersionRef( "org.test", "test-child", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new ProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
@@ -137,7 +137,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new ProjectVersionRef( "org.test", "test-child", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new ProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 

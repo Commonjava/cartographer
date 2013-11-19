@@ -54,7 +54,7 @@ public abstract class AbstractPatcherTest
         final MavenPomView read = galleyFixture.getPomReader()
                                                .read( ref, txfr, Arrays.asList( location ) );
 
-        final Map<String, Object> ctx = new HashMap<>();
+        final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, read );
         ctx.put( TRANSFER_CTX_KEY, txfr );
 
@@ -65,7 +65,7 @@ public abstract class AbstractPatcherTest
                                                                         final URI src )
         throws GalleyMavenException
     {
-        final Set<ProjectRelationship<?>> discovered = new HashSet<>();
+        final Set<ProjectRelationship<?>> discovered = new HashSet<ProjectRelationship<?>>();
         final MavenPomView pomView = galleyFixture.getPomReader()
                                                   .read( pvr, Arrays.asList( location ) );
         List<DependencyView> deps = pomView.getAllDirectDependencies();

@@ -56,7 +56,7 @@ public class TestCartoCoreProvider
 
     private Http http;
 
-    private final Set<File> toDelete = new HashSet<>();
+    private final Set<File> toDelete = new HashSet<File>();
 
     private FileCacheProviderConfig cacheProviderConfig;
 

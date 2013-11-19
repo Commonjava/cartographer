@@ -25,7 +25,7 @@ public class GraphDescription
     public GraphDescription( final String preset, final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
-        this.roots = new HashSet<>( roots );
+        this.roots = new HashSet<ProjectVersionRef>( roots );
     }
 
     public GraphDescription( final String preset, final ProjectVersionRef... roots )
@@ -36,7 +36,7 @@ public class GraphDescription
     public GraphDescription( final ProjectRelationshipFilter filter, final Collection<ProjectVersionRef> roots )
     {
         this.filter = filter;
-        this.roots = new HashSet<>( roots );
+        this.roots = new HashSet<ProjectVersionRef>( roots );
     }
 
     public GraphDescription( final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )

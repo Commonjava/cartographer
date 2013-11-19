@@ -28,7 +28,7 @@ public class CartoEventManagerImpl
     @Override
     public void fireStorageEvent( final RelationshipStorageEvent evt )
     {
-        final Set<ProjectVersionRef> refs = new HashSet<>();
+        final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
         final Set<ProjectRelationship<?>> stored = evt.getStored();
         if ( stored != null )
         {

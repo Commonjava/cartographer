@@ -36,7 +36,7 @@ public class DiscoveryResult
     {
         this.source = source;
         this.selected = selected;
-        this.discovered = discovered == null ? null : new HashSet<>( discovered );
+        this.discovered = discovered == null ? null : new HashSet<ProjectRelationship<?>>( discovered );
         this.rejected = rejected;
     }
 
@@ -47,10 +47,10 @@ public class DiscoveryResult
         this.discovered = original.getAllDiscoveredRelationships();
         if ( this.discovered != null )
         {
-            this.discovered = new HashSet<>( this.discovered );
+            this.discovered = new HashSet<ProjectRelationship<?>>( this.discovered );
         }
 
-        this.rejected = new HashSet<>();
+        this.rejected = new HashSet<ProjectRelationship<?>>();
         rejected.addAll( original.getRejectedRelationships() );
         rejected.addAll( newlyRejected );
     }
@@ -96,7 +96,7 @@ public class DiscoveryResult
 
         if ( accepted == null )
         {
-            accepted = new HashSet<>( discovered );
+            accepted = new HashSet<ProjectRelationship<?>>( discovered );
             accepted.removeAll( rejected );
         }
 
@@ -107,7 +107,7 @@ public class DiscoveryResult
     public synchronized String toString()
     {
         return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
-                              discovered == null ? "-NONE-" : join( new HashSet<>( discovered ), "\n  " ) );
+                              discovered == null ? "-NONE-" : join( new HashSet<ProjectRelationship<?>>( discovered ), "\n  " ) );
     }
 
     public synchronized boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )

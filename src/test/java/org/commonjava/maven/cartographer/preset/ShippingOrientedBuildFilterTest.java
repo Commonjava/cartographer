@@ -21,6 +21,7 @@ import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.util.logging.Log4jUtil;
@@ -62,7 +63,8 @@ public class ShippingOrientedBuildFilterTest
     public void initialInstanceAcceptsAllConcreteRelationships()
         throws Exception
     {
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
     }
 
@@ -79,7 +81,8 @@ public class ShippingOrientedBuildFilterTest
         final PluginRelationship plugin = new PluginRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -91,7 +94,8 @@ public class ShippingOrientedBuildFilterTest
         final ExtensionRelationship plugin = new ExtensionRelationship( from, root, src, 0 );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -104,7 +108,8 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -117,7 +122,8 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY, PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
+                                  PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -130,7 +136,8 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
@@ -144,7 +151,8 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
@@ -158,10 +166,10 @@ public class ShippingOrientedBuildFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
-        assertConcreteAcceptance( filter, from, src, tgt, new HashSet<>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
+        assertConcreteAcceptance( filter, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
                                   RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
-
 }

@@ -35,11 +35,11 @@ public class DefaultDiscoveryConfig
         Set<String> enabledPatchers = discoveryConfig.getEnabledPatchers();
         if ( enabledPatchers == null )
         {
-            enabledPatchers = new HashSet<>();
+            enabledPatchers = new HashSet<String>();
         }
         else
         {
-            enabledPatchers = new HashSet<>( enabledPatchers );
+            enabledPatchers = new HashSet<String>( enabledPatchers );
         }
 
         this.patchers = enabledPatchers;

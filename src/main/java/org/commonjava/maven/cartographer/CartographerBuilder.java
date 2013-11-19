@@ -152,7 +152,7 @@ public class CartographerBuilder
 
         if ( this.transports == null )
         {
-            this.transports = new HashSet<>();
+            this.transports = new HashSet<Transport>();
         }
 
         if ( this.transports.isEmpty() )
@@ -241,7 +241,7 @@ public class CartographerBuilder
 
         if ( this.metadataScanners == null )
         {
-            this.metadataScanners = new ArrayList<>();
+            this.metadataScanners = new ArrayList<MetadataScanner>();
         }
 
         // TODO: Add some scanners.

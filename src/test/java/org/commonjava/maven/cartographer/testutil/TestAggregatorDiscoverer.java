@@ -19,9 +19,9 @@ public class TestAggregatorDiscoverer
 
     private final Logger logger = new Logger( getClass() );
 
-    private final Map<ProjectVersionRef, DiscoveryResult> mappedResults = new HashMap<>();
+    private final Map<ProjectVersionRef, DiscoveryResult> mappedResults = new HashMap<ProjectVersionRef, DiscoveryResult>();
 
-    private final Set<ProjectVersionRef> seen = new HashSet<>();
+    private final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
     private final CartoDataManager data;
 

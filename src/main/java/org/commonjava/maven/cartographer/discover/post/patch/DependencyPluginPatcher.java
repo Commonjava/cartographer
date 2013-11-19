@@ -62,9 +62,9 @@ public class DependencyPluginPatcher
                 return;
             }
 
-            final Set<ProjectRelationship<?>> accepted = new HashSet<>( result.getAcceptedRelationships() );
+            final Set<ProjectRelationship<?>> accepted = new HashSet<ProjectRelationship<?>>( result.getAcceptedRelationships() );
 
-            final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps = new HashMap<>();
+            final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps = new HashMap<VersionlessArtifactRef, DependencyRelationship>();
             for ( final ProjectRelationship<?> rel : accepted )
             {
                 if ( rel instanceof DependencyRelationship && !rel.isManaged() )
@@ -77,7 +77,15 @@ public class DependencyPluginPatcher
 
             calculateDependencyPluginPatch( depArtifactItems, concreteDeps, ref, pomView, result );
         }
-        catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+        catch ( final GalleyMavenException e )
+        {
+            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+        }
+        catch ( final InvalidVersionSpecificationException e )
+        {
+            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+        }
+        catch ( final InvalidRefException e )
         {
             logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
         }
@@ -146,7 +154,15 @@ public class DependencyPluginPatcher
                             + "No version was specified, and it does not reference an actual dependency.", depRef );
                     }
                 }
-                catch ( final GalleyMavenException | InvalidVersionSpecificationException | InvalidRefException e )
+                catch ( final GalleyMavenException e )
+                {
+                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
+                }
+                catch ( final InvalidVersionSpecificationException e )
+                {
+                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
+                }
+                catch ( final InvalidRefException e )
                 {
                     logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
                 }

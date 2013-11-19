@@ -91,12 +91,12 @@ public class DefaultGraphAggregator
 
                 logger.debug( "Loading initial set of GAVs to be resolved..." );
                 final LinkedList<DiscoveryTodo> pending = loadInitialPending( net );
-                final HashSet<DiscoveryTodo> done = new HashSet<>();
+                final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
                 int pass = 0;
                 while ( !pending.isEmpty() )
                 {
-                    final HashSet<DiscoveryTodo> current = new HashSet<>( pending );
+                    final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
                     done.addAll( current );
 
                     logger.info( "%d. Next batch of TODOs:\n  %s", pass, new JoinString( "\n  ", current ) );
@@ -177,8 +177,8 @@ public class DefaultGraphAggregator
         logger.info( "%d. Accounting for discovery results. Before discovery, these were missing:\n\n  %s\n\n", pass,
                      new JoinString( "\n  ", missing ) );
 
-        final Set<ProjectRelationship<?>> newRels = new HashSet<>();
-        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> newTargets = new HashMap<>();
+        final Set<ProjectRelationship<?>> newRels = new HashSet<ProjectRelationship<?>>();
+        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> newTargets = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
         for ( final DiscoveryRunnable r : runnables )
         {
             final DiscoveryResult result = r.getResult();
@@ -208,7 +208,7 @@ public class DefaultGraphAggregator
                                                                .asProjectVersionRef();
                         if ( !net.containsGraph( relTarget ) )
                         {
-                            final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<>();
+                            final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<ProjectRelationshipFilter>();
                             int fidx = 0;
                             for ( final ProjectRelationshipFilter filter : filters )
                             {
@@ -272,7 +272,7 @@ public class DefaultGraphAggregator
 
         logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
 
-        final Set<DiscoveryTodo> newTodos = new HashSet<>( newTargets.size() );
+        final Set<DiscoveryTodo> newTodos = new HashSet<DiscoveryTodo>( newTargets.size() );
         for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : newTargets.entrySet() )
         {
             final ProjectVersionRef target = entry.getKey();
@@ -309,7 +309,7 @@ public class DefaultGraphAggregator
 
     private Set<ProjectVersionRef> loadExistingCycleParticipants( final EProjectNet net )
     {
-        final Set<ProjectVersionRef> participants = new HashSet<>();
+        final Set<ProjectVersionRef> participants = new HashSet<ProjectVersionRef>();
         final Set<EProjectCycle> cycles = net.getCycles();
         for ( final EProjectCycle cycle : cycles )
         {
@@ -333,10 +333,10 @@ public class DefaultGraphAggregator
 
         if ( paths == null || paths.isEmpty() )
         {
-            return new LinkedList<>();
+            return new LinkedList<DiscoveryTodo>();
         }
 
-        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<>();
+        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
         nextPath: for ( final List<ProjectRelationship<?>> path : paths )
         {
             if ( path == null || path.size() < 1 )
@@ -350,7 +350,7 @@ public class DefaultGraphAggregator
             Set<ProjectRelationshipFilter> pathFilters = filtersByRef.get( ref );
             if ( pathFilters == null )
             {
-                pathFilters = new HashSet<>();
+                pathFilters = new HashSet<ProjectRelationshipFilter>();
                 filtersByRef.put( ref, pathFilters );
             }
 
@@ -369,7 +369,7 @@ public class DefaultGraphAggregator
             pathFilters.add( f );
         }
 
-        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<>();
+        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<DiscoveryTodo>();
         for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : filtersByRef.entrySet() )
         {
             final ProjectVersionRef ref = entry.getKey();

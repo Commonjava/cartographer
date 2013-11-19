@@ -181,9 +181,9 @@ public class MetadataOps
 
         final Map<Map<String, String>, Set<ProjectVersionRef>> map = data.collateProjectsByMetadata( gavs, recipe.getKeys() );
 
-        for ( final Map<String, String> metadata : new HashSet<>( map.keySet() ) )
+        for ( final Map<String, String> metadata : new HashSet<Map<String, String>>( map.keySet() ) )
         {
-            final Map<String, String> changed = metadata == null ? new HashMap<String, String>() : new HashMap<>( metadata );
+            final Map<String, String> changed = metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
             for ( final String key : recipe.getKeys() )
             {
                 if ( !changed.containsKey( key ) )

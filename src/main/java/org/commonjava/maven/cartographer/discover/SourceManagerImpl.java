@@ -73,7 +73,7 @@ public class SourceManagerImpl
     @Override
     public List<? extends Location> createLocations( final Object... sources )
     {
-        final List<SimpleLocation> locations = new ArrayList<>( sources.length );
+        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>( sources.length );
         for ( final Object source : sources )
         {
             locations.add( new SimpleLocation( source.toString() ) );
@@ -85,7 +85,7 @@ public class SourceManagerImpl
     @Override
     public List<? extends Location> createLocations( final Collection<Object> sources )
     {
-        final List<SimpleLocation> locations = new ArrayList<>( sources.size() );
+        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>( sources.size() );
         for ( final Object source : sources )
         {
             locations.add( new SimpleLocation( source.toString() ) );

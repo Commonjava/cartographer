@@ -34,7 +34,7 @@ public class MavenRuntimeFilter
     public MavenRuntimeFilter( final boolean acceptManaged )
     {
         this.acceptManaged = acceptManaged;
-        this.selected = new HashMap<>();
+        this.selected = new HashMap<ProjectRef, SingleVersion>();
         this.filter =
             new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
     }
