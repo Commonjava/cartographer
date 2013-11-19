@@ -53,10 +53,11 @@ public class DiscovererImpl
     {
     }
 
-    public DiscovererImpl( final MavenModelProcessor modelProcessor, final ArtifactManager artifactManager, final CartoDataManager dataManager,
-                           final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
+    public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader, final ArtifactManager artifactManager,
+                           final CartoDataManager dataManager, final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
     {
         this.modelProcessor = modelProcessor;
+        this.pomReader = pomReader;
         this.artifactManager = artifactManager;
         this.dataManager = dataManager;
         this.patchers = patchers;
@@ -100,6 +101,11 @@ public class DiscovererImpl
         try
         {
             transfer = artifactManager.retrieve( location, specific.asPomArtifact() );
+            if ( transfer == null )
+            {
+                return null;
+            }
+
             pomView = pomReader.read( specific, transfer, locations );
         }
         catch ( final TransferException e )

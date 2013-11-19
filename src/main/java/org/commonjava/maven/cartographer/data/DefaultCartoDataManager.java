@@ -475,7 +475,7 @@ public class DefaultCartoDataManager
     public Map<ProjectVersionRef, Set<String>> getAllProjectErrors()
         throws CartoDataException
     {
-        final Set<ProjectVersionRef> projects = graphs.getProjectsWithMetadata( MODEL_ERRORS );
+        final Set<ProjectVersionRef> projects = graphs.getProjectsWithMetadata( getCurrentWorkspace(), MODEL_ERRORS );
         final Map<ProjectVersionRef, Set<String>> errors = new HashMap<ProjectVersionRef, Set<String>>( projects.size() );
 
         for ( final ProjectVersionRef project : projects )
@@ -653,9 +653,13 @@ public class DefaultCartoDataManager
     {
         try
         {
-            final GraphWorkspace ws = graphs.getWorkspace( id );
+            GraphWorkspace ws = graphs.getWorkspace( id );
 
-            if ( ws != null )
+            if ( ws == null )
+            {
+                ws = createWorkspace( id, new GraphWorkspaceConfiguration() );
+            }
+            else
             {
                 ws.addListener( this );
                 workspaceHolder.setCurrentWorkspace( ws, true );

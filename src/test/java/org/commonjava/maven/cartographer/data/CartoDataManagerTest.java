@@ -37,15 +37,21 @@ import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
+import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
+import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
+import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
@@ -113,10 +119,17 @@ public class CartoDataManagerTest
         final TransferManager transferManager =
             new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh, eh, batchExecutor );
 
-        final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, new NoOpLocationExpander(), new StandardTypeMapper() );
-
         xml = new XMLInfrastructure();
         xpath = new XPathManager();
+
+        final LocationExpander locationExpander = new NoOpLocationExpander();
+
+        final ArtifactMetadataManager meta = new ArtifactMetadataManagerImpl( transferManager, locationExpander );
+        final MavenMetadataReader mmr = new MavenMetadataReader( xml, meta, xpath );
+
+        final VersionResolver versions = new VersionResolverImpl( mmr );
+
+        final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, locationExpander, new StandardTypeMapper(), versions );
 
         final MavenPomReader pomReader =
             new MavenPomReader( xml, artifacts, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ) );
@@ -124,7 +137,7 @@ public class CartoDataManagerTest
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
 
-        discoverer = new DiscovererImpl( processor, artifacts, dataManager, new PatcherSupport(), scannerSupport );
+        discoverer = new DiscovererImpl( processor, pomReader, artifacts, dataManager, new PatcherSupport(), scannerSupport );
 
         aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
     }

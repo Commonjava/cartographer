@@ -114,7 +114,11 @@ public class ResolveOps
         final List<ProjectVersionRef> results = new ArrayList<>();
         for ( final ProjectVersionRef root : roots )
         {
-            final ProjectVersionRef specific = discoverer.resolveSpecificVersion( root, config );
+            ProjectVersionRef specific = discoverer.resolveSpecificVersion( root, config );
+            if ( specific == null )
+            {
+                specific = root;
+            }
 
             boolean doDiscovery = !data.contains( specific );
             if ( !doDiscovery && data.hasErrors( specific ) )
@@ -140,7 +144,7 @@ public class ResolveOps
         final ProjectRelationshipFilter filter = options.getFilter();
         final ProjectVersionRef[] resultsArray = results.toArray( new ProjectVersionRef[results.size()] );
 
-        logger.info( "Retrieving web for roots: %s with filter: %s", resultsArray, filter );
+        logger.info( "Retrieving web for roots: %s with filter: %s", results, filter );
 
         final EProjectWeb web = data.getProjectWeb( filter, resultsArray );
         if ( options.isDiscoveryEnabled() )
@@ -264,20 +268,7 @@ public class ResolveOps
 
         EProjectNet web = null;
 
-        final String wsid = recipe.getWorkspaceId();
-        if ( data.getCurrentWorkspace() == null || !wsid.equals( data.getCurrentWorkspace()
-                                                                     .getId() ) )
-        {
-            GraphWorkspace ws = data.getWorkspace( wsid );
-            if ( ws == null )
-            {
-                ws = data.createWorkspace( wsid, sourceUri );
-            }
-            else
-            {
-                data.setCurrentWorkspace( wsid );
-            }
-        }
+        data.setCurrentWorkspace( recipe.getWorkspaceId() );
 
         sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
 

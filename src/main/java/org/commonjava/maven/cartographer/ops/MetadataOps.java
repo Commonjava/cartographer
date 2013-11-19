@@ -152,6 +152,7 @@ public class MetadataOps
     public MetadataCollation collate( final MetadataCollationRecipe recipe )
         throws CartoDataException
     {
+        data.setCurrentWorkspace( recipe.getWorkspaceId() );
         resolver.resolve( recipe );
 
         final GraphComposition graphs = recipe.getGraphComposition();

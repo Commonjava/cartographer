@@ -119,7 +119,7 @@ public class MavenRuntimeFilter
         {
             sb.append( " " );
         }
-        sb.append( "Shipping-Oriented Builds Filter (sub-filter=" );
+        sb.append( "Maven-Style Runtime Filter (sub-filter=" );
 
         if ( filter == null )
         {
