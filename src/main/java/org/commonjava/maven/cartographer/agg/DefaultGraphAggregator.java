@@ -263,7 +263,8 @@ public class DefaultGraphAggregator
                         idx++;
                     }
 
-                    if ( !contributedRels )
+                    // if all relationships have been discarded by filter...
+                    if ( !contributedRels && !discoveredRels.isEmpty() )
                     {
                         logger.info( "INJECT: Adding terminal parent relationship to mark %s as resolved in the dependency graph.",
                                      result.getSelectedRef() );
