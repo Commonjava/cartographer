@@ -21,7 +21,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.9.5-SNAPSHOT</atlasVersion>
+    <atlasVersion>0.9.5</atlasVersion>
     <galleyVersion>0.3.2</galleyVersion>
   </properties>
 
