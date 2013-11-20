@@ -23,7 +23,9 @@ import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
@@ -202,6 +204,8 @@ public class DefaultGraphAggregator
 
                     final int index = r.getIndex();
                     idx = 0;
+
+                    boolean contributedRels = false;
                     for ( final ProjectRelationship<?> rel : discoveredRels )
                     {
                         final ProjectVersionRef relTarget = rel.getTarget()
@@ -227,6 +231,7 @@ public class DefaultGraphAggregator
                                              new JoinString( "\n    ", acceptingChildren ) );
 
                                 newRels.add( rel );
+                                contributedRels = true;
 
                                 // Just map the target to the filter set and allow those to accumulate, then go back and assemble todo's from them afterward.
                                 final Set<ProjectRelationshipFilter> targetFilters = newTargets.get( relTarget );
@@ -239,6 +244,12 @@ public class DefaultGraphAggregator
                                     targetFilters.addAll( acceptingChildren );
                                 }
                             }
+                            else if ( rel.getType() == RelationshipType.PARENT )
+                            {
+                                logger.info( "FORCE: Adding parent relationship: %s", rel );
+                                newRels.add( rel );
+                                contributedRels = true;
+                            }
                             else
                             {
                                 logger.info( "%d.%d.%d. SKIP: %s", pass, index, idx, relTarget );
@@ -250,6 +261,14 @@ public class DefaultGraphAggregator
                         }
 
                         idx++;
+                    }
+
+                    if ( !contributedRels )
+                    {
+                        logger.info( "INJECT: Adding terminal parent relationship to mark %s as resolved in the dependency graph.",
+                                     result.getSelectedRef() );
+
+                        newRels.add( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
                     }
                 }
                 else
@@ -265,6 +284,8 @@ public class DefaultGraphAggregator
 
         if ( !newRels.isEmpty() )
         {
+            logger.info( "Storing relationships:\n\n  %s\n\n", join( newRels, "\n  " ) );
+
             final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( newRels );
             logger.info( "Marking rejected relationships as cycle-injectors:\n  %s", join( rejected, "\n  " ) );
             addToCycleParticipants( rejected, cycleParticipants );

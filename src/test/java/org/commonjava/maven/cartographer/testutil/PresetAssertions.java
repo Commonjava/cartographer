@@ -74,7 +74,9 @@ public final class PresetAssertions
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( provided ) ) );
 
         final DependencyRelationship embeddedDep = new DependencyRelationship( from, src, tgt, embedded, 0, false );
-        assertThat( "Provided dependency acceptance does not match expectations", filter.accept( embeddedDep ),
+        final boolean emAccept = filter.accept( embeddedDep );
+        final boolean emScope = acceptedScopes.contains( embedded );
+        assertThat( "Embedded dependency acceptance does not match expectations", filter.accept( embeddedDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( embedded ) ) );
     }
 

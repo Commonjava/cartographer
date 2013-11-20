@@ -24,7 +24,9 @@ import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.traverse.print.DependencyTreeRelationshipPrinter;
+import org.commonjava.maven.atlas.graph.traverse.print.ListPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
+import org.commonjava.maven.atlas.graph.traverse.print.TreePrinter;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -36,8 +38,6 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
-import org.commonjava.maven.cartographer.util.ListPrinter;
-import org.commonjava.maven.cartographer.util.TreePrinter;
 
 @ApplicationScoped
 public class GraphRenderingOps
@@ -78,22 +78,21 @@ public class GraphRenderingOps
                 relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            return new TreePrinter( relPrinter ).printStructure( ref, byDeclaring, labels );
+            return new TreePrinter( relPrinter, collapseTransitives ).printStructure( ref, byDeclaring, labels );
         }
 
         return null;
     }
 
     public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
+                           final Map<String, Set<ProjectVersionRef>> labels )
         throws CartoDataException
     {
-        return depList( ref, filter, scope, collapseTransitives, labels, null );
+        return depList( ref, filter, scope, labels, null );
     }
 
     public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
-                           StructureRelationshipPrinter relPrinter )
+                           final Map<String, Set<ProjectVersionRef>> labels, StructureRelationshipPrinter relPrinter )
         throws CartoDataException
     {
         final EProjectGraph graph = data.getProjectGraph( filter, ref );

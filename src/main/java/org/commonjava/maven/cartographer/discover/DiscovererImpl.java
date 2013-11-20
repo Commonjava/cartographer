@@ -91,6 +91,11 @@ public class DiscovererImpl
             specific = resolveSpecificVersion( ref, discoveryConfig );
         }
 
+        if ( specific == null )
+        {
+            specific = ref;
+        }
+
         final Location location = new SimpleLocation( discoveryConfig.getDiscoverySource()
                                                                      .toString() );
 
