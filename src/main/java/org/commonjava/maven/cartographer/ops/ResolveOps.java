@@ -307,6 +307,26 @@ public class ResolveOps
             refMap = collectProjectVersionReferences( web );
         }
 
+        for ( final GraphDescription graph : graphs )
+        {
+            for ( final ProjectVersionRef root : graph.getRoots() )
+            {
+                ProjectRefCollection refCollection = refMap.get( root );
+                if ( refCollection == null )
+                {
+                    refCollection = new ProjectRefCollection();
+                    refCollection.addVersionRef( root );
+
+                    refMap.put( root, refCollection );
+                }
+
+                if ( root instanceof ArtifactRef )
+                {
+                    refCollection.addArtifactRef( (ArtifactRef) root );
+                }
+            }
+        }
+
         return refMap;
     }
 

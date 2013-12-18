@@ -1,0 +1,65 @@
+runtime-with-infra
+------------------
+
+[START] for r:
+  return ALL(r);
+
+[ALL] for r:
+  return r + RUNTIME-DEPS(r) + INFRA(r);
+
+[RUNTIME-DEPS] for r, all r:DEPENDENCY(scope=runtime+implied) AS d:
+  return ALL(d);
+
+[INFRA] for r:
+  return PARENTS(r) + BUILDTIME-DEPS(r) + TOOLING(r);
+
+[PARENTS] for r, r:PARENT AS p:
+  return p + nodes-in-paths (PARENT for p);
+
+[BUILDTIME-DEPS] for r, all r:DEPENDENCY(scope=test|provided) AS d:
+  return d + nodes-in-paths ({PARENT | DEPENDENCY(scope=runtime+implied, -excludes)} for d);
+
+[TOOLING] for r, all r:{PLUGIN | PLUGIN_DEPENDENCY | EXTENSION} AS t:
+  return t + nodes-in-paths ({PARENT | DEPENDENCY(scope=runtime+implied, -excludes)} for t);
+  
+
+runtime
+-------
+
+[START] for r:
+  return ALL(r);
+
+[ALL] for r:
+  return r + RUNTIME-DEPS(r) + PARENTS(r);
+
+[RUNTIME-DEPS] for r, all r:DEPENDENCY(scope=runtime+implied) AS d:
+  return ALL(d);
+
+[PARENTS] for r, r:PARENT AS p:
+  return p + nodes-in-paths (PARENT for p);
+
+
+infra
+-----
+
+[START] for r:
+  return ALL(r);
+
+[ALL] for r:
+  return RUNTIME-INFRA(r) + INFRA(r);
+
+[RUNTIME-INFRA] for r, all r:DEPENDENCY(scope=runtime+implied) AS d:
+  return ALL(d);
+
+[INFRA] for r:
+  return PARENTS(r) + BUILDTIME-DEPS(r) + TOOLING(r);
+
+[PARENTS] for r, r:PARENT AS p:
+  return p + nodes-in-paths (PARENT for p);
+
+[BUILDTIME-DEPS] for r, all r:DEPENDENCY(scope=test|provided) AS d:
+  return d + nodes-in-paths ({PARENT | DEPENDENCY(scope=runtime+implied, -excludes)} for d);
+
+[TOOLING] for r, all r:{PLUGIN | PLUGIN_DEPENDENCY | EXTENSION} AS t:
+  return t + nodes-in-paths ({PARENT | DEPENDENCY(scope=runtime+implied, -excludes)} for t);
+
