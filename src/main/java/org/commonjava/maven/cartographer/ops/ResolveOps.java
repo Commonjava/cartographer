@@ -346,7 +346,7 @@ public class ResolveOps
         return refMap;
     }
 
-    public void resolve( final ResolverRecipe recipe )
+    public GraphComposition resolve( final ResolverRecipe recipe )
         throws CartoDataException
     {
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
@@ -357,6 +357,8 @@ public class ResolveOps
                                           sourceManager.getFormatHint() );
         }
 
+        final List<GraphDescription> outDescs = new ArrayList<GraphDescription>( recipe.getGraphComposition()
+                                                                                       .size() );
         for ( final GraphDescription graph : recipe.getGraphComposition() )
         {
             final AggregationOptions options = createAggregationOptions( recipe, graph.getFilter(), sourceUri );
@@ -364,9 +366,13 @@ public class ResolveOps
             final ProjectVersionRef[] rootsArray = graph.getRootsArray();
 
             final List<ProjectVersionRef> roots = resolve( sourceUri.toString(), options, rootsArray );
+            outDescs.add( new GraphDescription( graph.getFilter(), roots ) );
 
             graph.setRoots( new HashSet<ProjectVersionRef>( roots ) );
         }
+
+        return new GraphComposition( recipe.getGraphComposition()
+                                           .getCalculation(), outDescs );
     }
 
     private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final ProjectRelationshipFilter filter, final URI sourceUri )
