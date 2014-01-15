@@ -37,8 +37,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.9.6-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.3.3-SNAPSHOT</galleyVersion>
+    <atlasVersion>0.9.6</atlasVersion>
+    <galleyVersion>0.3.3</galleyVersion>
   </properties>
 
   <dependencyManagement>
