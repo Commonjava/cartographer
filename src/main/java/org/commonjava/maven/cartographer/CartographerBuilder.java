@@ -38,6 +38,7 @@ import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScanner;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
+import org.commonjava.maven.cartographer.discover.post.patch.DepgraphPatcher;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
@@ -169,6 +170,10 @@ public class CartographerBuilder
     private MetadataScannerSupport scannerSupport;
 
     private DefaultCartoDataManager database;
+
+    private Collection<DepgraphPatcher> depgraphPatchers;
+
+    private PatcherSupport patcherSupport;
 
     public CartographerBuilder( final String workspaceId, final File resolverCacheDir, final int resolverThreads,
                                 final GraphWorkspaceFactory wsFactory )
@@ -379,6 +384,16 @@ public class CartographerBuilder
             scannerSupport = new MetadataScannerSupport( metadataScanners );
         }
 
+        if ( this.depgraphPatchers == null )
+        {
+            this.depgraphPatchers = new ArrayList<DepgraphPatcher>();
+        }
+
+        if ( patcherSupport == null )
+        {
+            this.patcherSupport = new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
+        }
+
         if ( database == null )
         {
             database = new DefaultCartoDataManager( graphs, wsHolder, events );
@@ -388,7 +403,7 @@ public class CartographerBuilder
 
         if ( this.discoverer == null )
         {
-            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, database, new PatcherSupport(), scannerSupport );
+            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, database, patcherSupport, scannerSupport );
         }
 
         final GraphAggregator aggregator = new DefaultGraphAggregator( database, discoverer, aggregatorExecutor );
@@ -556,6 +571,12 @@ public class CartographerBuilder
     public CartographerBuilder withMetadataScanners( final Collection<MetadataScanner> metadataScanners )
     {
         this.metadataScanners = metadataScanners;
+        return this;
+    }
+
+    public CartographerBuilder withDepgraphPatchers( final Collection<DepgraphPatcher> patchers )
+    {
+        this.depgraphPatchers = patchers;
         return this;
     }
 
@@ -840,9 +861,25 @@ public class CartographerBuilder
         return this;
     }
 
+    public CartographerBuilder withPatcherSupport( final PatcherSupport patcherSupport )
+    {
+        this.patcherSupport = patcherSupport;
+        return this;
+    }
+
     public CartographerBuilder withDatabase( final DefaultCartoDataManager database )
     {
         this.database = database;
         return this;
+    }
+
+    public Collection<DepgraphPatcher> getDepgraphPatchers()
+    {
+        return depgraphPatchers;
+    }
+
+    public PatcherSupport getPatcherSupport()
+    {
+        return patcherSupport;
     }
 }
