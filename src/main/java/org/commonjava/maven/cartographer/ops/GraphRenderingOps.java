@@ -94,7 +94,8 @@ public class GraphRenderingOps
                 relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            return new TreePrinter( relPrinter, collapseTransitives ).printStructure( ref, byDeclaring, labels );
+            // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
+            return new TreePrinter( relPrinter/*, collapseTransitives*/).printStructure( ref, byDeclaring, labels );
         }
 
         return null;
