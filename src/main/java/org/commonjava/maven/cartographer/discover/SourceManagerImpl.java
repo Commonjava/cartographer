@@ -61,17 +61,28 @@ public class SourceManagerImpl
     }
 
     @Override
-    public void activateWorkspaceSources( final GraphWorkspace ws, final String... sources )
+    public boolean activateWorkspaceSources( final GraphWorkspace ws, final String... sources )
         throws CartoDataException
     {
+        boolean result = false;
         for ( final String source : sources )
         {
             final URI src = createSourceURI( source );
             if ( src != null )
             {
+                if ( ws.getActiveSources()
+                       .contains( src ) )
+                {
+                    continue;
+                }
+
                 ws.addActiveSource( src );
+                result = result || ws.getActiveSources()
+                                     .contains( src );
             }
         }
+
+        return result;
     }
 
     @Override

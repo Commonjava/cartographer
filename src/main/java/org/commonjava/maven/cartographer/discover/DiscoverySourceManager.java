@@ -35,7 +35,7 @@ public interface DiscoverySourceManager
 
     URI createSourceURI( String source );
 
-    void activateWorkspaceSources( GraphWorkspace ws, String... sources )
+    boolean activateWorkspaceSources( GraphWorkspace ws, String... sources )
         throws CartoDataException;
 
     String getFormatHint();

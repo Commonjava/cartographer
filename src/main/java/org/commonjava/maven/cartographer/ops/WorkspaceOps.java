@@ -103,21 +103,35 @@ public class WorkspaceOps
         return data.getAllWorkspaces();
     }
 
-    public void addSource( final String source, final GraphWorkspace ws )
+    public boolean addSource( final String source, final GraphWorkspace ws )
         throws CartoDataException
     {
         if ( source != null )
         {
-            sourceFactory.activateWorkspaceSources( ws, source );
+            return sourceFactory.activateWorkspaceSources( ws, source );
         }
+
+        return false;
     }
 
-    public void addProfile( final String profile, final GraphWorkspace ws )
+    public boolean addProfile( final String profile, final GraphWorkspace ws )
     {
         if ( profile != null )
         {
             final URI pomLocation = profileLocation( profile );
+
+            if ( ws.getActivePomLocations()
+                   .contains( pomLocation ) )
+            {
+                return false;
+            }
+
             ws.addActivePomLocation( pomLocation );
+
+            return ws.getActivePomLocations()
+                     .contains( pomLocation );
         }
+
+        return false;
     }
 }
