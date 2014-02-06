@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -145,13 +146,13 @@ public class CartographerBuilder
 
     private MemoryNotFoundCache nfc;
 
-    private ScheduledExecutorService aggregatorExecutor;
+    private ExecutorService aggregatorExecutor;
 
-    private ScheduledExecutorService transportExecutor;
+    private ExecutorService transportExecutor;
 
-    private ScheduledExecutorService batchExecutor;
+    private ExecutorService batchExecutor;
 
-    private ScheduledExecutorService resolveExecutor;
+    private ExecutorService resolveExecutor;
 
     private DownloadHandler downloadHandler;
 
@@ -658,22 +659,22 @@ public class CartographerBuilder
         return nfc;
     }
 
-    public ScheduledExecutorService getAggregatorExecutor()
+    public ExecutorService getAggregatorExecutor()
     {
         return aggregatorExecutor;
     }
 
-    public ScheduledExecutorService getTransportExecutor()
+    public ExecutorService getTransportExecutor()
     {
         return transportExecutor;
     }
 
-    public ScheduledExecutorService getBatchExecutor()
+    public ExecutorService getBatchExecutor()
     {
         return batchExecutor;
     }
 
-    public ScheduledExecutorService getResolveExecutor()
+    public ExecutorService getResolveExecutor()
     {
         return resolveExecutor;
     }
