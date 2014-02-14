@@ -16,52 +16,65 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
-import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 
-public class SOBBuildablesFilter
+//TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
+public class BuildRequirementProjectsFilter
     implements ProjectRelationshipFilter
 {
 
+    private final boolean runtimeOnly;
+
     private final ProjectRelationshipFilter filter;
+
+    private final Set<ProjectRef> excludes = new HashSet<ProjectRef>();
 
     private final boolean acceptManaged;
 
-    public SOBBuildablesFilter()
+    public BuildRequirementProjectsFilter()
     {
-        this( false );
+        this.runtimeOnly = false;
+        this.acceptManaged = false;
+        this.filter = null;
     }
 
-    public SOBBuildablesFilter( final boolean acceptManaged )
+    public BuildRequirementProjectsFilter( final boolean acceptManaged )
     {
         this.acceptManaged = acceptManaged;
-        this.filter =
-            new OrFilter( new ParentFilter( false ),
-                          new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ),
-                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
+        this.runtimeOnly = false;
+        this.filter = null;
     }
 
-    private SOBBuildablesFilter( final ProjectRelationshipFilter childFilter )
+    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged, final Set<ProjectRef> excludes )
     {
-        this.acceptManaged = false;
+        //        logger.info( "Creating filter %s",
+        //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
+        //                                     : "for any artifact" );
+        this.runtimeOnly = runtimeOnly;
+        this.acceptManaged = acceptManaged;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
-                                                                                                 false, true, true, null ),
-                                                new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
-                            : childFilter;
+            runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
+                                        new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
+        this.excludes.addAll( excludes );
     }
 
     @Override
     public boolean accept( final ProjectRelationship<?> rel )
     {
-        boolean result;
+        boolean result = false;
+
         if ( isBOM( rel ) )
         {
             result = true;
@@ -70,9 +83,14 @@ public class SOBBuildablesFilter
         {
             result = false;
         }
+        else if ( rel.getType() == RelationshipType.PARENT )
+        {
+            result = true;
+        }
         else
         {
-            result = filter.accept( rel );
+            result = !excludes.contains( rel.getTarget()
+                                            .asProjectRef() ) && ( filter == null || filter.accept( rel ) );
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
@@ -105,10 +123,15 @@ public class SOBBuildablesFilter
         {
             case EXTENSION:
             case PLUGIN:
+            {
+                return new BuildRequirementProjectsFilter( true, false, excludes );
+            }
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
-                return new SOBBuildablesFilter( new NoneFilter() );
+
+                // reset selections map to simulate classloader isolation.
+                return new BuildRequirementProjectsFilter( true, false, excludes );
             }
             case PARENT:
             {
@@ -116,15 +139,21 @@ public class SOBBuildablesFilter
             }
             default:
             {
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
-
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
-                if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
+
+                final Set<ProjectRef> exc = new HashSet<ProjectRef>();
+                exc.addAll( excludes );
+                if ( dr.getExcludes() != null )
                 {
-                    return new SOBBuildablesFilter( new NoneFilter() );
+                    exc.addAll( dr.getExcludes() );
                 }
 
-                return new SOBBuildablesFilter( filter.getChildFilter( lastRelationship ) );
+                //                logger.info( "getChildFilter(%s)", lastRelationship );
+
+                // As long as the scope is runtime or compile, this is still in the train to be rebuilt.
+                // Otherwise, it's test or provided scope, and it's a build-requires situation...we don't need to rebuild it.
+                return new BuildRequirementProjectsFilter( !DependencyScope.runtime.implies( dr.getScope() ), acceptManaged
+                    && DependencyScope.runtime.implies( dr.getScope() ), exc );
             }
         }
     }
@@ -147,7 +176,19 @@ public class SOBBuildablesFilter
             filter.render( sb );
         }
 
-        sb.append( " [acceptManaged=" )
+        sb.append( "; runtimeOnly=" )
+          .append( runtimeOnly )
+          .append( "; excludes=[" );
+        for ( final Iterator<ProjectRef> iterator = excludes.iterator(); iterator.hasNext(); )
+        {
+            final ProjectRef exclude = iterator.next();
+            sb.append( exclude );
+            if ( iterator.hasNext() )
+            {
+                sb.append( ", " );
+            }
+        }
+        sb.append( "; acceptManaged=" )
           .append( acceptManaged )
           .append( "])" );
     }

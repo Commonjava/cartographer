@@ -16,9 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -28,62 +25,51 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
-public class MavenRuntimeFilter
+public class ScopeWithEmbeddedProjectsFilter
     implements ProjectRelationshipFilter
 {
 
     private final ProjectRelationshipFilter filter;
 
-    private final Map<ProjectRef, SingleVersion> selected;
-
     private final boolean acceptManaged;
 
-    public MavenRuntimeFilter()
-    {
-        this( new HashMap<ProjectRef, SingleVersion>(), null );
-    }
+    private DependencyScope scope;
 
-    public MavenRuntimeFilter( final boolean acceptManaged )
+    public ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged )
     {
+        this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
-        this.selected = new HashMap<ProjectRef, SingleVersion>();
         this.filter =
-            new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
+                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
-    private MavenRuntimeFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
+    private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
     {
-        this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven,
-                                                                                                 false, true, true, null ) ) : childFilter;
+            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( scope, ScopeTransitivity.maven, false, true, true,
+                                                                                                 null ),
+                                                new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
+                            : childFilter;
     }
 
     @Override
     public boolean accept( final ProjectRelationship<?> rel )
     {
-        boolean result = false;
-
-        if ( !acceptManaged && rel.isManaged() )
+        boolean result;
+        if ( isBOM( rel ) )
+        {
+            result = true;
+        }
+        else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }
         else
         {
             result = filter.accept( rel );
-
-            final ProjectVersionRef target = rel.getTarget();
-            final ProjectRef targetGA = target.asProjectRef();
-            if ( result && !selected.containsKey( targetGA ) && target.getVersionSpec()
-                                                                      .isConcrete() )
-            {
-                selected.put( targetGA, (SingleVersion) target.getVersionSpec() );
-            }
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
@@ -92,9 +78,21 @@ public class MavenRuntimeFilter
         return result;
     }
 
-    public Map<ProjectRef, SingleVersion> getSelectedProjectVersions()
+    private boolean isBOM( final ProjectRelationship<?> rel )
     {
-        return selected;
+        if ( !rel.isManaged() )
+        {
+            return false;
+        }
+
+        if ( !( rel instanceof DependencyRelationship ) )
+        {
+            return false;
+        }
+
+        final DependencyRelationship dr = (DependencyRelationship) rel;
+        return ( dr.getScope() == DependencyScope._import && "pom".equals( dr.getTargetArtifact()
+                                                                             .getType() ) );
     }
 
     @Override
@@ -107,7 +105,7 @@ public class MavenRuntimeFilter
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
-                return new MavenRuntimeFilter( selected, new NoneFilter() );
+                return new ScopeWithEmbeddedProjectsFilter( scope, new NoneFilter() );
             }
             case PARENT:
             {
@@ -120,10 +118,10 @@ public class MavenRuntimeFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return new MavenRuntimeFilter( selected, new NoneFilter() );
+                    return new ScopeWithEmbeddedProjectsFilter( scope, new NoneFilter() );
                 }
 
-                return new MavenRuntimeFilter( selected, filter.getChildFilter( lastRelationship ) );
+                return new ScopeWithEmbeddedProjectsFilter( scope, filter.getChildFilter( lastRelationship ) );
             }
         }
     }
@@ -135,7 +133,7 @@ public class MavenRuntimeFilter
         {
             sb.append( " " );
         }
-        sb.append( "Maven-Style Runtime Filter (sub-filter=" );
+        sb.append( "Shipping-Oriented Builds Filter (sub-filter=" );
 
         if ( filter == null )
         {

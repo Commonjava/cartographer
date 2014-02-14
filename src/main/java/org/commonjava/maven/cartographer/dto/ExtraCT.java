@@ -27,6 +27,21 @@ public class ExtraCT
 
     private String type;
 
+    public ExtraCT()
+    {
+    }
+
+    public ExtraCT( final String type )
+    {
+        this.type = type;
+    }
+
+    public ExtraCT( final String type, final String classifier )
+    {
+        this.type = type;
+        this.classifier = classifier;
+    }
+
     public String getClassifier()
     {
         return classifier;

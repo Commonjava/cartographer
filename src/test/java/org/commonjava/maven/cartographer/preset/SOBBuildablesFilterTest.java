@@ -49,7 +49,7 @@ import org.junit.Test;
 public class SOBBuildablesFilterTest
 {
 
-    private SOBBuildablesFilter filter;
+    private ScopeWithEmbeddedProjectsFilter filter;
 
     private URI from;
 
@@ -69,7 +69,7 @@ public class SOBBuildablesFilterTest
     public void setup()
         throws Exception
     {
-        filter = new SOBBuildablesFilter();
+        filter = new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, false );
         from = new URI( "test:source" );
         root = new ProjectVersionRef( "group", "root", "1" );
         src = new ProjectVersionRef( "group.id", "artifact-id", "1.0" );

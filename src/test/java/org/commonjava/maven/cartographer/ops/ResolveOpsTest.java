@@ -43,7 +43,7 @@ import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
-import org.commonjava.maven.cartographer.preset.SOBBuildablesFilter;
+import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
@@ -138,8 +138,12 @@ public class ResolveOpsTest
 
         final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
 
-        recipe.setGraphComposition( new GraphComposition( null,
-                                                          Collections.singletonList( new GraphDescription( new SOBBuildablesFilter(),
+        recipe.setGraphComposition( new GraphComposition(
+                                                          null,
+                                                          Collections.singletonList( new GraphDescription(
+                                                                                                           new ScopeWithEmbeddedProjectsFilter(
+                                                                                                                                                DependencyScope.runtime,
+                                                                                                                                                false ),
                                                                                                            Collections.singleton( recipeRoot ) ) ) ) );
 
         recipe.setResolve( false );

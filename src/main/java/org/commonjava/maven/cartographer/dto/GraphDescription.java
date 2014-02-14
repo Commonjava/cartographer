@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
@@ -32,21 +33,24 @@ public class GraphDescription
 
     private String preset;
 
+    private Map<String, Object> presetParams;
+
     private transient ProjectRelationshipFilter filter;
 
     protected GraphDescription()
     {
     }
 
-    public GraphDescription( final String preset, final Collection<ProjectVersionRef> roots )
+    public GraphDescription( final String preset, final Map<String, Object> presetParams, final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
+        this.presetParams = presetParams;
         this.roots = new HashSet<ProjectVersionRef>( roots );
     }
 
-    public GraphDescription( final String preset, final ProjectVersionRef... roots )
+    public GraphDescription( final String preset, final Map<String, Object> presetParams, final ProjectVersionRef... roots )
     {
-        this( preset, Arrays.asList( roots ) );
+        this( preset, presetParams, Arrays.asList( roots ) );
     }
 
     public GraphDescription( final ProjectRelationshipFilter filter, final Collection<ProjectVersionRef> roots )
@@ -110,6 +114,11 @@ public class GraphDescription
                 it.remove();
             }
         }
+    }
+
+    public Map<String, Object> getPresetParams()
+    {
+        return presetParams;
     }
 
 }

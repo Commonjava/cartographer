@@ -48,7 +48,7 @@ import org.junit.Test;
 public class ShippingOrientedBuildFilterTest
 {
 
-    private ShippingOrientedBuildFilter filter;
+    private BuildRequirementProjectsFilter filter;
 
     private URI from;
 
@@ -68,7 +68,7 @@ public class ShippingOrientedBuildFilterTest
     public void setup()
         throws Exception
     {
-        filter = new ShippingOrientedBuildFilter();
+        filter = new BuildRequirementProjectsFilter();
         from = new URI( "test:source" );
         root = new ProjectVersionRef( "group", "root", "1" );
         src = new ProjectVersionRef( "group.id", "artifact-id", "1.0" );

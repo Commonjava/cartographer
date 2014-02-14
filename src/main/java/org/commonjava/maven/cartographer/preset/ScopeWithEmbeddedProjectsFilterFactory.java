@@ -16,26 +16,46 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
+import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.ident.DependencyScope;
 
-@Named( "managed-sob" )
+@Named( "scope-with-embedded" )
 @ApplicationScoped
-public class ManagedShippingOrientedBuildFilterFactory
+@Service( PresetFactory.class )
+public class ScopeWithEmbeddedProjectsFilterFactory
     implements PresetFactory
 {
+    public static final String[] IDS = { "sob-build", "scope-with-embedded", "requires", "managed-sob-build", "managed-scope-with-embedded",
+        "managed-requires" };
+
     @Override
-    public ProjectRelationshipFilter newFilter( final GraphWorkspace workspace )
+    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
     {
-        return new ShippingOrientedBuildFilter( true );
+        DependencyScope scope = (DependencyScope) parameters.get( CommonPresetParameters.SCOPE );
+        if ( scope == null )
+        {
+            scope = DependencyScope.runtime;
+        }
+
+        Boolean managed = (Boolean) parameters.get( CommonPresetParameters.MANAGED );
+        if ( managed == null )
+        {
+            managed = presetId.startsWith( "managed" );
+        }
+
+        return new ScopeWithEmbeddedProjectsFilter( scope, managed );
     }
 
     @Override
-    public String getPresetId()
+    public String[] getPresetIds()
     {
-        return "managed-sob";
+        return IDS;
     }
 }

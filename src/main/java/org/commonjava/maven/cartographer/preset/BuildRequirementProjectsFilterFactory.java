@@ -16,29 +16,39 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
+import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 
-@Named( "none" )
+@Named( "build-env" )
 @ApplicationScoped
-public class NonePresetFactory
+@Service( PresetFactory.class )
+public class BuildRequirementProjectsFilterFactory
     implements PresetFactory
 {
+    public static final String[] IDS = { "sob", "build-env", "build-requires", "br", "managed-sob", "managed-build-env", "managed-build-requires",
+        "managed-br" };
 
     @Override
-    public String getPresetId()
+    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
     {
-        return "none";
+        Boolean managed = (Boolean) parameters.get( CommonPresetParameters.MANAGED );
+        if ( managed == null )
+        {
+            managed = presetId.startsWith( "managed" );
+        }
+
+        return new BuildRequirementProjectsFilter( managed );
     }
 
     @Override
-    public ProjectRelationshipFilter newFilter( final GraphWorkspace workspace )
+    public String[] getPresetIds()
     {
-        return new AnyFilter();
+        return IDS;
     }
-
 }

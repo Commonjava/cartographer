@@ -18,6 +18,7 @@ package org.commonjava.maven.cartographer.preset;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -53,6 +54,13 @@ public class PresetSelector
         mapPresets( presetFactoryInstances );
     }
 
+    public PresetSelector( final CartoDataManager carto )
+    {
+        this.carto = carto;
+        final ServiceLoader<PresetFactory> factories = ServiceLoader.load( PresetFactory.class );
+        mapPresets( factories );
+    }
+
     @PostConstruct
     public void mapPresets()
     {
@@ -64,11 +72,14 @@ public class PresetSelector
         presetFactories = new HashMap<String, PresetFactory>();
         for ( final PresetFactory filter : presetFilters )
         {
-            final String named = filter.getPresetId();
+            final String[] named = filter.getPresetIds();
             if ( named != null )
             {
-                logger.info( "Loaded preset filter: %s (%s)", named, filter );
-                presetFactories.put( named, filter );
+                for ( final String name : named )
+                {
+                    logger.info( "Loaded preset filter: %s (%s)", name, filter );
+                    presetFactories.put( name, filter );
+                }
             }
             else
             {
@@ -77,11 +88,21 @@ public class PresetSelector
         }
     }
 
-    public ProjectRelationshipFilter getPresetFilter( String preset, final String defaultPreset )
+    public ProjectRelationshipFilter getPresetFilter( String preset, final String defaultPreset, final Map<String, Object> params )
     {
         if ( preset == null )
         {
             preset = defaultPreset;
+        }
+
+        Map<String, Object> parameters = params;
+        if ( params == null )
+        {
+            parameters = new HashMap<String, Object>();
+        }
+        else
+        {
+            CommonPresetParameters.coerce( parameters );
         }
 
         if ( preset != null )
@@ -90,7 +111,7 @@ public class PresetSelector
             if ( factory != null )
             {
                 final GraphWorkspace ws = carto.getCurrentWorkspace();
-                final ProjectRelationshipFilter filter = factory.newFilter( ws );
+                final ProjectRelationshipFilter filter = factory.newFilter( preset, ws, parameters );
 
                 logger.info( "Returning filter: %s for preset: %s", filter, preset );
                 return filter;
