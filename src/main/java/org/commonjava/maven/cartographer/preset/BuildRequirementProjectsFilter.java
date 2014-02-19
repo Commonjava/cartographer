@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
+import org.commonjava.maven.atlas.graph.filter.DependencySubgraphFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -65,8 +65,8 @@ public class BuildRequirementProjectsFilter
         this.runtimeOnly = runtimeOnly;
         this.acceptManaged = acceptManaged;
         this.filter =
-            runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
-                                        new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
+            runtimeOnly ? new OrFilter( new DependencySubgraphFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
+                                        new DependencySubgraphFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
         this.excludes.addAll( excludes );
     }
 

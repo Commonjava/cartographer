@@ -19,7 +19,7 @@ package org.commonjava.maven.cartographer.preset;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
+import org.commonjava.maven.atlas.graph.filter.DependencySubgraphFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
@@ -54,7 +54,7 @@ public class ScopedProjectFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.selected = new HashMap<ProjectRef, SingleVersion>();
-        this.filter = new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) );
+        this.filter = new OrFilter( new ParentFilter( false ), new DependencySubgraphFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
     private ScopedProjectFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
@@ -63,7 +63,7 @@ public class ScopedProjectFilter
         this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true,
+            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencySubgraphFilter( this.scope, ScopeTransitivity.maven, false, true,
                                                                                                  true, null ) ) : childFilter;
     }
 

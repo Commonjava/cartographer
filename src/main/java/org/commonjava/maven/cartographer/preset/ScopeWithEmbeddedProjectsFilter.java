@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
-import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
+import org.commonjava.maven.atlas.graph.filter.DependencySubgraphFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
@@ -41,17 +41,17 @@ public class ScopeWithEmbeddedProjectsFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
-                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( new ParentFilter( false ), new DependencySubgraphFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
+                          new DependencySubgraphFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
     private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
     {
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( scope, ScopeTransitivity.maven, false, true, true,
+            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencySubgraphFilter( scope, ScopeTransitivity.maven, false, true, true,
                                                                                                  null ),
-                                                new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
+                                                new DependencySubgraphFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
                             : childFilter;
     }
 
