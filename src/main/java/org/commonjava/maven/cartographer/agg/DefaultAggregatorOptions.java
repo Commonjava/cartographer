@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -43,6 +44,8 @@ public class DefaultAggregatorOptions
     private long discoveryTimeoutMillis = TimeUnit.MILLISECONDS.convert( 10, TimeUnit.SECONDS );
 
     private DiscoveryConfig dc;
+
+    private GraphMutator mutator;
 
     public DefaultAggregatorOptions setFilter( final ProjectRelationshipFilter filter )
     {
@@ -80,6 +83,12 @@ public class DefaultAggregatorOptions
         return this;
     }
 
+    public DefaultAggregatorOptions setMutator( final GraphMutator mutator )
+    {
+        this.mutator = mutator;
+        return this;
+    }
+
     @Override
     public ProjectRelationshipFilter getFilter()
     {
@@ -102,7 +111,8 @@ public class DefaultAggregatorOptions
     public DiscoveryConfig getDiscoveryConfig()
     {
         return dc == null ? new DefaultDiscoveryConfig( discoverySource ).setEnabled( discoveryEnabled )
-                                                                         .setTimeoutMillis( discoveryTimeoutMillis ) : dc;
+                                                                         .setTimeoutMillis( discoveryTimeoutMillis )
+                                                                         .setMutator( mutator ) : dc;
     }
 
     @Override
@@ -126,10 +136,10 @@ public class DefaultAggregatorOptions
     @Override
     public String toString()
     {
-        return String.format( "DefaultAggregatorOptions [\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s" + "\n\tdiscoveryEnabled=%s"
-                                  + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", processIncomplete, processVariable,
-                              discoveryEnabled,
-                              discoveryTimeoutMillis, filter );
+        return String.format( "DefaultAggregatorOptions [\n\tmutator=%s\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s"
+                                  + "\n\tdiscoveryEnabled=%s" + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", mutator,
+                              processIncomplete, processVariable,
+                              discoveryEnabled, discoveryTimeoutMillis, filter );
     }
 
     public DefaultAggregatorOptions setDiscoveryConfig( final DiscoveryConfig dc )
@@ -138,7 +148,14 @@ public class DefaultAggregatorOptions
         this.discoverySource = dc.getDiscoverySource();
         this.discoveryEnabled = dc.isEnabled();
         this.discoveryTimeoutMillis = dc.getTimeoutMillis();
+        this.mutator = dc.getMutator();
         return this;
+    }
+
+    @Override
+    public GraphMutator getMutator()
+    {
+        return mutator;
     }
 
 }

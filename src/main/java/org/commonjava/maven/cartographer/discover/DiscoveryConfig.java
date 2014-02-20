@@ -20,6 +20,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+
 public interface DiscoveryConfig
 {
 
@@ -48,6 +50,12 @@ public interface DiscoveryConfig
         {
             return Collections.emptySet();
         }
+
+        @Override
+        public GraphMutator getMutator()
+        {
+            return null;
+        }
     };
 
     boolean isEnabled();
@@ -57,5 +65,7 @@ public interface DiscoveryConfig
     URI getDiscoverySource();
 
     Set<String> getEnabledPatchers();
+
+    GraphMutator getMutator();
 
 }

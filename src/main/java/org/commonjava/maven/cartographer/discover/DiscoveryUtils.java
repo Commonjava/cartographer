@@ -79,7 +79,7 @@ public final class DiscoveryUtils
                                 .createTemporaryWorkspace( new GraphWorkspaceConfiguration() );
             }
 
-            ws.selectVersionForAll( ref, new ProjectVersionRef( ref, ver ) );
+            ws.selectVersion( ref, new ProjectVersionRef( ref, ver ) );
         }
         catch ( final GraphDriverException e )
         {

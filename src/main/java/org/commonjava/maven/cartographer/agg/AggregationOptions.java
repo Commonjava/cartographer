@@ -19,6 +19,7 @@ package org.commonjava.maven.cartographer.agg;
 import java.net.URI;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 
 public interface AggregationOptions
@@ -37,5 +38,7 @@ public interface AggregationOptions
     long getDiscoveryTimeoutMillis();
 
     URI getDiscoverySource();
+
+    GraphMutator getMutator();
 
 }

@@ -135,6 +135,10 @@ public class ResolveOps
             {
                 specific = root;
             }
+            else if ( !specific.equals( root ) )
+            {
+                ws.selectVersion( root, specific );
+            }
 
             boolean doDiscovery = !data.contains( specific );
             if ( !doDiscovery && data.hasErrors( specific ) )

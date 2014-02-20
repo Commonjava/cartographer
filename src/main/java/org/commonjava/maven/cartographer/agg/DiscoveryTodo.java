@@ -19,6 +19,7 @@ package org.commonjava.maven.cartographer.agg;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 final class DiscoveryTodo
@@ -27,15 +28,18 @@ final class DiscoveryTodo
 
     private Set<ProjectRelationshipFilter> filters;
 
+    private Set<GraphMutator> mutators;
+
     DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
 
-    public DiscoveryTodo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> filters )
+    public DiscoveryTodo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> filters, final Set<GraphMutator> mutators )
     {
         this.ref = ref;
         this.filters = filters;
+        this.mutators = mutators;
     }
 
     ProjectVersionRef getRef()
@@ -96,6 +100,16 @@ final class DiscoveryTodo
     public String toString()
     {
         return String.format( "DiscoveryTodo [ref=%s, filters=%s]", ref, filters );
+    }
+
+    public void setMutators( final Set<GraphMutator> mutators )
+    {
+        this.mutators = mutators;
+    }
+
+    public Set<GraphMutator> getMutators()
+    {
+        return mutators;
     }
 
 }

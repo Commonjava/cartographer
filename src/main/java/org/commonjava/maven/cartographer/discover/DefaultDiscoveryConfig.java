@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+
 public class DefaultDiscoveryConfig
     implements DiscoveryConfig
 {
@@ -34,6 +36,8 @@ public class DefaultDiscoveryConfig
     private final URI discoverySource;
 
     private Set<String> patchers;
+
+    private GraphMutator mutator;
 
     public DefaultDiscoveryConfig( final URI discoverySource )
     {
@@ -62,6 +66,7 @@ public class DefaultDiscoveryConfig
         this.enabled = discoveryConfig.isEnabled();
         this.timeoutMillis = discoveryConfig.getTimeoutMillis();
         this.discoverySource = discoveryConfig.getDiscoverySource();
+        this.mutator = discoveryConfig.getMutator();
     }
 
     public DefaultDiscoveryConfig setEnabled( final boolean enabled )
@@ -104,6 +109,18 @@ public class DefaultDiscoveryConfig
     public Set<String> getEnabledPatchers()
     {
         return patchers == null ? Collections.<String> emptySet() : patchers;
+    }
+
+    @Override
+    public GraphMutator getMutator()
+    {
+        return mutator;
+    }
+
+    public DefaultDiscoveryConfig setMutator( final GraphMutator mutator )
+    {
+        this.mutator = mutator;
+        return this;
     }
 
 }

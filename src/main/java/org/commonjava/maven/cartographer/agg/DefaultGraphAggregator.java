@@ -39,12 +39,15 @@ import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.util.logging.Logger;
@@ -108,7 +111,7 @@ public class DefaultGraphAggregator
                 final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
 
                 logger.debug( "Loading initial set of GAVs to be resolved..." );
-                final LinkedList<DiscoveryTodo> pending = loadInitialPending( net );
+                final LinkedList<DiscoveryTodo> pending = loadInitialPending( net, config.getMutator() );
                 final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
                 int pass = 0;
@@ -145,6 +148,63 @@ public class DefaultGraphAggregator
         logger.debug( "%d. Performing discovery and cycle-detection on %d missing subgraphs:\n  %s", pass, todos.size(), new JoinString( "\n  ",
                                                                                                                                          todos ) );
 
+        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, net, config, missing, cycleParticipants, pass );
+
+        logger.info( "%d. Accounting for discovery results. Before discovery, these were missing:\n\n  %s\n\n", pass,
+                     new JoinString( "\n  ", missing ) );
+
+        final Set<ProjectRelationship<?>> toStore = new HashSet<ProjectRelationship<?>>();
+        final Map<ProjectVersionRef, DiscoveryTodo> nextTodos = new HashMap<ProjectVersionRef, DiscoveryTodo>();
+
+        for ( final DiscoveryRunnable r : runnables )
+        {
+            if ( !processDiscoveryOutput( r, toStore, nextTodos, net, config.getDiscoveryConfig(), pass ) )
+            {
+                markMissing( r, missing, pass );
+            }
+        }
+
+        if ( !toStore.isEmpty() )
+        {
+            logger.info( "Storing relationships:\n\n  %s\n\n", join( toStore, "\n  " ) );
+            final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( toStore );
+
+            logger.info( "Marking rejected relationships as cycle-injectors:\n  %s", join( rejected, "\n  " ) );
+            addToCycleParticipants( rejected, cycleParticipants );
+        }
+
+        logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
+
+        return new HashSet<DiscoveryTodo>( nextTodos.values() );
+    }
+
+    /**
+     * Convert the current set of {@link DiscoveryTodo}'s into a set of 
+     * {@link DiscoveryRunnable}'s after first ensuring their corresponding GAVs 
+     * aren't already present, listed as missing, or listed as participants in a 
+     * relationship cycle.
+     * 
+     * Then, execute all of these runnables and wait for processing to complete
+     * before passing them back for output processing.
+     * 
+     * @param todos The current set of {@link DiscoveryTodo}'s to process
+     * @param net The top-level dependency graph for which discovery it taking place
+     * @param config Configuration for how discovery should proceed
+     * @param missing The accumulated list of confirmed-missing GAVs (NOT things 
+     * that have yet to be discovered)
+     * @param cycleParticipants The accumulated list of GAVs that participate in 
+     * relationship cycles. These are NOT safe to continue processing, since they 
+     * will lead to infinite looping.
+     * @param pass For diagnostic/logging purposes, the number of discovery passes 
+     * since discovery was initiated by the caller (part of the graph may have been 
+     * pre-existing)
+     * @return The executed set of {@link DiscoveryRunnable} instances that contain 
+     * output to be processed and incorporated in the graph.
+     */
+    private Set<DiscoveryRunnable> executeTodoBatch( final Set<DiscoveryTodo> todos, final EProjectNet net, final AggregationOptions config,
+                                                     final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> cycleParticipants,
+                                                     final int pass )
+    {
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
 
         final Set<ProjectVersionRef> roMissing = Collections.unmodifiableSet( missing );
@@ -192,134 +252,258 @@ public class DefaultGraphAggregator
             return null;
         }
 
-        logger.info( "%d. Accounting for discovery results. Before discovery, these were missing:\n\n  %s\n\n", pass,
-                     new JoinString( "\n  ", missing ) );
+        return runnables;
+    }
 
-        final Set<ProjectRelationship<?>> newRels = new HashSet<ProjectRelationship<?>>();
-        final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> newTargets = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
-        for ( final DiscoveryRunnable r : runnables )
+    /**
+     * Process the output from a discovery runnable (discovery of relationships 
+     * related to a given GAV). This includes:
+     * 
+     * <ul>
+     *   <li>Adding any accumulated metadata for the GAV</li>
+     *   <li>Determining which new relationships to store in the graph db related to the relationships in this result</li>
+     *   <li>Generating the next set of {@link DiscoveryTodo}'s related to the relationships in this result</li>
+     * </ul>
+     * 
+     * @param r The runnable containing discovery output to process for a specific 
+     * input GAV
+     * @param toStore The accumulated list of relationships that shoudl be stored 
+     * in the graph db for this input GAV
+     * @param nextTodos The accumulated next crop of {@link DiscoveryTodo}'s, which 
+     * MAY be augmented by output from this discovery runnable 
+     * @param net The top-level dependency graph for which discovery is taking place
+     * @param config Configuration for how discovery should proceed
+     * @param pass For diagnostic/logging purposes, the number of discovery passes 
+     * since discovery was initiated by the caller (part of the graph may have been pre-existing)
+     * @return true if output contained a valid result, or false to indicate the 
+     * GAV should be marked missing.
+     */
+    private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Set<ProjectRelationship<?>> toStore,
+                                            final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final EProjectNet net,
+                                            final DiscoveryConfig config, final int pass )
+    {
+        final DiscoveryResult result = r.getResult();
+
+        if ( result != null )
         {
-            final DiscoveryResult result = r.getResult();
-            final DiscoveryTodo todo = r.getTodo();
+            final Map<String, String> metadata = result.getMetadata();
 
-            if ( result != null )
+            if ( metadata != null )
             {
+                dataManager.addMetadata( result.getSelectedRef(), metadata );
+            }
+
+            final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
+            if ( discoveredRels != null )
+            {
+                final DiscoveryTodo todo = r.getTodo();
+                final int index = r.getIndex();
                 final Set<ProjectRelationshipFilter> filters = todo.getFilters();
+                final Set<GraphMutator> mutators = todo.getMutators();
 
-                final Map<String, String> metadata = result.getMetadata();
-                if ( metadata != null )
+                // De-selected relationships (not mutated) should be stored but NOT followed for discovery purposes.
+                // Likewise, mutated (selected) relationships should be followed but NOT stored.
+                logger.info( "%d.%d. Processing %d new relationships for: %s\n\n  %s", pass, index, discoveredRels.size(), result.getSelectedRef(),
+                             join( discoveredRels, "\n  " ) );
+
+                boolean contributedRels = false;
+
+                int idx = 0;
+                for ( final ProjectRelationship<?> rel : discoveredRels )
                 {
-                    dataManager.addMetadata( result.getSelectedRef(), metadata );
-                }
-
-                final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
-                if ( discoveredRels != null )
-                {
-                    logger.info( "%d.%d. Processing %d new relationships for: %s\n\n  %s", pass, r.getIndex(), discoveredRels.size(),
-                                 result.getSelectedRef(), join( discoveredRels, "\n  " ) );
-
-                    final int index = r.getIndex();
-                    idx = 0;
-
-                    boolean contributedRels = false;
-                    for ( final ProjectRelationship<?> rel : discoveredRels )
+                    final ProjectVersionRef relTarget = rel.getTarget()
+                                                           .asProjectVersionRef();
+                    if ( !net.containsGraph( relTarget ) )
                     {
-                        final ProjectVersionRef relTarget = rel.getTarget()
-                                                               .asProjectVersionRef();
-                        if ( !net.containsGraph( relTarget ) )
+                        // TODO: We're filtering on the original relationship THEN potentially mutating it for the next 
+                        // layer of discovery...is it wise not to filter those as well??
+                        final Set<ProjectRelationshipFilter> nextFilters = findNextFilters( rel, filters, pass, index, idx );
+
+                        if ( !nextFilters.isEmpty() )
                         {
-                            final Set<ProjectRelationshipFilter> acceptingChildren = new HashSet<ProjectRelationshipFilter>();
-                            int fidx = 0;
-                            for ( final ProjectRelationshipFilter filter : filters )
-                            {
-                                final boolean accepted = filter.accept( rel );
-                                logger.info( "%d.%d.%d.%d. CHECK: %s\n  vs.\n\n  %s\n\n  Accepted? %s", pass, index, idx, fidx, rel, filter, accepted );
-                                if ( accepted )
-                                {
-                                    acceptingChildren.add( filter.getChildFilter( rel ) );
-                                }
-                                fidx++;
-                            }
-
-                            if ( !acceptingChildren.isEmpty() )
-                            {
-                                logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, relTarget,
-                                             new JoinString( "\n    ", acceptingChildren ) );
-
-                                newRels.add( rel );
-                                contributedRels = true;
-
-                                // Just map the target to the filter set and allow those to accumulate, then go back and assemble todo's from them afterward.
-                                final Set<ProjectRelationshipFilter> targetFilters = newTargets.get( relTarget );
-                                if ( targetFilters == null )
-                                {
-                                    newTargets.put( relTarget, acceptingChildren );
-                                }
-                                else
-                                {
-                                    targetFilters.addAll( acceptingChildren );
-                                }
-                            }
-                            else if ( rel.getType() == RelationshipType.PARENT )
-                            {
-                                logger.info( "FORCE: Adding parent relationship: %s", rel );
-                                newRels.add( rel );
-                                contributedRels = true;
-                            }
-                            else
-                            {
-                                logger.info( "%d.%d.%d. SKIP: %s", pass, index, idx, relTarget );
-                            }
+                            contributedRels = true;
+                            toStore.add( rel );
+                            addDiscoveryTodos( mutators, nextTodos, relTarget, rel, nextFilters, pass, index, idx );
+                        }
+                        else if ( rel.getType() == RelationshipType.PARENT )
+                        {
+                            logger.info( "%d.%d.%d. FORCE: Adding parent relationship: %s", pass, index, idx, rel );
+                            toStore.add( rel );
+                            contributedRels = true;
                         }
                         else
                         {
-                            logger.info( "%d.%d.%d. SKIP (already discovered): %s", pass, index, idx, relTarget );
+                            logger.info( "%d.%d.%d. SKIP: %s", pass, index, idx, relTarget );
                         }
-
-                        idx++;
                     }
-
-                    // if all relationships have been discarded by filter...
-                    if ( !contributedRels && !discoveredRels.isEmpty() )
+                    else
                     {
-                        logger.info( "INJECT: Adding terminal parent relationship to mark %s as resolved in the dependency graph.",
-                                     result.getSelectedRef() );
-
-                        newRels.add( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
+                        logger.info( "%d.%d.%d. SKIP (already discovered): %s", pass, index, idx, relTarget );
                     }
+
+                    idx++;
                 }
-                else
+
+                // if all relationships have been discarded by filter...
+                if ( !contributedRels && !discoveredRels.isEmpty() )
                 {
-                    logger.info( "discovered relationships NULL for: %s", result.getSelectedRef() );
+                    logger.info( "%d.%d. INJECT: Adding terminal parent relationship to mark %s as resolved in the dependency graph.", pass, index,
+                                 result.getSelectedRef() );
+
+                    toStore.add( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
                 }
             }
             else
             {
-                markMissing( todo.getRef(), todo, missing );
+                logger.info( "%d.%d. discovered relationships were NULL for: %s", pass, r.getIndex(), result.getSelectedRef() );
+            }
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Accumulate the next-step filters for any filters that accept the given relationship.
+     * 
+     * @param rel The relationship to apply current filters to
+     * @param filters The filters to apply
+     * @param pass For diagnostics/logging, this is the discovery-batch number 
+     * since discovery was invoked
+     * @param index For diagnostics/logging, this is the index of the discovery 
+     * runnable/todo that led to discovery of the given relationship 
+     * @param idx For diagnostics/logging, this is the index of the relationship 
+     * we're currently processing for next-step todo's
+     * @return The filters to be applied to the next crop of todo's resulting 
+     * from the current relationship.
+     */
+    private Set<ProjectRelationshipFilter> findNextFilters( final ProjectRelationship<?> rel, final Set<ProjectRelationshipFilter> filters,
+                                                            final int pass, final int index, final int idx )
+    {
+        final Set<ProjectRelationshipFilter> nextFilters = new HashSet<ProjectRelationshipFilter>();
+
+        int fidx = 0;
+        for ( final ProjectRelationshipFilter filter : filters )
+        {
+            final boolean accepted = filter.accept( rel );
+            logger.info( "%d.%d.%d.%d. CHECK: %s\n  vs.\n\n  %s\n\n  Accepted? %s", pass, index, idx, fidx, rel, filter, accepted );
+            if ( accepted )
+            {
+                nextFilters.add( filter.getChildFilter( rel ) );
+            }
+            fidx++;
+        }
+
+        return nextFilters;
+    }
+
+    /**
+     * Accumulate {@link DiscoveryTodo} instance/filters to the exising map of 
+     * next-step todo's.
+     * 
+     * If {@link GraphMutator}'s are in use, then store a new todo for each of the
+     * selected relationships that come out of those.
+     * 
+     * @param mutators The mutators used to generate the round of relationships 
+     * we're processing right now (may be NULL)
+     * @param nextTodos The mappings containing the accumulated state 
+     * (filters, mutators, etc) for the next round of discovery
+     * @param relTarget The GAV to be discovered next
+     * @param rel The relationship spawning the current next set of discovery todo's
+     * @param nextFilters Filters to be applied to the next batch of relationships 
+     * discovered for the given GAV
+     * @param pass For diagnostics/logging, this is the discovery-batch number 
+     * since discovery was invoked
+     * @param index For diagnostics/logging, this is the index of the discovery 
+     * runnable/todo that led to discovery of the given relationship 
+     * @param idx For diagnostics/logging, this is the index of the relationship 
+     * we're currently processing for next-step todo's
+     */
+    private void addDiscoveryTodos( final Set<GraphMutator> mutators, final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
+                                    ProjectVersionRef relTarget, final ProjectRelationship<?> rel, final Set<ProjectRelationshipFilter> nextFilters,
+                                    final int pass, final int index, final int idx )
+    {
+        if ( mutators == null || mutators.isEmpty() )
+        {
+            incorporateTodoInfo( relTarget, nextFilters, null, nextTodos );
+        }
+        else
+        {
+            // For each mutation, add to DiscoveryTodo list, but DO NOT STORE 
+            // (newRels determines what gets stored).
+            //
+            // Instaed, allow the database to auto-create these so they're 
+            // distinguishable from non-mutated relationships.
+            for ( final GraphMutator mutator : mutators )
+            {
+                final ProjectRelationship<?> selected = mutator.selectFor( rel );
+                if ( selected == null )
+                {
+                    continue;
+                }
+
+                relTarget = selected.getTarget()
+                                    .asProjectVersionRef();
+
+                logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, relTarget, new JoinString( "\n    ", nextFilters ) );
+
+                final GraphMutator childMutator = mutator.getMutatorFor( selected );
+
+                incorporateTodoInfo( relTarget, nextFilters, childMutator, nextTodos );
             }
         }
+    }
 
-        if ( !newRels.isEmpty() )
+    /**
+     * Accumulate new filters and mutators into existing {@link DiscoveryTodo} 
+     * instances for the next round of discovery. If there is no existing todo 
+     * for the given GAV, create one and add it.
+     * 
+     * @param ref The GAV to discover
+     * @param nextFilters The list of filters to add to the discovery step
+     * @param nextMutator The mutator to add to the discovery step (may be null)
+     * @param nextTodos The current mapping of next-step todo's, which accumulates 
+     * via successive calls to this method.
+     */
+    private void incorporateTodoInfo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> nextFilters, final GraphMutator nextMutator,
+                                      final Map<ProjectVersionRef, DiscoveryTodo> nextTodos )
+    {
+        DiscoveryTodo todo = nextTodos.get( ref );
+        if ( todo == null )
         {
-            logger.info( "Storing relationships:\n\n  %s\n\n", join( newRels, "\n  " ) );
+            Set<GraphMutator> childMutators = null;
+            if ( nextMutator != null )
+            {
+                childMutators = new HashSet<GraphMutator>();
+                if ( nextMutator != null )
+                {
+                    childMutators = new HashSet<GraphMutator>( Collections.singleton( nextMutator ) );
+                }
+            }
 
-            final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( newRels );
-            logger.info( "Marking rejected relationships as cycle-injectors:\n  %s", join( rejected, "\n  " ) );
-            addToCycleParticipants( rejected, cycleParticipants );
+            todo = new DiscoveryTodo( ref, nextFilters, childMutators );
+            nextTodos.put( ref, todo );
         }
-
-        logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
-
-        final Set<DiscoveryTodo> newTodos = new HashSet<DiscoveryTodo>( newTargets.size() );
-        for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : newTargets.entrySet() )
+        else
         {
-            final ProjectVersionRef target = entry.getKey();
-            final Set<ProjectRelationshipFilter> targetFilters = entry.getValue();
+            todo.getFilters()
+                .addAll( nextFilters );
 
-            newTodos.add( new DiscoveryTodo( target, targetFilters ) );
+            if ( nextMutator != null )
+            {
+                Set<GraphMutator> childMutators = todo.getMutators();
+                if ( childMutators == null )
+                {
+                    childMutators = new HashSet<GraphMutator>();
+                    todo.setMutators( childMutators );
+                }
+
+                childMutators.add( nextMutator );
+            }
         }
-
-        return newTodos;
     }
 
     private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
@@ -333,15 +517,27 @@ public class DefaultGraphAggregator
         }
     }
 
-    private void markMissing( final ProjectVersionRef ref, final DiscoveryTodo todo, final Set<ProjectVersionRef> missing )
+    private void markMissing( final DiscoveryRunnable runnable, final Set<ProjectVersionRef> missing, final int pass )
     {
-        logger.info( "MISSING(1) += %s", ref );
-        missing.add( ref );
-        final ProjectVersionRef originalRef = todo.getRef();
-        if ( !originalRef.equals( ref ) )
+        final int index = runnable.getIndex();
+
+        final ProjectVersionRef originalRef = runnable.getTodo()
+                                                      .getRef();
+
+        logger.info( "%d.%d. MISSING(1) += %s", pass, index, originalRef );
+        missing.add( originalRef );
+
+        final DiscoveryResult result = runnable.getResult();
+        if ( result != null )
         {
-            logger.info( "MISSING(2) += %s", originalRef );
-            missing.add( originalRef );
+            final ProjectVersionRef selectdRef = runnable.getResult()
+                                                         .getSelectedRef();
+
+            if ( !originalRef.equals( selectdRef ) )
+            {
+                logger.info( "%d.%d. MISSING(2) += %s", pass, index, selectdRef );
+                missing.add( selectdRef );
+            }
         }
     }
 
@@ -357,15 +553,18 @@ public class DefaultGraphAggregator
         return participants;
     }
 
-    private LinkedList<DiscoveryTodo> loadInitialPending( final EProjectNet net )
+    private LinkedList<DiscoveryTodo> loadInitialPending( final EProjectNet net, final GraphMutator rootMutator )
     {
         final GraphView view = net.getView();
         final ProjectRelationshipFilter topFilter = view.getFilter();
 
-        final Set<ProjectVersionRef> initialIncomplete = net.getIncompleteSubgraphs();
+        final GraphMutator topMutator = rootMutator == null ? new ManagedDependencyMutator( view, true ) : rootMutator;
 
-        logger.info( "Finding paths from: %s to:\n  %s", join( net.getView()
-                                                                  .getRoots(), ", " ), join( initialIncomplete, "\n  " ) );
+        final Set<ProjectVersionRef> initialIncomplete = net.getIncompleteSubgraphs();
+        if ( initialIncomplete == null || initialIncomplete.isEmpty() )
+        {
+            return new LinkedList<DiscoveryTodo>();
+        }
 
         final Set<List<ProjectRelationship<?>>> paths = net.getPathsTo( initialIncomplete.toArray( new ProjectVersionRef[initialIncomplete.size()] ) );
 
@@ -374,7 +573,50 @@ public class DefaultGraphAggregator
             return new LinkedList<DiscoveryTodo>();
         }
 
+        logger.info( "Finding paths from: %s to:\n  %s", join( net.getView()
+                                                                  .getRoots(), ", " ), join( initialIncomplete, "\n  " ) );
+
         final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
+        final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef = new HashMap<ProjectVersionRef, Set<GraphMutator>>();
+        calculateInitialFiltersAndMutators( paths, topFilter, topMutator, filtersByRef, mutatorsByRef );
+
+        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<DiscoveryTodo>();
+        for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : filtersByRef.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final Set<ProjectRelationshipFilter> pathFilters = entry.getValue();
+            final Set<GraphMutator> pathMutators = mutatorsByRef.get( ref );
+
+            if ( pathFilters.isEmpty() )
+            {
+                logger.info( "INIT-SKIP: %s", ref );
+                continue;
+            }
+
+            final DiscoveryTodo todo = new DiscoveryTodo( ref );
+            todo.setFilters( pathFilters );
+            todo.setMutators( pathMutators );
+
+            logger.info( "INIT-DISCOVER += %s\n  (filters:\n    %s)", ref, new Object()
+            {
+                @Override
+                public String toString()
+                {
+                    return join( pathFilters, "\n    " );
+                }
+            } );
+
+            initialPending.add( todo );
+        }
+
+        return initialPending;
+    }
+
+    private void calculateInitialFiltersAndMutators( final Set<List<ProjectRelationship<?>>> paths, final ProjectRelationshipFilter topFilter,
+                                                     final GraphMutator topMutator,
+                                                     final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef,
+                                                     final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef )
+    {
         nextPath: for ( final List<ProjectRelationship<?>> path : paths )
         {
             if ( path == null || path.size() < 1 )
@@ -392,7 +634,15 @@ public class DefaultGraphAggregator
                 filtersByRef.put( ref, pathFilters );
             }
 
+            Set<GraphMutator> pathMutators = mutatorsByRef.get( ref );
+            if ( pathMutators == null )
+            {
+                pathMutators = new HashSet<GraphMutator>();
+                mutatorsByRef.put( ref, pathMutators );
+            }
+
             ProjectRelationshipFilter f = topFilter;
+            GraphMutator m = topMutator;
             for ( final ProjectRelationship<?> rel : path )
             {
                 if ( !f.accept( rel ) )
@@ -400,41 +650,14 @@ public class DefaultGraphAggregator
                     continue nextPath;
                 }
 
+                m = m.getMutatorFor( rel );
                 f = f.getChildFilter( rel );
             }
 
             logger.debug( "Adding todo: %s via filter: %s", ref, f );
             pathFilters.add( f );
+            pathMutators.add( m );
         }
-
-        final LinkedList<DiscoveryTodo> initialPending = new LinkedList<DiscoveryTodo>();
-        for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : filtersByRef.entrySet() )
-        {
-            final ProjectVersionRef ref = entry.getKey();
-            final Set<ProjectRelationshipFilter> pathFilters = entry.getValue();
-
-            if ( pathFilters.isEmpty() )
-            {
-                logger.info( "INIT-SKIP: %s", ref );
-                continue;
-            }
-
-            final DiscoveryTodo todo = new DiscoveryTodo( ref );
-            todo.setFilters( pathFilters );
-
-            logger.info( "INIT-DISCOVER += %s\n  (filters:\n    %s)", ref, new Object()
-            {
-                @Override
-                public String toString()
-                {
-                    return join( pathFilters, "\n    " );
-                }
-            } );
-
-            initialPending.add( todo );
-        }
-
-        return initialPending;
     }
 
 }
