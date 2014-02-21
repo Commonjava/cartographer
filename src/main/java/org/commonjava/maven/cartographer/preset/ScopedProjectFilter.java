@@ -137,7 +137,7 @@ public class ScopedProjectFilter
         {
             sb.append( " " );
         }
-        sb.append( "Maven-Style Runtime Filter (sub-filter=" );
+        sb.append( "Scoped Projects Filter (sub-filter=" );
 
         if ( filter == null )
         {
@@ -159,6 +159,67 @@ public class ScopedProjectFilter
         final StringBuilder sb = new StringBuilder();
         render( sb );
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( acceptManaged ? 1231 : 1237 );
+        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
+        result = prime * result + ( ( selected == null ) ? 0 : selected.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final ScopedProjectFilter other = (ScopedProjectFilter) obj;
+        if ( acceptManaged != other.acceptManaged )
+        {
+            return false;
+        }
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
+        if ( scope != other.scope )
+        {
+            return false;
+        }
+        if ( selected == null )
+        {
+            if ( other.selected != null )
+            {
+                return false;
+            }
+        }
+        else if ( !selected.equals( other.selected ) )
+        {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -151,6 +151,9 @@ public class MavenModelProcessor
             {
                 final ProjectVersionRef ref = ext.asProjectVersionRef();
 
+                // force the InvalidVersionSpecificationException.
+                ref.getVersionSpec();
+
                 builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
             }
             catch ( final InvalidRefException e )
@@ -283,7 +286,16 @@ public class MavenModelProcessor
                 ProjectVersionRef pluginRef = null;
                 try
                 {
+                    if ( plugin.getVersion() == null )
+                    {
+                        logger.error( "Cannot find a version for plugin: %s. Skipping.", plugin.toXML() );
+                        continue;
+                    }
+
                     pluginRef = plugin.asProjectVersionRef();
+
+                    // force the InvalidVersionSpecificationException.
+                    pluginRef.getVersionSpec();
 
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
@@ -352,6 +364,9 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+
+                    // force the InvalidVersionSpecificationException.
+                    artifactRef.getVersionSpec();
 
                     builder.withPluginDependencies( new PluginDependencyRelationship( source, location, projectRef, pluginRef, artifactRef,
                                                                                       builder.getNextPluginDependencyIndex( pluginRef, managed ),
@@ -456,6 +471,9 @@ public class MavenModelProcessor
 
                     final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
+                    // force the InvalidVersionSpecificationException.
+                    artifactRef.getVersionSpec();
+
                     builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
                                                                           builder.getNextDependencyIndex( managed ), managed ) );
                 }
@@ -483,6 +501,9 @@ public class MavenModelProcessor
             if ( parent != null )
             {
                 final ProjectVersionRef ref = parent.asProjectVersionRef();
+                // force the InvalidVersionSpecificationException.
+                ref.getVersionSpec();
+
                 builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
             }
             else

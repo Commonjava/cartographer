@@ -133,7 +133,7 @@ public class ScopeWithEmbeddedProjectsFilter
         {
             sb.append( " " );
         }
-        sb.append( "Shipping-Oriented Builds Filter (sub-filter=" );
+        sb.append( "Scope-Plus-Embedded Projects Filter (sub-filter=" );
 
         if ( filter == null )
         {
@@ -155,6 +155,55 @@ public class ScopeWithEmbeddedProjectsFilter
         final StringBuilder sb = new StringBuilder();
         render( sb );
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( acceptManaged ? 1231 : 1237 );
+        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final ScopeWithEmbeddedProjectsFilter other = (ScopeWithEmbeddedProjectsFilter) obj;
+        if ( acceptManaged != other.acceptManaged )
+        {
+            return false;
+        }
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
+        if ( scope != other.scope )
+        {
+            return false;
+        }
+        return true;
     }
 
 }

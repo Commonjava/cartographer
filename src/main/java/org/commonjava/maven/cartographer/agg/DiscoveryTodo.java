@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 final class DiscoveryTodo
@@ -29,6 +30,8 @@ final class DiscoveryTodo
     private Set<ProjectRelationshipFilter> filters;
 
     private Set<GraphMutator> mutators;
+
+    private Set<ProjectRelationship<?>> sourceRelationships;
 
     DiscoveryTodo( final ProjectVersionRef ref )
     {
@@ -110,6 +113,16 @@ final class DiscoveryTodo
     public Set<GraphMutator> getMutators()
     {
         return mutators;
+    }
+
+    public Set<ProjectRelationship<?>> getSourceRelationships()
+    {
+        return sourceRelationships;
+    }
+
+    public void setSourceRelationships( final Set<ProjectRelationship<?>> sourceRelationships )
+    {
+        this.sourceRelationships = sourceRelationships;
     }
 
 }

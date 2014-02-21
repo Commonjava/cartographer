@@ -165,7 +165,7 @@ public class BuildRequirementProjectsFilter
         {
             sb.append( " " );
         }
-        sb.append( "Shipping-Oriented Builds Filter (sub-filter=" );
+        sb.append( "Build-Requires Filter (sub-filter=" );
 
         if ( filter == null )
         {
@@ -188,7 +188,7 @@ public class BuildRequirementProjectsFilter
                 sb.append( ", " );
             }
         }
-        sb.append( "; acceptManaged=" )
+        sb.append( "]; acceptManaged=" )
           .append( acceptManaged )
           .append( "])" );
     }
@@ -199,6 +199,67 @@ public class BuildRequirementProjectsFilter
         final StringBuilder sb = new StringBuilder();
         render( sb );
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( acceptManaged ? 1231 : 1237 );
+        result = prime * result + ( ( excludes == null ) ? 0 : excludes.hashCode() );
+        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        result = prime * result + ( runtimeOnly ? 1231 : 1237 );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final BuildRequirementProjectsFilter other = (BuildRequirementProjectsFilter) obj;
+        if ( acceptManaged != other.acceptManaged )
+        {
+            return false;
+        }
+        if ( excludes == null )
+        {
+            if ( other.excludes != null )
+            {
+                return false;
+            }
+        }
+        else if ( !excludes.equals( other.excludes ) )
+        {
+            return false;
+        }
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
+        if ( runtimeOnly != other.runtimeOnly )
+        {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -173,9 +173,64 @@ public class DefaultGraphAggregator
             addToCycleParticipants( rejected, cycleParticipants );
         }
 
+        // this has to wait until the "vanilla" relationships are stored, since
+        // it may depend on lookup of context relationships (managed deps, for instance)
+        mutateNextTodos( nextTodos, pass );
+
         logger.info( "%d. After discovery, these are missing:\n\n  %s\n\n", pass, new JoinString( "\n  ", missing ) );
 
         return new HashSet<DiscoveryTodo>( nextTodos.values() );
+    }
+
+    private void mutateNextTodos( final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final int pass )
+    {
+        int index = 0;
+        for ( ProjectVersionRef ref : new HashSet<ProjectVersionRef>( nextTodos.keySet() ) )
+        {
+            final DiscoveryTodo todo = nextTodos.remove( ref );
+
+            final Set<GraphMutator> mutators = todo.getMutators();
+            if ( mutators != null && !mutators.isEmpty() )
+            {
+                // For each mutation, add to DiscoveryTodo list, but DO NOT STORE 
+                // (newRels determines what gets stored).
+                //
+                // Instaed, allow the database to auto-create these so they're 
+                // distinguishable from non-mutated relationships.
+                int idx = 0;
+                for ( final ProjectRelationship<?> rel : todo.getSourceRelationships() )
+                {
+                    for ( final GraphMutator mutator : mutators )
+                    {
+                        final ProjectRelationship<?> selected = mutator.selectFor( rel );
+                        if ( selected == null )
+                        {
+                            continue;
+                        }
+
+                        ref = selected.getTarget()
+                                      .asProjectVersionRef();
+
+                        logger.info( "%d.%d.%d. MUTATE-DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, ref,
+                                     new JoinString( "\n    ", todo.getFilters() ) );
+
+                        final GraphMutator childMutator = mutator.getMutatorFor( selected );
+
+                        incorporateTodoInfo( ref, todo.getFilters(), nextTodos, Collections.singleton( childMutator ) );
+                    }
+
+                    idx++;
+                }
+            }
+            else
+            {
+                logger.info( "%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, ref, new JoinString( "\n    ", todo.getFilters() ) );
+
+                nextTodos.put( ref, todo );
+            }
+
+            index++;
+        }
     }
 
     /**
@@ -323,7 +378,17 @@ public class DefaultGraphAggregator
                         {
                             contributedRels = true;
                             toStore.add( rel );
-                            addDiscoveryTodos( mutators, nextTodos, relTarget, rel, nextFilters, pass, index, idx );
+                            incorporateTodoInfo( relTarget, nextFilters, nextTodos, mutators );
+
+                            final DiscoveryTodo nextTodo = nextTodos.get( relTarget );
+                            Set<ProjectRelationship<?>> sourceRelationships = nextTodo.getSourceRelationships();
+                            if ( sourceRelationships == null )
+                            {
+                                sourceRelationships = new HashSet<ProjectRelationship<?>>();
+                                nextTodo.setSourceRelationships( sourceRelationships );
+                            }
+
+                            sourceRelationships.add( rel );
                         }
                         else if ( rel.getType() == RelationshipType.PARENT )
                         {
@@ -401,63 +466,6 @@ public class DefaultGraphAggregator
     }
 
     /**
-     * Accumulate {@link DiscoveryTodo} instance/filters to the exising map of 
-     * next-step todo's.
-     * 
-     * If {@link GraphMutator}'s are in use, then store a new todo for each of the
-     * selected relationships that come out of those.
-     * 
-     * @param mutators The mutators used to generate the round of relationships 
-     * we're processing right now (may be NULL)
-     * @param nextTodos The mappings containing the accumulated state 
-     * (filters, mutators, etc) for the next round of discovery
-     * @param relTarget The GAV to be discovered next
-     * @param rel The relationship spawning the current next set of discovery todo's
-     * @param nextFilters Filters to be applied to the next batch of relationships 
-     * discovered for the given GAV
-     * @param pass For diagnostics/logging, this is the discovery-batch number 
-     * since discovery was invoked
-     * @param index For diagnostics/logging, this is the index of the discovery 
-     * runnable/todo that led to discovery of the given relationship 
-     * @param idx For diagnostics/logging, this is the index of the relationship 
-     * we're currently processing for next-step todo's
-     */
-    private void addDiscoveryTodos( final Set<GraphMutator> mutators, final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
-                                    ProjectVersionRef relTarget, final ProjectRelationship<?> rel, final Set<ProjectRelationshipFilter> nextFilters,
-                                    final int pass, final int index, final int idx )
-    {
-        if ( mutators == null || mutators.isEmpty() )
-        {
-            incorporateTodoInfo( relTarget, nextFilters, null, nextTodos );
-        }
-        else
-        {
-            // For each mutation, add to DiscoveryTodo list, but DO NOT STORE 
-            // (newRels determines what gets stored).
-            //
-            // Instaed, allow the database to auto-create these so they're 
-            // distinguishable from non-mutated relationships.
-            for ( final GraphMutator mutator : mutators )
-            {
-                final ProjectRelationship<?> selected = mutator.selectFor( rel );
-                if ( selected == null )
-                {
-                    continue;
-                }
-
-                relTarget = selected.getTarget()
-                                    .asProjectVersionRef();
-
-                logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, relTarget, new JoinString( "\n    ", nextFilters ) );
-
-                final GraphMutator childMutator = mutator.getMutatorFor( selected );
-
-                incorporateTodoInfo( relTarget, nextFilters, childMutator, nextTodos );
-            }
-        }
-    }
-
-    /**
      * Accumulate new filters and mutators into existing {@link DiscoveryTodo} 
      * instances for the next round of discovery. If there is no existing todo 
      * for the given GAV, create one and add it.
@@ -468,20 +476,16 @@ public class DefaultGraphAggregator
      * @param nextTodos The current mapping of next-step todo's, which accumulates 
      * via successive calls to this method.
      */
-    private void incorporateTodoInfo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> nextFilters, final GraphMutator nextMutator,
-                                      final Map<ProjectVersionRef, DiscoveryTodo> nextTodos )
+    private void incorporateTodoInfo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> nextFilters,
+                                      final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final Set<GraphMutator> nextMutators )
     {
         DiscoveryTodo todo = nextTodos.get( ref );
         if ( todo == null )
         {
-            Set<GraphMutator> childMutators = null;
-            if ( nextMutator != null )
+            Set<GraphMutator> childMutators = new HashSet<GraphMutator>();
+            if ( nextMutators != null && !nextMutators.isEmpty() )
             {
-                childMutators = new HashSet<GraphMutator>();
-                if ( nextMutator != null )
-                {
-                    childMutators = new HashSet<GraphMutator>( Collections.singleton( nextMutator ) );
-                }
+                childMutators = new HashSet<GraphMutator>( nextMutators );
             }
 
             todo = new DiscoveryTodo( ref, nextFilters, childMutators );
@@ -492,7 +496,7 @@ public class DefaultGraphAggregator
             todo.getFilters()
                 .addAll( nextFilters );
 
-            if ( nextMutator != null )
+            if ( nextMutators != null && !nextMutators.isEmpty() )
             {
                 Set<GraphMutator> childMutators = todo.getMutators();
                 if ( childMutators == null )
@@ -501,7 +505,7 @@ public class DefaultGraphAggregator
                     todo.setMutators( childMutators );
                 }
 
-                childMutators.add( nextMutator );
+                childMutators.addAll( nextMutators );
             }
         }
     }
