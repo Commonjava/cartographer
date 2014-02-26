@@ -32,7 +32,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
@@ -41,9 +40,7 @@ import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.util.logging.Log4jUtil;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SOBBuildablesFilterTest
@@ -58,12 +55,6 @@ public class SOBBuildablesFilterTest
     private ProjectVersionRef root;
 
     private ArtifactRef tgt;
-
-    @BeforeClass
-    public static void setupLogging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     @Before
     public void setup()

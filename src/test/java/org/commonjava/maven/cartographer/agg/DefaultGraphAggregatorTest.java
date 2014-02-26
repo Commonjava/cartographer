@@ -24,7 +24,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -37,26 +36,19 @@ import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
-import org.commonjava.util.logging.Log4jUtil;
-import org.commonjava.util.logging.Logger;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultGraphAggregatorTest
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Rule
     public CartoFixture fixture = new CartoFixture( new CoreFixture() );
-
-    @BeforeClass
-    public static void logging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     @Before
     public void setup()

@@ -27,13 +27,14 @@ import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestAggregatorDiscoverer
     implements ProjectRelationshipDiscoverer
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ProjectVersionRef, DiscoveryResult> mappedResults = new HashMap<ProjectVersionRef, DiscoveryResult>();
 
@@ -65,7 +66,7 @@ public class TestAggregatorDiscoverer
         seen.add( ref );
 
         final DiscoveryResult result = mappedResults.get( ref );
-        logger.info( "DISCOVER: %s....\n  %s", ref, result );
+        logger.info( "DISCOVER: {}....\n  {}", ref, result );
         if ( result != null && storeRelationships )
         {
             data.storeRelationships( result.getAllDiscoveredRelationships() );

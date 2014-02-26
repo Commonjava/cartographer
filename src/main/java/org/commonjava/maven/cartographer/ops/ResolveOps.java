@@ -60,13 +60,14 @@ import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ResolveOps
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private DiscoverySourceManager sourceManager;
@@ -112,7 +113,7 @@ public class ResolveOps
         final URI source = sourceManager.createSourceURI( fromUri );
         if ( source == null )
         {
-            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", fromUri, sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", fromUri, sourceManager.getFormatHint() );
         }
 
         GraphWorkspace ws = data.getCurrentWorkspace();
@@ -164,7 +165,7 @@ public class ResolveOps
         final ProjectRelationshipFilter filter = options.getFilter();
         final ProjectVersionRef[] resultsArray = results.toArray( new ProjectVersionRef[results.size()] );
 
-        logger.info( "Retrieving web for roots: %s with filter: %s", results, filter );
+        logger.info( "Retrieving web for roots: {} with filter: {}", results, filter );
 
         final EProjectWeb web = data.getProjectWeb( filter, resultsArray );
         if ( options.isDiscoveryEnabled() )
@@ -185,14 +186,14 @@ public class ResolveOps
     {
         if ( recipe == null || !recipe.isValid() )
         {
-            throw new CartoDataException( "Repository content recipe is invalid: %s", recipe );
+            throw new CartoDataException( "Repository content recipe is invalid: {}", recipe );
         }
 
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
                                           sourceManager.getFormatHint() );
         }
 
@@ -207,7 +208,7 @@ public class ResolveOps
 
             if ( items != null && !items.isEmpty() )
             {
-                logger.info( "%s Returning for: %s\n\n  %s", collector, collector.getRef(), join( items.entrySet(), "\n  " ) );
+                logger.info( "{} Returning for: {}\n\n  {}", collector, collector.getRef(), join( items.entrySet(), "\n  " ) );
                 Map<ArtifactRef, ConcreteResource> existingItems = itemMap.get( collector.getRef() );
                 if ( existingItems == null )
                 {
@@ -219,11 +220,11 @@ public class ResolveOps
                     existingItems.putAll( items );
                 }
 
-                logger.info( "%s Accumulated for: %s\n\n  %s", collector, collector.getRef(), join( existingItems.entrySet(), "\n  " ) );
+                logger.info( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(), join( existingItems.entrySet(), "\n  " ) );
             }
             else
             {
-                logger.warn( "%s No items returned for: %s", collector, collector.getRef() );
+                logger.warn( "{} No items returned for: {}", collector, collector.getRef() );
             }
         }
 
@@ -276,7 +277,7 @@ public class ResolveOps
         }
         catch ( final InterruptedException e )
         {
-            logger.error( "Abandoning repo-content assembly for: %s", recipe );
+            logger.error( "Abandoning repo-content assembly for: {}", recipe );
         }
 
         return collectors;
@@ -285,7 +286,7 @@ public class ResolveOps
     private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe, final URI sourceUri )
         throws CartoDataException
     {
-        logger.info( "Building repository for: %s", recipe );
+        logger.info( "Building repository for: {}", recipe );
 
         EProjectNet web = null;
 
@@ -296,7 +297,7 @@ public class ResolveOps
         recipe.normalize();
         if ( !recipe.isValid() )
         {
-            throw new CartoDataException( "Invalid repository recipe: %s", recipe );
+            throw new CartoDataException( "Invalid repository recipe: {}", recipe );
         }
 
         final GraphComposition graphs = recipe.getGraphComposition();
@@ -321,7 +322,7 @@ public class ResolveOps
 
             if ( web == null )
             {
-                throw new CartoDataException( "Failed to retrieve web for roots: %s", join( roots, ", " ) );
+                throw new CartoDataException( "Failed to retrieve web for roots: {}", join( roots, ", " ) );
             }
 
             refMap = collectProjectVersionReferences( web );
@@ -357,7 +358,7 @@ public class ResolveOps
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '%s'. Use the form: '%s' instead.", recipe.getSourceLocation(),
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
                                           sourceManager.getFormatHint() );
         }
 

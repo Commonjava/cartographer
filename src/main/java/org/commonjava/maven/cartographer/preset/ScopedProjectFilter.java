@@ -73,7 +73,7 @@ public class ScopedProjectFilter
             result = filter.accept( rel );
         }
 
-        //        logger.info( "%s: accept(%s)", Boolean.toString( result )
+        //        logger.info( "{}: accept({})", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
@@ -88,7 +88,7 @@ public class ScopedProjectFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                //                logger.info( "getChildFilter({})", lastRelationship );
                 return NoneFilter.INSTANCE;
             }
             case PARENT:
@@ -97,7 +97,7 @@ public class ScopedProjectFilter
             }
             default:
             {
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                //                logger.info( "getChildFilter({})", lastRelationship );
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {

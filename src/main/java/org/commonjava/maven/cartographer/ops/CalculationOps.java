@@ -172,7 +172,7 @@ public class CalculationOps
 
             if ( web == null )
             {
-                throw new CartoDataException( "Cannot retrieve web for: %s.", graph );
+                throw new CartoDataException( "Cannot retrieve web for: {}.", graph );
             }
 
             if ( result == null )

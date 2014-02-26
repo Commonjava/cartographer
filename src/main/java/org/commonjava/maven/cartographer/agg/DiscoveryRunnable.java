@@ -25,7 +25,8 @@ import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DiscoveryRunnable
     implements Runnable
@@ -35,7 +36,7 @@ public class DiscoveryRunnable
 
     private CountDownLatch latch;
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Set<ProjectVersionRef> roMissing;
 
@@ -68,7 +69,7 @@ public class DiscoveryRunnable
     {
         final ProjectVersionRef ref = todo.getRef();
 
-        logger.info( "\n\n\n\n%d.%d. Processing missing project: %s\n\n\n\n", pass, idx, ref );
+        logger.info( "\n\n\n\n{}.{}. Processing missing project: {}\n\n\n\n", pass, idx, ref );
 
         try
         {
@@ -80,20 +81,20 @@ public class DiscoveryRunnable
             }
             else if ( roMissing.contains( ref ) )
             {
-                logger.info( "%d.%d. MISS: Already marked as missing: %s", pass, idx, ref );
+                logger.info( "{}.{}. MISS: Already marked as missing: {}", pass, idx, ref );
             }
             else
             {
-                logger.info( "No discoverer! Skipping: %s", ref );
+                logger.info( "No discoverer! Skipping: {}", ref );
             }
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "%d.%d. Cannot discover subgraph for: %s. Reason: %s.", e, pass, idx, ref, e.getMessage() );
+            logger.error( "{}.{}. Cannot discover subgraph for: {}. Reason: {}.", e, pass, idx, ref, e.getMessage() );
         }
         catch ( final CartoDataException e )
         {
-            logger.error( "%d.%d. Failed to discover subgraph for: %s. Reason: %s.", e, pass, idx, ref, e.getMessage() );
+            logger.error( "{}.{}. Failed to discover subgraph for: {}. Reason: {}.", e, pass, idx, ref, e.getMessage() );
         }
         finally
         {

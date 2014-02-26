@@ -63,7 +63,7 @@ public class BuildRequirementProjectsFilter
 
     private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged, final Set<ProjectRef> excludes )
     {
-        //        logger.info( "Creating filter %s",
+        //        logger.info( "Creating filter {}",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
         //                                     : "for any artifact" );
         this.runtimeOnly = runtimeOnly;
@@ -97,7 +97,7 @@ public class BuildRequirementProjectsFilter
                                                                   .asProjectRef() ) ) && ( filter == null || filter.accept( rel ) );
         }
 
-        //        logger.info( "%s: accept(%s)", Boolean.toString( result )
+        //        logger.info( "{}: accept({})", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
@@ -132,7 +132,7 @@ public class BuildRequirementProjectsFilter
             }
             case PLUGIN_DEP:
             {
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                //                logger.info( "getChildFilter({})", lastRelationship );
 
                 // reset selections map to simulate classloader isolation.
                 return new BuildRequirementProjectsFilter( true, false, excludes );

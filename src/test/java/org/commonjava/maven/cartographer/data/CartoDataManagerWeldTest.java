@@ -17,20 +17,21 @@
 package org.commonjava.maven.cartographer.data;
 
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
-import org.commonjava.util.logging.Logger;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Ignore
 public class CartoDataManagerWeldTest
     extends AbstractCartoDataManagerTest
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private Weld weld;
 

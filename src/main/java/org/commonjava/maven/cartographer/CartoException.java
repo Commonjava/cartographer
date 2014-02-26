@@ -54,16 +54,17 @@ public class CartoException
         {
             try
             {
-                message = String.format( message, params );
+                message = String.format( message.replaceAll( "\\{\\}", "%s" ), params );
             }
-            catch ( IllegalFormatException ife )
+            catch ( final IllegalFormatException ife )
             {
                 try
                 {
                     message = MessageFormat.format( message, params );
                 }
-                catch ( IllegalArgumentException iae )
-                {}
+                catch ( final IllegalArgumentException iae )
+                {
+                }
             }
         }
 

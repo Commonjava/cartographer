@@ -32,13 +32,14 @@ import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractMetadataScanner
     implements MetadataScanner
 {
 
-    protected final Logger logger = new Logger( getClass() );
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private MavenPomReader pomReader;
@@ -74,7 +75,7 @@ public abstract class AbstractMetadataScanner
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Failed to parse: %s. Reason: %s", e, ref, e.getMessage() );
+                logger.error( "Failed to parse: {}. Reason: {}", e, ref, e.getMessage() );
                 return null;
             }
         }
@@ -101,7 +102,7 @@ public abstract class AbstractMetadataScanner
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Failed to resolve SCM element via XPath '%s' in: %s. Reason: %s", e, xpath, ref, e.getMessage() );
+                logger.error( "Failed to resolve SCM element via XPath '{}' in: {}. Reason: {}", e, xpath, ref, e.getMessage() );
             }
         }
 

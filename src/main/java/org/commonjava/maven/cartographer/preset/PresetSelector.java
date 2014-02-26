@@ -28,13 +28,14 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PresetSelector
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private Instance<PresetFactory> presetFactoryInstances;
@@ -77,13 +78,13 @@ public class PresetSelector
             {
                 for ( final String name : named )
                 {
-                    logger.info( "Loaded preset filter: %s (%s)", name, filter );
+                    logger.info( "Loaded preset filter: {} ({})", name, filter );
                     presetFactories.put( name, filter );
                 }
             }
             else
             {
-                logger.info( "Skipped unnamed preset: %s", filter );
+                logger.info( "Skipped unnamed preset: {}", filter );
             }
         }
     }
@@ -113,7 +114,7 @@ public class PresetSelector
                 final GraphWorkspace ws = carto.getCurrentWorkspace();
                 final ProjectRelationshipFilter filter = factory.newFilter( preset, ws, parameters );
 
-                logger.info( "Returning filter: %s for preset: %s", filter, preset );
+                logger.info( "Returning filter: {} for preset: {}", filter, preset );
                 return filter;
             }
 

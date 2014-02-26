@@ -73,7 +73,7 @@ public class ScopeWithEmbeddedProjectsFilter
             result = filter.accept( rel );
         }
 
-        //        logger.info( "%s: accept(%s)", Boolean.toString( result )
+        //        logger.info( "{}: accept({})", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
@@ -110,7 +110,7 @@ public class ScopeWithEmbeddedProjectsFilter
                     return this;
                 }
 
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                //                logger.info( "getChildFilter({})", lastRelationship );
                 return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
             }
             case PARENT:
@@ -119,7 +119,7 @@ public class ScopeWithEmbeddedProjectsFilter
             }
             default:
             {
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                //                logger.info( "getChildFilter({})", lastRelationship );
 
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )

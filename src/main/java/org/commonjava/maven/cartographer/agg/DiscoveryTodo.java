@@ -102,7 +102,7 @@ final class DiscoveryTodo
     @Override
     public String toString()
     {
-        return String.format( "DiscoveryTodo [ref=%s, filters=%s, mutators: %s]", ref, filters, mutators );
+        return String.format( "DiscoveryTodo [ref={}, filters={}, mutators: {}]", ref, filters, mutators );
     }
 
     public void setMutators( final Set<GraphMutator> mutators )

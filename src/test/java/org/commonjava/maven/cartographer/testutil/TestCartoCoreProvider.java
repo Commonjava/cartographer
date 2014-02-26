@@ -45,8 +45,8 @@ import org.commonjava.maven.galley.testing.core.cdi.TestData;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
-import org.commonjava.util.logging.Logger;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class TestCartoCoreProvider
@@ -200,7 +200,8 @@ public class TestCartoCoreProvider
                 }
                 catch ( final IOException e )
                 {
-                    new Logger( getClass() ).error( e.getMessage(), e );
+                    LoggerFactory.getLogger( getClass() )
+                                 .error( e.getMessage(), e );
                 }
             }
         }

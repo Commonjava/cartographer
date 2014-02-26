@@ -40,7 +40,8 @@ import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DependencyPluginPatcher
     implements DepgraphPatcher
@@ -57,7 +58,7 @@ public class DependencyPluginPatcher
             "/project/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/executions/execution/configuration/artifactItems/artifactItem",
             "/project/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-dependency-plugin\"]/configuration/artifactItems/artifactItem" };
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
     public void patch( final DiscoveryResult result, final List<? extends Location> locations, final Map<String, Object> context )
@@ -70,7 +71,7 @@ public class DependencyPluginPatcher
             // get all artifactItems with a version element. Only these need to be verified.
             final String depArtifactItemsPath = join( PATHS, "|" );
 
-            logger.info( "Looking for dependency-plugin usages matching: '%s'", depArtifactItemsPath );
+            logger.info( "Looking for dependency-plugin usages matching: '{}'", depArtifactItemsPath );
             // TODO: Switch to a DependencyView here, with path to dependencyManagement...
             final List<DependencyView> depArtifactItems = pomView.getAllDependenciesMatching( depArtifactItemsPath );
             if ( depArtifactItems == null || depArtifactItems.isEmpty() )
@@ -86,7 +87,7 @@ public class DependencyPluginPatcher
                 if ( rel instanceof DependencyRelationship && !rel.isManaged() )
                 {
                     final VersionlessArtifactRef key = new VersionlessArtifactRef( rel.getTargetArtifact() );
-                    logger.info( "Mapping existing dependency via key: %s", key );
+                    logger.info( "Mapping existing dependency via key: {}", key );
                     concreteDeps.put( key, (DependencyRelationship) rel );
                 }
             }
@@ -95,15 +96,15 @@ public class DependencyPluginPatcher
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
     }
 
@@ -111,7 +112,7 @@ public class DependencyPluginPatcher
                                                  final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
                                                  final MavenPomView pomView, final DiscoveryResult result )
     {
-        logger.info( "Detected %d dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
+        logger.info( "Detected {} dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
                         : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )
         {
@@ -122,7 +123,7 @@ public class DependencyPluginPatcher
                 {
                     final URI pomLocation = RelationshipUtils.profileLocation( depView.getProfileId() );
                     final VersionlessArtifactRef depRef = depView.asVersionlessArtifactRef();
-                    logger.info( "Detected dependency-plugin usage with key: %s", depRef );
+                    logger.info( "Detected dependency-plugin usage with key: {}", depRef );
 
                     final DependencyRelationship dep = concreteDeps.get( depRef );
                     if ( dep != null )
@@ -131,11 +132,11 @@ public class DependencyPluginPatcher
                             && ( dep.getPomLocation()
                                     .equals( pomLocation ) || dep.getPomLocation() == RelationshipUtils.POM_ROOT_URI ) )
                         {
-                            logger.info( "Correcting scope for: %s", dep );
+                            logger.info( "Correcting scope for: {}", dep );
 
                             if ( !result.removeDiscoveredRelationship( dep ) )
                             {
-                                logger.error( "Failed to remove: %s", dep );
+                                logger.error( "Failed to remove: {}", dep );
                             }
 
                             final Set<ProjectRef> excludes = dep.getExcludes();
@@ -148,39 +149,39 @@ public class DependencyPluginPatcher
 
                             if ( !result.addDiscoveredRelationship( replacement ) )
                             {
-                                logger.error( "Failed to inject: %s", replacement );
+                                logger.error( "Failed to inject: {}", replacement );
                             }
                         }
                     }
                     else if ( depView.getVersion() != null )
                     {
-                        logger.info( "Injecting new dep: %s", depView.asArtifactRef() );
+                        logger.info( "Injecting new dep: {}", depView.asArtifactRef() );
                         final DependencyRelationship injected =
                             new DependencyRelationship( source, RelationshipUtils.profileLocation( depView.getProfileId() ), ref,
                                                         depView.asArtifactRef(), DependencyScope.embedded, concreteDeps.size(), false );
 
                         if ( !result.addDiscoveredRelationship( injected ) )
                         {
-                            logger.error( "Failed to inject: %s", injected );
+                            logger.error( "Failed to inject: {}", injected );
                         }
                     }
                     else
                     {
-                        logger.error( "Invalid dependency referenced in artifactItems of dependency plugin configuration: %s. "
+                        logger.error( "Invalid dependency referenced in artifactItems of dependency plugin configuration: {}. "
                             + "No version was specified, and it does not reference an actual dependency.", depRef );
                     }
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
+                    logger.error( "Dependency is invalid: {}. Reason: {}. Skipping.", e, depView.toXML(), e.getMessage() );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
+                    logger.error( "Dependency is invalid: {}. Reason: {}. Skipping.", e, depView.toXML(), e.getMessage() );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( "Dependency is invalid: %s. Reason: %s. Skipping.", e, depView.toXML(), e.getMessage() );
+                    logger.error( "Dependency is invalid: {}. Reason: {}. Skipping.", e, depView.toXML(), e.getMessage() );
                 }
             }
         }

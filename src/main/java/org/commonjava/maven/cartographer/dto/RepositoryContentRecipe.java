@@ -46,7 +46,7 @@ public class RepositoryContentRecipe
     @Override
     public String toString()
     {
-        return String.format( "RepositoryContentRecipe [graphs=%s, workspaceId=%s, source-location=%s]", graphComposition, workspaceId,
+        return String.format( "RepositoryContentRecipe [graphs={}, workspaceId={}, source-location={}]", graphComposition, workspaceId,
                               getSourceLocation() );
     }
 

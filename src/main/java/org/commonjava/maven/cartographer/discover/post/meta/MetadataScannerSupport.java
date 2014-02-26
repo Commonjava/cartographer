@@ -34,12 +34,13 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataScannerSupport
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private Instance<MetadataScanner> scannerInstances;
@@ -87,7 +88,7 @@ public class MetadataScannerSupport
                 continue;
             }
 
-            logger.info( "Running metadata scanner: %s for: %s", scanner.getClass()
+            logger.info( "Running metadata scanner: {} for: {}", scanner.getClass()
                                                                         .getSimpleName(), ref );
             try
             {
@@ -99,7 +100,7 @@ public class MetadataScannerSupport
             }
             catch ( final Exception e )
             {
-                logger.error( "Failed to execute metadata scanner: %s against: %s. Reason: %s", e, scanner.getClass()
+                logger.error( "Failed to execute metadata scanner: {} against: {}. Reason: {}", e, scanner.getClass()
                                                                                                           .getSimpleName(), ref, e.getMessage() );
             }
         }

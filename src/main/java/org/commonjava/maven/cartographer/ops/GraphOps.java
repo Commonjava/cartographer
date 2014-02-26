@@ -36,13 +36,14 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.util.ProjectVersionRefComparator;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class GraphOps
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private CartoDataManager data;
@@ -84,7 +85,7 @@ public class GraphOps
         Map<ProjectVersionRef, Set<String>> errors = null;
         if ( ref != null )
         {
-            logger.info( "Retrieving project errors in graph: %s", ref );
+            logger.info( "Retrieving project errors in graph: {}", ref );
             errors = data.getProjectErrorsInGraph( ref );
         }
 
@@ -143,15 +144,14 @@ public class GraphOps
         {
             final BuildOrderTraversal traversal = new BuildOrderTraversal( filter );
 
-            logger.info( "Performing build-order traversal for graph: %s", ref );
+            logger.info( "Performing build-order traversal for graph: {}", ref );
             try
             {
                 graph.traverse( traversal );
             }
             catch ( final GraphDriverException e )
             {
-                throw new CartoDataException( "Failed to construct build order for: %s. Reason: %s", e, ref,
-                                              e.getMessage() );
+                throw new CartoDataException( "Failed to construct build order for: {}. Reason: {}", e, ref, e.getMessage() );
             }
 
             return traversal.getBuildOrder();
@@ -190,8 +190,7 @@ public class GraphOps
                 final String gip = groupIdPattern == null ? ".*" : groupIdPattern.replaceAll( "\\*", ".*" );
                 final String aip = artifactIdPattern == null ? ".*" : artifactIdPattern.replaceAll( "\\*", ".*" );
 
-                logger.info( "Filtering %d projects using groupId pattern: '%s' and artifactId pattern: '%s'",
-                             all.size(), gip, aip );
+                logger.info( "Filtering {} projects using groupId pattern: '{}' and artifactId pattern: '{}'", all.size(), gip, aip );
 
                 for ( final ProjectVersionRef ref : all )
                 {
@@ -205,7 +204,7 @@ public class GraphOps
             }
             else
             {
-                logger.info( "Returning all %d projects", all.size() );
+                logger.info( "Returning all {} projects", all.size() );
                 matching.addAll( all );
             }
 
@@ -226,15 +225,13 @@ public class GraphOps
         return data.getParent( projectVersionRef );
     }
 
-    public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref,
-                                                                   final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         return data.getAllDirectRelationshipsWithExactSource( ref, filter, null );
     }
 
-    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref,
-                                                                 final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         return data.getAllDirectRelationshipsWithExactTarget( ref, filter, null );

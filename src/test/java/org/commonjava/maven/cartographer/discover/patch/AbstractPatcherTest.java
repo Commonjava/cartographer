@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
@@ -41,8 +40,6 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.maven.GalleyMavenFixture;
-import org.commonjava.util.logging.Log4jUtil;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 
 public abstract class AbstractPatcherTest
@@ -50,12 +47,6 @@ public abstract class AbstractPatcherTest
 
     @Rule
     public GalleyMavenFixture galleyFixture = new GalleyMavenFixture( new CoreFixture() );
-
-    @BeforeClass
-    public static void logging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     protected void setupGalley()
     {

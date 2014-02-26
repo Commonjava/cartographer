@@ -31,7 +31,8 @@ import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @Named( "default-carto-source-mgr" )
@@ -39,7 +40,7 @@ public class SourceManagerImpl
     implements DiscoverySourceManager
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
     public URI createSourceURI( final String source )
@@ -50,11 +51,11 @@ public class SourceManagerImpl
         }
         catch ( final URISyntaxException e )
         {
-            logger.error( "Invalid source URI: %s. Reason: %s", e, source, e.getMessage() );
+            logger.error( "Invalid source URI: {}. Reason: {}", e, source, e.getMessage() );
         }
         catch ( final MalformedURLException e )
         {
-            logger.error( "Invalid source URL: %s. Reason: %s", e, source, e.getMessage() );
+            logger.error( "Invalid source URL: {}. Reason: {}", e, source, e.getMessage() );
         }
 
         return null;

@@ -57,7 +57,8 @@ import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.ErrorKey;
 import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
 import org.commonjava.maven.cartographer.event.RelationshipStorageEvent;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DefaultCartoDataManager
@@ -65,7 +66,7 @@ public class DefaultCartoDataManager
     implements CartoDataManager
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private EGraphManager graphs;
@@ -150,7 +151,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to traverse database for parents of: %s. Reason: %s", e, source, e.getMessage() );
+            throw new CartoDataException( "Failed to traverse database for parents of: {}. Reason: {}", e, source, e.getMessage() );
         }
 
         return ancestryTraversal.getAncestry();
@@ -333,7 +334,7 @@ public class DefaultCartoDataManager
             return;
         }
 
-        logger.info( "Adding metadata: '%s' = '%s' for: %s", name, value, ref );
+        logger.info( "Adding metadata: '{}' = '{}' for: {}", name, value, ref );
         graphs.addMetadata( getCurrentWorkspace(), ref, name, value );
     }
 
@@ -345,7 +346,7 @@ public class DefaultCartoDataManager
             return;
         }
 
-        logger.info( "Adding metadata for: %s:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
+        logger.info( "Adding metadata for: {}:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
         graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
     }
 
@@ -511,7 +512,7 @@ public class DefaultCartoDataManager
         {
             if ( !contains( ref ) )
             {
-                logger.info( "No metadata for: %s. Creating disconnected project entry in database.", ref );
+                logger.info( "No metadata for: {}. Creating disconnected project entry in database.", ref );
                 graphs.addDisconnectedProject( getCurrentWorkspace(), ref );
             }
 
@@ -568,10 +569,10 @@ public class DefaultCartoDataManager
     public Map<ProjectVersionRef, Set<String>> getProjectErrorsInGraph( final ProjectVersionRef ref )
         throws CartoDataException
     {
-        logger.info( "Looking up graph for: %s", ref );
+        logger.info( "Looking up graph for: {}", ref );
         final EProjectGraph graph = graphs.getGraph( workspaceHolder.getCurrentWorkspace(), ref );
 
-        logger.info( "Querying graph: %s for projects with errors.", graph );
+        logger.info( "Querying graph: {} for projects with errors.", graph );
 
         if ( graph == null )
         {
@@ -604,7 +605,7 @@ public class DefaultCartoDataManager
 
         if ( graph == null )
         {
-            throw new CartoDataException( "Graph not found: %s", ref );
+            throw new CartoDataException( "Graph not found: {}", ref );
         }
 
         try
@@ -613,7 +614,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to reindex graph: %s. Reason: %s", e, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to reindex graph: {}. Reason: {}", e, ref, e.getMessage() );
         }
     }
 
@@ -627,7 +628,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to reindex global graph. Reason: %s", e, e.getMessage() );
+            throw new CartoDataException( "Failed to reindex global graph. Reason: {}", e, e.getMessage() );
         }
     }
 
@@ -664,10 +665,10 @@ public class DefaultCartoDataManager
 
         final EProjectNet web = getProjectWeb( refs );
 
-        logger.info( "BEFORE filtering: %d leaf projects:\n  %s", leaves.size(), join( leaves, "\n  " ) );
+        logger.info( "BEFORE filtering: {} leaf projects:\n  {}", leaves.size(), join( leaves, "\n  " ) );
 
         final Set<ProjectVersionRef> result = new HashSet<ProjectVersionRef>();
-        logger.info( "Looking for paths to missing projects: %s in network: %s filtered by: %s", join( leaves, ", " ), web, filter );
+        logger.info( "Looking for paths to missing projects: {} in network: {} filtered by: {}", join( leaves, ", " ), web, filter );
 
         final Set<List<ProjectRelationship<?>>> paths = web.getPathsTo( leaves.toArray( new ProjectVersionRef[] {} ) );
         if ( paths != null )
@@ -692,7 +693,7 @@ public class DefaultCartoDataManager
                 {
                     if ( !f.accept( rel ) )
                     {
-                        logger.info( "Path: %s rejected, trying any others that remain.", path );
+                        logger.info( "Path: {} rejected, trying any others that remain.", path );
                         continue nextPath;
                     }
 
@@ -703,7 +704,7 @@ public class DefaultCartoDataManager
             }
         }
 
-        logger.info( "AFTER filtering: %d leaf projects:\n  %s", result.size(), join( result, "\n  " ) );
+        logger.info( "AFTER filtering: {} leaf projects:\n  {}", result.size(), join( result, "\n  " ) );
 
         return result;
     }
@@ -720,7 +721,7 @@ public class DefaultCartoDataManager
             }
             catch ( final IOException e )
             {
-                throw new CartoDataException( "Failed to close workspace: %s. Reason: %s", e, ws.getId(), e.getMessage() );
+                throw new CartoDataException( "Failed to close workspace: {}. Reason: {}", e, ws.getId(), e.getMessage() );
             }
         }
     }
@@ -747,7 +748,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to retrieve workspace: %s. Error: %s", e, id, e.getMessage() );
+            throw new CartoDataException( "Failed to retrieve workspace: {}. Error: {}", e, id, e.getMessage() );
         }
     }
 
@@ -790,7 +791,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
+            throw new CartoDataException( "Failed to initialize session with config: {}. Reason: {}", e, config, e.getMessage() );
         }
 
         return workspace;
@@ -815,7 +816,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
+            throw new CartoDataException( "Failed to initialize session with config: {}. Reason: {}", e, config, e.getMessage() );
         }
 
         return workspace;
@@ -846,7 +847,7 @@ public class DefaultCartoDataManager
         }
         catch ( final IOException e )
         {
-            throw new CartoDataException( "Failed to delete workspace: %s. Reason: %s", e, id, e.getMessage() );
+            throw new CartoDataException( "Failed to delete workspace: {}. Reason: {}", e, id, e.getMessage() );
         }
     }
 
@@ -878,7 +879,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to initialize session with config: %s. Reason: %s", e, config, e.getMessage() );
+            throw new CartoDataException( "Failed to initialize session with config: {}. Reason: {}", e, config, e.getMessage() );
         }
 
         return workspace;
@@ -906,7 +907,7 @@ public class DefaultCartoDataManager
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to load workspace: %s. Reason: %s", e, id, e.getMessage() );
+            throw new CartoDataException( "Failed to load workspace: {}. Reason: {}", e, id, e.getMessage() );
         }
     }
 

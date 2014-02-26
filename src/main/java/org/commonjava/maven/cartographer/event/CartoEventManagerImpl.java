@@ -29,7 +29,8 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @Named( "default-carto-event-mgr" )
@@ -37,7 +38,7 @@ public class CartoEventManagerImpl
     implements CartoEventManager
 {
 
-    protected final Logger logger = new Logger( getClass() );
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ProjectVersionRef, LockState> locks = new WeakHashMap<ProjectVersionRef, LockState>();
 
@@ -67,7 +68,7 @@ public class CartoEventManagerImpl
 
         for ( final ProjectVersionRef ref : refs )
         {
-            logger.info( "Unlocking %s due to new relationships available.", ref );
+            logger.info( "Unlocking {} due to new relationships available.", ref );
             notifyOfGraph( ref );
         }
     }
@@ -76,7 +77,7 @@ public class CartoEventManagerImpl
     public void fireErrorEvent( final ProjectRelationshipsErrorEvent evt )
     {
         final ErrorKey key = evt.getKey();
-        logger.info( "Unlocking %s due to error in model.", key );
+        logger.info( "Unlocking {} due to error in model.", key );
         try
         {
             final ProjectVersionRef ref = key.toProjectVersionRef();
@@ -84,7 +85,7 @@ public class CartoEventManagerImpl
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s", e, key.toString(), e.getMessage() );
+            logger.error( "Cannot parse version for error key: '{}'. Failed to unlock waiting threads. Reason: {}", e, key.toString(), e.getMessage() );
         }
     }
 
@@ -95,14 +96,14 @@ public class CartoEventManagerImpl
      */
     public void notifyOfGraph( final ProjectVersionRef ref )
     {
-        //        logger.info( "\n\nLooking up lock for: %s\n\n", ref );
+        //        logger.info( "\n\nLooking up lock for: {}\n\n", ref );
         LockState lock;
         synchronized ( ref )
         {
             lock = locks.get( ref );
             if ( lock == null )
             {
-                //                logger.info( "No lock found. Creating an unlocked one for: %s", ref );
+                //                logger.info( "No lock found. Creating an unlocked one for: {}", ref );
                 lock = new LockState();
                 locks.put( ref, lock );
             }
@@ -117,7 +118,7 @@ public class CartoEventManagerImpl
         //            @Override
         //            public void run()
         //            {
-        //                //                logger.info( "Starting notification timer on: %s for lagging callers.", ref );
+        //                //                logger.info( "Starting notification timer on: {} for lagging callers.", ref );
         //                for ( int i = 0; i < 10; i++ )
         //                {
         //                    if ( !locks.containsKey( ref ) )
@@ -140,7 +141,7 @@ public class CartoEventManagerImpl
         //                    }
         //                }
         //
-        //                //                logger.info( "Removing lock: %s", ref );
+        //                //                logger.info( "Removing lock: {}", ref );
         //                lck.unlock();
         //                locks.remove( ref );
         //            }
@@ -171,7 +172,7 @@ public class CartoEventManagerImpl
             lock = locks.get( ref );
             if ( lock == null )
             {
-                logger.info( "Submitting lock for: %s", ref );
+                logger.info( "Submitting lock for: {}", ref );
                 lock = new LockState();
                 locks.put( ref, lock );
             }
@@ -192,7 +193,7 @@ public class CartoEventManagerImpl
             }
 
             final long toWait = poll > remaining ? remaining : poll;
-            //            logger.info( "\n\n\n[POLL] GAV: %s\nMy thread priority is: %d\nWaiting %d ms.\n\nTotal time remaining: %d ms\n\n\n",
+            //            logger.info( "\n\n\n[POLL] GAV: {}\nMy thread priority is: {}\nWaiting {} ms.\n\nTotal time remaining: {} ms\n\n\n",
             //                         ref, Thread.currentThread()
             //                                    .getPriority(), toWait, remaining );
 

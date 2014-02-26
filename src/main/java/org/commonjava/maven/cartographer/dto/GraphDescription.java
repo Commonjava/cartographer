@@ -102,7 +102,7 @@ public class GraphDescription
     @Override
     public String toString()
     {
-        return String.format( "GraphDescription [roots=%s, preset=%s, filter=%s]", roots, preset, filter );
+        return String.format( "GraphDescription [roots={}, preset={}, filter={}]", roots, preset, filter );
     }
 
     public void normalize()

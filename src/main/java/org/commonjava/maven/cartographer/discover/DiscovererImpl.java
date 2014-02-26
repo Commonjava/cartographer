@@ -93,7 +93,7 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to resolve variable version for: %s. Reason: %s", e, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to resolve variable version for: {}. Reason: {}", e, ref, e.getMessage() );
         }
     }
 
@@ -131,11 +131,11 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to retrieve POM: %s from: %s. Reason: %s", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
         }
         catch ( final GalleyMavenException e )
         {
-            throw new CartoDataException( "Failed to parse POM: %s from: %s. Reason: %s", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
         }
 
         DiscoveryResult result = null;

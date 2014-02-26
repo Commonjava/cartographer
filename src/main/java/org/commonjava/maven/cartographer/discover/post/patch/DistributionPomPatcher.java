@@ -34,7 +34,8 @@ import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DistributionPomPatcher
     implements DepgraphPatcher
@@ -51,7 +52,7 @@ public class DistributionPomPatcher
             "/project[packaging/text()=\"pom\"]/profiles/profile/build/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]",
             "/project[packaging/text()=\"pom\"]/profiles/profile/build/pluginManagement/plugins/plugin[artifactId/text()=\"maven-assembly-plugin\"]/configuration[appendAssemblyId/text()=\"false\"]" };
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
     public void patch( final DiscoveryResult orig, final List<? extends Location> locations, final Map<String, Object> context )
@@ -84,7 +85,7 @@ public class DistributionPomPatcher
                     // so this SHOULD be safe.
                     final DependencyRelationship dep = (DependencyRelationship) rel;
 
-                    logger.info( "Fixing scope for: %s", dep );
+                    logger.info( "Fixing scope for: {}", dep );
 
                     result.removeDiscoveredRelationship( dep );
                     final Set<ProjectRef> excludes = dep.getExcludes();
@@ -100,15 +101,15 @@ public class DistributionPomPatcher
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            logger.error( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
     }
 

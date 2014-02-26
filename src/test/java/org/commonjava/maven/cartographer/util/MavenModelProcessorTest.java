@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -45,28 +44,21 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
-import org.commonjava.util.logging.Log4jUtil;
-import org.commonjava.util.logging.Logger;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MavenModelProcessorTest
 {
 
     private static final String PROJ_BASE = "pom-processor/";
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Rule
     public CartoFixture fixture = new CartoFixture( new CoreFixture() );
-
-    @BeforeClass
-    public static void startLogging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     @Before
     public void setup()
@@ -121,7 +113,7 @@ public class MavenModelProcessorTest
 
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
-        logger.info( "Found %d relationships:\n\n  %s", rels.size(), join( rels, "\n  " ) );
+        logger.info( "Found {} relationships:\n\n  {}", rels.size(), join( rels, "\n  " ) );
 
         boolean seen = false;
         for ( final ProjectRelationship<?> rel : rels )
@@ -199,7 +191,7 @@ public class MavenModelProcessorTest
                                               .readRelationships( pomView, src );
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
-        logger.info( "Found %d relationships:\n\n  %s", rels.size(), join( rels, "\n  " ) );
+        logger.info( "Found {} relationships:\n\n  {}", rels.size(), join( rels, "\n  " ) );
 
         boolean seen = false;
         for ( final ProjectRelationship<?> rel : rels )

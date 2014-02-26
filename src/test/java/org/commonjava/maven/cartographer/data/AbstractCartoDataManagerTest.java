@@ -28,10 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.PatternLayout;
 import org.commonjava.maven.atlas.graph.filter.DependencyOnlyFilter;
 import org.commonjava.maven.atlas.graph.filter.ExtensionOnlyFilter;
 import org.commonjava.maven.atlas.graph.filter.PluginOnlyFilter;
@@ -48,26 +44,10 @@ import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public abstract class AbstractCartoDataManagerTest
 {
-
-    @BeforeClass
-    public static void initLogging()
-    {
-        LogManager.getLoggerRepository()
-                  .setThreshold( Level.DEBUG );
-
-        //        LogManager.getRootLogger()
-        //                  .addAppender( new ConsoleAppender( new SimpleLayout() ) );
-        LogManager.getRootLogger()
-                  .addAppender( new ConsoleAppender( new PatternLayout() ) );
-
-        LogManager.getRootLogger()
-                  .setLevel( Level.DEBUG );
-    }
 
     protected abstract GraphWorkspaceHolder getSessionManager()
         throws Exception;
@@ -289,7 +269,7 @@ public abstract class AbstractCartoDataManagerTest
 
         for ( final Map.Entry<ProjectVersionRef, Set<ProjectRelationship<?>>> entry : byTarget.entrySet() )
         {
-            System.out.printf( "\n\n\nFor key: %s, dependencies:\n  %s\n\n\n", entry.getKey(), formatWithClassname( entry.getValue(), "\n  " ) );
+            System.out.printf( "\n\n\nFor key: {}, dependencies:\n  {}\n\n\n", entry.getKey(), formatWithClassname( entry.getValue(), "\n  " ) );
 
             assertThat( "Null dependents set for: " + entry.getKey() + "!", entry.getValue(), notNullValue() );
 
@@ -393,7 +373,8 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter(), null );
+        final Set<ProjectRelationship<?>> storedRels =
+            getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -416,7 +397,8 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter(), null );
+        final Set<ProjectRelationship<?>> storedRels =
+            getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -439,7 +421,8 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter(), null );
+        final Set<ProjectRelationship<?>> storedRels =
+            getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 

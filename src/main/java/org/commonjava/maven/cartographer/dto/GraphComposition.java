@@ -82,7 +82,7 @@ public class GraphComposition
     @Override
     public String toString()
     {
-        return String.format( "GraphComposition [graphs=%s, calculation=%s]", graphs, calculation );
+        return String.format( "GraphComposition [graphs={}, calculation={}]", graphs, calculation );
     }
 
     public void normalize()

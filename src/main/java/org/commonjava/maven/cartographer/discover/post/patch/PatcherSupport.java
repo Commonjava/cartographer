@@ -34,12 +34,13 @@ import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PatcherSupport
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private Instance<DepgraphPatcher> patcherInstances;
@@ -73,7 +74,7 @@ public class PatcherSupport
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
                                   final MavenPomView pomView, final Transfer transfer )
     {
-        logger.info( "Running enabled patchers: %s (available patchers: %s)", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
+        logger.info( "Running enabled patchers: {} (available patchers: {})", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
@@ -84,21 +85,21 @@ public class PatcherSupport
             final DepgraphPatcher patcher = patchers.get( patcherId );
             if ( patcher == null )
             {
-                logger.warn( "No such dependency-graph patcher: '%s'", patcherId );
+                logger.warn( "No such dependency-graph patcher: '{}'", patcherId );
                 continue;
             }
 
-            logger.info( "Running project-relationship patcher: %s for: %s", patcherId, orig.getSelectedRef() );
+            logger.info( "Running project-relationship patcher: {} for: {}", patcherId, orig.getSelectedRef() );
             try
             {
                 patcher.patch( result, locations, ctx );
             }
             catch ( final Exception e )
             {
-                logger.error( "Failed to execute patcher: %s against: %s. Reason: %s", e, patcherId, result, e.getMessage() );
+                logger.error( "Failed to execute patcher: {} against: {}. Reason: {}", e, patcherId, result, e.getMessage() );
             }
 
-            logger.info( "After patching with %s, result is: %s", patcherId, result );
+            logger.info( "After patching with {}, result is: {}", patcherId, result );
         }
 
         return result;

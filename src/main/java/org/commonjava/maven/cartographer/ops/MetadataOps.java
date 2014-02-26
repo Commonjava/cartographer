@@ -49,13 +49,14 @@ import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class MetadataOps
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private CartoDataManager data;
@@ -118,7 +119,7 @@ public class MetadataOps
     {
         if ( metadata != null && !metadata.isEmpty() )
         {
-            logger.info( "Adding metadata for: %s\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
+            logger.info( "Adding metadata for: {}\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
 
             data.addMetadata( ref, metadata );
         }
@@ -140,19 +141,19 @@ public class MetadataOps
                 transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
                 if ( transfer == null )
                 {
-                    logger.error( "Cannot find POM: %s in locations: %s. Skipping for metadata scanning...", ref.asPomArtifact(), locations );
+                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...", ref.asPomArtifact(), locations );
                 }
 
                 pomView = pomReader.read( ref, transfer, locations );
             }
             catch ( final TransferException e )
             {
-                logger.error( "Cannot read: %s from locations: %s. Reason: %s", e, ref.asPomArtifact(), locations, e.getMessage() );
+                logger.error( "Cannot read: {} from locations: {}. Reason: {}", e, ref.asPomArtifact(), locations, e.getMessage() );
                 continue;
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Cannot build POM view for: %s. Reason: %s", e, ref.asPomArtifact(), e.getMessage() );
+                logger.error( "Cannot build POM view for: {}. Reason: {}", e, ref.asPomArtifact(), e.getMessage() );
                 continue;
             }
 
@@ -189,7 +190,7 @@ public class MetadataOps
 
             if ( web == null )
             {
-                throw new CartoDataException( "Failed to retrieve web for roots: %s", join( roots, ", " ) );
+                throw new CartoDataException( "Failed to retrieve web for roots: {}", join( roots, ", " ) );
             }
 
             gavs = web.getAllProjects();

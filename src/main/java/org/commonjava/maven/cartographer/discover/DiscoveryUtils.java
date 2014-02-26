@@ -24,12 +24,13 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DiscoveryUtils
 {
 
-    private static final Logger logger = new Logger( DiscoveryUtils.class );
+    private static final Logger logger = LoggerFactory.getLogger( DiscoveryUtils.class );
 
     private DiscoveryUtils()
     {
@@ -40,7 +41,7 @@ public final class DiscoveryUtils
     {
         if ( !ver.isConcrete() )
         {
-            logger.error( "Cannot select a non-concrete version: %s for: %s. Ignoring.", ver.renderStandard(), ref );
+            logger.error( "Cannot select a non-concrete version: {} for: {}. Ignoring.", ver.renderStandard(), ref );
             return;
         }
 
@@ -57,7 +58,7 @@ public final class DiscoveryUtils
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to record selected version: %s for: %s. Reason: %s", e, ver, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to record selected version: {} for: {}. Reason: {}", e, ver, ref, e.getMessage() );
         }
     }
 
@@ -66,7 +67,7 @@ public final class DiscoveryUtils
     {
         if ( !ver.isConcrete() )
         {
-            logger.error( "Cannot select a non-concrete version: %s for all: %s. Ignoring.", ver.renderStandard(), ref );
+            logger.error( "Cannot select a non-concrete version: {} for all: {}. Ignoring.", ver.renderStandard(), ref );
             return;
         }
 
@@ -83,7 +84,7 @@ public final class DiscoveryUtils
         }
         catch ( final GraphDriverException e )
         {
-            throw new CartoDataException( "Failed to record selected version: %s for all: %s. Reason: %s", e, ver, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to record selected version: {} for all: {}. Reason: {}", e, ver, ref, e.getMessage() );
         }
     }
 

@@ -49,13 +49,14 @@ import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.ParentView;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class MavenModelProcessor
 {
 
-    private final Logger logger = new Logger( MavenModelProcessor.class );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private CartoDataManager dataManager;
@@ -90,7 +91,7 @@ public class MavenModelProcessor
     public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source )
         throws CartoDataException
     {
-        logger.info( "Reading relationships for: %s\n  (from: %s)", pomView.getRef(), source );
+        logger.info( "Reading relationships for: {}\n  (from: {})", pomView.getRef(), source );
 
         try
         {
@@ -113,11 +114,11 @@ public class MavenModelProcessor
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            throw new CartoDataException( "Failed to parse version for model: %s. Reason: %s", e, pomView, e.getMessage() );
+            throw new CartoDataException( "Failed to parse version for model: {}. Reason: {}", e, pomView, e.getMessage() );
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new CartoDataException( "Failed to parse relationships for model: %s. Reason: %s", e, pomView, e.getMessage() );
+            throw new CartoDataException( "Failed to parse relationships for model: {}. Reason: {}", e, pomView, e.getMessage() );
         }
     }
 
@@ -131,15 +132,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Cannot retrieve build extensions: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build extensions: {}", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot retrieve build extensions: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build extensions: {}", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Cannot retrieve build extensions: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build extensions: {}", e, e.getMessage() );
         }
 
         for ( final ExtensionView ext : extensions )
@@ -160,15 +161,15 @@ public class MavenModelProcessor
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), ext.toXML() );
+                logger.error( "Build extension is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), ext.toXML() );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), ext.toXML() );
+                logger.error( "Build extension is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), ext.toXML() );
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), ext.toXML() );
+                logger.error( "Build extension is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), ext.toXML() );
             }
         }
     }
@@ -193,15 +194,15 @@ public class MavenModelProcessor
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Cannot retrieve site-plugin nested reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve site-plugin nested reporting plugins: {}", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot retrieve site-plugin nested reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve site-plugin nested reporting plugins: {}", e, e.getMessage() );
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Cannot retrieve site-plugin nested reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve site-plugin nested reporting plugins: {}", e, e.getMessage() );
         }
 
         addPlugins( plugins, projectRef, builder, source, false );
@@ -217,15 +218,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Cannot retrieve reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve reporting plugins: {}", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot retrieve reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve reporting plugins: {}", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Cannot retrieve reporting plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve reporting plugins: {}", e, e.getMessage() );
         }
 
         addPlugins( plugins, projectRef, builder, source, false );
@@ -243,15 +244,15 @@ public class MavenModelProcessor
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Cannot retrieve managed plugins: %s", e, e.getMessage() );
+                logger.error( "Cannot retrieve managed plugins: {}", e, e.getMessage() );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( "Cannot retrieve managed plugins: %s", e, e.getMessage() );
+                logger.error( "Cannot retrieve managed plugins: {}", e, e.getMessage() );
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( "Cannot retrieve managed plugins: %s", e, e.getMessage() );
+                logger.error( "Cannot retrieve managed plugins: {}", e, e.getMessage() );
             }
 
             addPlugins( plugins, projectRef, builder, source, true );
@@ -264,15 +265,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Cannot retrieve build plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build plugins: {}", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Cannot retrieve build plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build plugins: {}", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Cannot retrieve build plugins: %s", e, e.getMessage() );
+            logger.error( "Cannot retrieve build plugins: {}", e, e.getMessage() );
         }
 
         addPlugins( plugins, projectRef, builder, source, false );
@@ -290,7 +291,7 @@ public class MavenModelProcessor
                 {
                     if ( plugin.getVersion() == null )
                     {
-                        logger.error( "Cannot find a version for plugin: %s. Skipping.", plugin.toXML() );
+                        logger.error( "Cannot find a version for plugin: {}. Skipping.", plugin.toXML() );
                         continue;
                     }
 
@@ -307,17 +308,17 @@ public class MavenModelProcessor
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    logger.error( "plugin is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), plugin.toXML() );
                     continue;
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    logger.error( "plugin is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), plugin.toXML() );
                     continue;
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), plugin.toXML() );
+                    logger.error( "plugin is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), plugin.toXML() );
                     continue;
                 }
 
@@ -330,20 +331,20 @@ public class MavenModelProcessor
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( "Cannot retrieve plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                    logger.error( "Cannot retrieve plugin dependencies for: {}. Reason: {}", e, pluginRef, e.getMessage() );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( "Cannot retrieve plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                    logger.error( "Cannot retrieve plugin dependencies for: {}. Reason: {}", e, pluginRef, e.getMessage() );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( "Cannot retrieve plugin dependencies for: %s. Reason: %s", e, pluginRef, e.getMessage() );
+                    logger.error( "Cannot retrieve plugin dependencies for: {}. Reason: {}", e, pluginRef, e.getMessage() );
                 }
 
                 addPluginDependencies( pluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
 
-                logger.info( "Adding implied dependencies for: %s\n\n  %s", pluginRef,
+                logger.info( "Adding implied dependencies for: {}\n\n  {}", pluginRef,
                              impliedPluginDependencies == null ? "-NONE-" : join( impliedPluginDependencies, "\n  " ) );
                 addPluginDependencies( impliedPluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
             }
@@ -376,15 +377,15 @@ public class MavenModelProcessor
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
+                    logger.error( "plugin dependency is invalid in: {}! Reason: {}. Skipping:\n\n{}\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
+                    logger.error( "plugin dependency is invalid in: {}! Reason: {}. Skipping:\n\n{}\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
+                    logger.error( "plugin dependency is invalid in: {}! Reason: {}. Skipping:\n\n{}\n\n", e, pluginRef, e.getMessage(), dep.toXML() );
                 }
             }
         }
@@ -401,15 +402,15 @@ public class MavenModelProcessor
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Failed to retrieve managed dependencies: %s. Skipping", e, e.getMessage() );
+                logger.error( "Failed to retrieve managed dependencies: {}. Skipping", e, e.getMessage() );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( "Failed to retrieve managed dependencies: %s. Skipping", e, e.getMessage() );
+                logger.error( "Failed to retrieve managed dependencies: {}. Skipping", e, e.getMessage() );
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( "Failed to retrieve managed dependencies: %s. Skipping", e, e.getMessage() );
+                logger.error( "Failed to retrieve managed dependencies: {}. Skipping", e, e.getMessage() );
             }
 
             addDependencies( deps, projectRef, builder, source, true );
@@ -423,15 +424,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Failed to retrieve BOM declarations: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve BOM declarations: {}. Skipping", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Failed to retrieve BOM declarations: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve BOM declarations: {}. Skipping", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Failed to retrieve BOM declarations: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve BOM declarations: {}. Skipping", e, e.getMessage() );
         }
 
         addDependencies( boms, projectRef, builder, source, true );
@@ -443,15 +444,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Failed to retrieve direct dependencies: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve direct dependencies: {}. Skipping", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Failed to retrieve direct dependencies: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve direct dependencies: {}. Skipping", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Failed to retrieve direct dependencies: %s. Skipping", e, e.getMessage() );
+            logger.error( "Failed to retrieve direct dependencies: {}. Skipping", e, e.getMessage() );
         }
 
         addDependencies( deps, projectRef, builder, source, false );
@@ -481,15 +482,15 @@ public class MavenModelProcessor
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), dep.toXML() );
+                    logger.error( "dependency is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), dep.toXML() );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), dep.toXML() );
+                    logger.error( "dependency is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), dep.toXML() );
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e, e.getMessage(), dep.toXML() );
+                    logger.error( "dependency is invalid! Reason: {}. Skipping:\n\n{}\n\n", e, e.getMessage(), dep.toXML() );
                 }
             }
         }
@@ -515,15 +516,15 @@ public class MavenModelProcessor
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "Parent refernce is invalid! Reason: %s. Skipping.", e, e.getMessage() );
+            logger.error( "Parent refernce is invalid! Reason: {}. Skipping.", e, e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "Parent refernce is invalid! Reason: %s. Skipping.", e, e.getMessage() );
+            logger.error( "Parent refernce is invalid! Reason: {}. Skipping.", e, e.getMessage() );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "Parent refernce is invalid! Reason: %s. Skipping.", e, e.getMessage() );
+            logger.error( "Parent refernce is invalid! Reason: {}. Skipping.", e, e.getMessage() );
         }
     }
 
