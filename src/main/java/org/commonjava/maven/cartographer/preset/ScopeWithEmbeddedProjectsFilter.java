@@ -41,7 +41,8 @@ public class ScopeWithEmbeddedProjectsFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
+            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS,
+                          new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
                           new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
@@ -49,8 +50,8 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( scope, ScopeTransitivity.maven, false, true, true,
-                                                                                                 null ),
+            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, new DependencyFilter( scope, ScopeTransitivity.maven, false,
+                                                                                                             true, true, null ),
                                                 new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
                             : childFilter;
     }
@@ -104,8 +105,13 @@ public class ScopeWithEmbeddedProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
+                if ( filter == NoneFilter.INSTANCE )
+                {
+                    return this;
+                }
+
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
-                return new ScopeWithEmbeddedProjectsFilter( scope, new NoneFilter() );
+                return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
             }
             case PARENT:
             {
@@ -118,10 +124,21 @@ public class ScopeWithEmbeddedProjectsFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return new ScopeWithEmbeddedProjectsFilter( scope, new NoneFilter() );
+                    if ( filter == NoneFilter.INSTANCE )
+                    {
+                        return this;
+                    }
+
+                    return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
                 }
 
-                return new ScopeWithEmbeddedProjectsFilter( scope, filter.getChildFilter( lastRelationship ) );
+                final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
+                if ( nextFilter == filter )
+                {
+                    return this;
+                }
+
+                return new ScopeWithEmbeddedProjectsFilter( scope, nextFilter );
             }
         }
     }

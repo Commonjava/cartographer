@@ -60,7 +60,9 @@ public class MavenModelProcessor
     @Inject
     private CartoDataManager dataManager;
 
-    private final boolean processManagedInfo = false;
+    private final boolean processManagedDependencyInfo = true;
+
+    private final boolean processManagedPluginInfo = false;
 
     private final boolean processBuildInfo = true;
 
@@ -232,7 +234,7 @@ public class MavenModelProcessor
     public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
         throws CartoDataException
     {
-        if ( processManagedInfo )
+        if ( processManagedPluginInfo )
         {
             List<PluginView> plugins = null;
             try
@@ -390,7 +392,7 @@ public class MavenModelProcessor
 
     protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
     {
-        if ( processManagedInfo )
+        if ( processManagedDependencyInfo )
         {
             List<DependencyView> deps = null;
             try

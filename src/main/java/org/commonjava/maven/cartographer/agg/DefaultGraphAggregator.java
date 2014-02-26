@@ -195,7 +195,7 @@ public class DefaultGraphAggregator
                 // For each mutation, add to DiscoveryTodo list, but DO NOT STORE 
                 // (newRels determines what gets stored).
                 //
-                // Instaed, allow the database to auto-create these so they're 
+                // Instead, allow the database to auto-create these so they're 
                 // distinguishable from non-mutated relationships.
                 int idx = 0;
                 for ( final ProjectRelationship<?> rel : todo.getSourceRelationships() )
@@ -203,16 +203,21 @@ public class DefaultGraphAggregator
                     for ( final GraphMutator mutator : mutators )
                     {
                         final ProjectRelationship<?> selected = mutator.selectFor( rel );
-                        if ( selected == null )
+                        if ( selected != null && selected != rel )
                         {
-                            continue;
+                            logger.info( "%s\n\n  MUTATED TO:\n\n%s\n", rel, selected );
+
+                            ref = selected.getTarget()
+                                          .asProjectVersionRef();
+
+                            logger.info( "%d.%d.%d. MUTATE-DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, ref,
+                                         new JoinString( "\n    ", todo.getFilters() ) );
                         }
-
-                        ref = selected.getTarget()
-                                      .asProjectVersionRef();
-
-                        logger.info( "%d.%d.%d. MUTATE-DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, ref,
-                                     new JoinString( "\n    ", todo.getFilters() ) );
+                        else
+                        {
+                            logger.info( "%d.%d.%d. DISCOVER += %s\n  (filters:\n    %s)", pass, index, idx, ref,
+                                         new JoinString( "\n    ", todo.getFilters() ) );
+                        }
 
                         final GraphMutator childMutator = mutator.getMutatorFor( selected );
 
@@ -390,9 +395,16 @@ public class DefaultGraphAggregator
 
                             sourceRelationships.add( rel );
                         }
+                        else if ( rel.isManaged() )
+                        {
+                            logger.info( "%d.%d.%d. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): %s", pass, index, idx,
+                                         rel );
+                            toStore.add( rel );
+                            contributedRels = true;
+                        }
                         else if ( rel.getType() == RelationshipType.PARENT )
                         {
-                            logger.info( "%d.%d.%d. FORCE: Adding parent relationship: %s", pass, index, idx, rel );
+                            logger.info( "%d.%d.%d. FORCE; NON-TRAVERSE: Adding parent relationship: %s", pass, index, idx, rel );
                             toStore.add( rel );
                             contributedRels = true;
                         }
@@ -563,6 +575,7 @@ public class DefaultGraphAggregator
         final ProjectRelationshipFilter topFilter = view.getFilter();
 
         final GraphMutator topMutator = rootMutator == null ? new ManagedDependencyMutator( view, true ) : rootMutator;
+        logger.info( "Using root-level mutator: %s", topMutator );
 
         final Set<ProjectVersionRef> initialIncomplete = net.getIncompleteSubgraphs();
         if ( initialIncomplete == null || initialIncomplete.isEmpty() )
@@ -601,17 +614,26 @@ public class DefaultGraphAggregator
             todo.setFilters( pathFilters );
             todo.setMutators( pathMutators );
 
-            logger.info( "INIT-DISCOVER += %s\n  (filters:\n    %s)", ref, new Object()
+            logger.info( "INIT-DISCOVER += %s\n====\nfilters:\n    %s\n---\nmutators:\n  %s\n)", ref, new Object()
             {
                 @Override
                 public String toString()
                 {
                     return join( pathFilters, "\n    " );
                 }
+            }, new Object()
+            {
+                @Override
+                public String toString()
+                {
+                    return join( pathMutators, "\n    " );
+                }
             } );
 
             initialPending.add( todo );
         }
+
+        logger.info( "%d initial pending subgraphs:\n\n  %s\n", initialPending.size(), join( initialPending, "\n  " ) );
 
         return initialPending;
     }
@@ -654,6 +676,7 @@ public class DefaultGraphAggregator
                     continue nextPath;
                 }
 
+                logger.info( "Computing filtering/mutator for path step: %s", rel );
                 m = m.getMutatorFor( rel );
                 f = f.getChildFilter( rel );
             }

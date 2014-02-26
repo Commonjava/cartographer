@@ -41,6 +41,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
@@ -196,12 +197,27 @@ public class DefaultCartoDataManager
     /* (non-Javadoc)
      * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithExactSource(org.apache.maven.graph.common.ref.ProjectVersionRef, org.apache.maven.graph.common.RelationshipType)
      */
+    /**
+     * @deprecated Use {@link #getAllDirectRelationshipsWithExactSource(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( final ProjectVersionRef source,
                                                                                  final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
+        return getAllDirectRelationshipsWithExactSource( source, filter, null );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithExactSource(org.apache.maven.graph.common.ref.ProjectVersionRef, org.apache.maven.graph.common.RelationshipType)
+     */
+    @Override
+    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( final ProjectVersionRef source,
+                                                                                 final ProjectRelationshipFilter filter, final GraphMutator mutator )
+        throws CartoDataException
+    {
+        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
         return graphs.findDirectRelationshipsFrom( view, source, false, types.toArray( new RelationshipType[types.size()] ) );
@@ -210,12 +226,27 @@ public class DefaultCartoDataManager
     /* (non-Javadoc)
      * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithExactTarget(org.apache.maven.graph.common.ref.ProjectVersionRef, org.apache.maven.graph.common.RelationshipType)
      */
+    /**
+     * @deprecated Use {@link #getAllDirectRelationshipsWithExactTarget(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( final ProjectVersionRef target,
                                                                                  final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter );
+        return getAllDirectRelationshipsWithExactTarget( target, filter, null );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.tensor.data.TensorDataManager#getAllDirectRelationshipsWithExactTarget(org.apache.maven.graph.common.ref.ProjectVersionRef, org.apache.maven.graph.common.RelationshipType)
+     */
+    @Override
+    public Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( final ProjectVersionRef target,
+                                                                                 final ProjectRelationshipFilter filter, final GraphMutator mutator )
+        throws CartoDataException
+    {
+        final GraphView view = new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator );
         final Set<RelationshipType> types = RelationshipUtils.getRelationshipTypes( filter );
 
         return graphs.findDirectRelationshipsTo( view, target, false, types.toArray( new RelationshipType[types.size()] ) );
@@ -232,7 +263,7 @@ public class DefaultCartoDataManager
         final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>();
         for ( final ProjectVersionRef ref : refs )
         {
-            final Set<ProjectRelationship<?>> rels = getAllDirectRelationshipsWithExactSource( ref, filter );
+            final Set<ProjectRelationship<?>> rels = getAllDirectRelationshipsWithExactSource( ref, filter, null );
             if ( rels != null )
             {
                 result.addAll( rels );
@@ -253,7 +284,7 @@ public class DefaultCartoDataManager
         final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>();
         for ( final ProjectVersionRef ref : refs )
         {
-            final Set<ProjectRelationship<?>> rels = getAllDirectRelationshipsWithExactTarget( ref, filter );
+            final Set<ProjectRelationship<?>> rels = getAllDirectRelationshipsWithExactTarget( ref, filter, null );
             if ( rels != null )
             {
                 result.addAll( rels );
@@ -325,11 +356,23 @@ public class DefaultCartoDataManager
         return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), ref ) );
     }
 
+    /**
+     * @deprecated Use {@link #getIncompleteSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectVersionRef> getIncompleteSubgraphsFor( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
+        return getIncompleteSubgraphsFor( filter, null, ref );
+    }
+
+    @Override
+    public Set<ProjectVersionRef> getIncompleteSubgraphsFor( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                                             final ProjectVersionRef ref )
+        throws CartoDataException
+    {
+        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator, ref ) );
     }
 
     @Override
@@ -339,11 +382,22 @@ public class DefaultCartoDataManager
         return graphs.getAllIncompleteSubgraphs( workspaceHolder.getCurrentWorkspace() );
     }
 
+    /**
+     * @deprecated Use {@link #getAllIncompleteSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectVersionRef> getAllIncompleteSubgraphs( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter ) );
+        return getAllIncompleteSubgraphs( filter, null );
+    }
+
+    @Override
+    public Set<ProjectVersionRef> getAllIncompleteSubgraphs( final ProjectRelationshipFilter filter, final GraphMutator mutator )
+        throws CartoDataException
+    {
+        return graphs.getAllIncompleteSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator ) );
     }
 
     @Override
@@ -353,11 +407,23 @@ public class DefaultCartoDataManager
         return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), ref ) );
     }
 
+    /**
+     * @deprecated Use {@link #getVariableSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectVersionRef> getVariableSubgraphsFor( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, ref ) );
+        return getVariableSubgraphsFor( filter, null, ref );
+    }
+
+    @Override
+    public Set<ProjectVersionRef> getVariableSubgraphsFor( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                                           final ProjectVersionRef ref )
+        throws CartoDataException
+    {
+        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator, ref ) );
     }
 
     @Override
@@ -367,11 +433,22 @@ public class DefaultCartoDataManager
         return graphs.getAllVariableSubgraphs( workspaceHolder.getCurrentWorkspace() );
     }
 
+    /**
+     * @deprecated Use {@link #getAllVariableSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
+     */
+    @Deprecated
     @Override
     public Set<ProjectVersionRef> getAllVariableSubgraphs( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter ) );
+        return getAllVariableSubgraphs( filter, null );
+    }
+
+    @Override
+    public Set<ProjectVersionRef> getAllVariableSubgraphs( final ProjectRelationshipFilter filter, final GraphMutator mutator )
+        throws CartoDataException
+    {
+        return graphs.getAllVariableSubgraphs( new GraphView( workspaceHolder.getCurrentWorkspace(), filter, mutator ) );
     }
 
     @Override

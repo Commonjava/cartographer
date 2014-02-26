@@ -92,7 +92,7 @@ public class DefaultAggregatorOptions
     @Override
     public ProjectRelationshipFilter getFilter()
     {
-        return filter == null ? new AnyFilter() : filter;
+        return filter == null ? AnyFilter.INSTANCE : filter;
     }
 
     @Override

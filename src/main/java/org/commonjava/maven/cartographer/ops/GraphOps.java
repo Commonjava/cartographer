@@ -94,7 +94,7 @@ public class GraphOps
     public Set<ProjectVersionRef> getAllIncomplete( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        final Set<ProjectVersionRef> incomplete = data.getAllIncompleteSubgraphs( filter );
+        final Set<ProjectVersionRef> incomplete = data.getAllIncompleteSubgraphs( filter, null );
 
         return incomplete;
     }
@@ -105,7 +105,7 @@ public class GraphOps
         Set<ProjectVersionRef> incomplete = null;
         if ( ref != null )
         {
-            incomplete = data.getIncompleteSubgraphsFor( filter, ref );
+            incomplete = data.getIncompleteSubgraphsFor( filter, null, ref );
         }
 
         return incomplete;
@@ -114,7 +114,7 @@ public class GraphOps
     public Set<ProjectVersionRef> getAllVariable( final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return data.getAllVariableSubgraphs( filter );
+        return data.getAllVariableSubgraphs( filter, null );
     }
 
     public Set<ProjectVersionRef> getVariable( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
@@ -122,7 +122,7 @@ public class GraphOps
     {
         if ( ref != null )
         {
-            return data.getVariableSubgraphsFor( filter, ref );
+            return data.getVariableSubgraphsFor( filter, null, ref );
         }
 
         return null;
@@ -230,14 +230,14 @@ public class GraphOps
                                                                    final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return data.getAllDirectRelationshipsWithExactSource( ref, filter );
+        return data.getAllDirectRelationshipsWithExactSource( ref, filter, null );
     }
 
     public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref,
                                                                  final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
-        return data.getAllDirectRelationshipsWithExactTarget( ref, filter );
+        return data.getAllDirectRelationshipsWithExactTarget( ref, filter, null );
     }
 
 }

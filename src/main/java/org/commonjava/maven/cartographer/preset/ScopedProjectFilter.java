@@ -16,9 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -28,9 +25,6 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
 public class ScopedProjectFilter
     implements ProjectRelationshipFilter
@@ -38,33 +32,31 @@ public class ScopedProjectFilter
 
     private final ProjectRelationshipFilter filter;
 
-    private final Map<ProjectRef, SingleVersion> selected;
-
     private final boolean acceptManaged;
 
     private final DependencyScope scope;
 
     public ScopedProjectFilter()
     {
-        this( new HashMap<ProjectRef, SingleVersion>(), null );
+        this( null );
     }
 
     public ScopedProjectFilter( final DependencyScope scope, final boolean acceptManaged )
     {
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
-        this.selected = new HashMap<ProjectRef, SingleVersion>();
-        this.filter = new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) );
+        this.filter =
+            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
-    private ScopedProjectFilter( final Map<ProjectRef, SingleVersion> selected, final ProjectRelationshipFilter childFilter )
+    private ScopedProjectFilter( final ProjectRelationshipFilter childFilter )
     {
         this.scope = DependencyScope.runtime;
-        this.selected = selected;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new ParentFilter( false ), new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true,
-                                                                                                 true, null ) ) : childFilter;
+            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, new DependencyFilter( this.scope, ScopeTransitivity.maven,
+                                                                                                             false, true, true, null ) )
+                            : childFilter;
     }
 
     @Override
@@ -79,25 +71,12 @@ public class ScopedProjectFilter
         else
         {
             result = filter.accept( rel );
-
-            final ProjectVersionRef target = rel.getTarget();
-            final ProjectRef targetGA = target.asProjectRef();
-            if ( result && !selected.containsKey( targetGA ) && target.getVersionSpec()
-                                                                      .isConcrete() )
-            {
-                selected.put( targetGA, (SingleVersion) target.getVersionSpec() );
-            }
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
         //                                              .toUpperCase(), rel );
 
         return result;
-    }
-
-    public Map<ProjectRef, SingleVersion> getSelectedProjectVersions()
-    {
-        return selected;
     }
 
     @Override
@@ -110,7 +89,7 @@ public class ScopedProjectFilter
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter(%s)", lastRelationship );
-                return new NoneFilter();
+                return NoneFilter.INSTANCE;
             }
             case PARENT:
             {
@@ -122,10 +101,16 @@ public class ScopedProjectFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return new NoneFilter();
+                    return NoneFilter.INSTANCE;
                 }
 
-                return new ScopedProjectFilter( selected, filter.getChildFilter( lastRelationship ) );
+                final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
+                if ( nextFilter == filter )
+                {
+                    return this;
+                }
+
+                return new ScopedProjectFilter( nextFilter );
             }
         }
     }
@@ -169,7 +154,6 @@ public class ScopedProjectFilter
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
         result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
-        result = prime * result + ( ( selected == null ) ? 0 : selected.hashCode() );
         return result;
     }
 
@@ -205,17 +189,6 @@ public class ScopedProjectFilter
             return false;
         }
         if ( scope != other.scope )
-        {
-            return false;
-        }
-        if ( selected == null )
-        {
-            if ( other.selected != null )
-            {
-                return false;
-            }
-        }
-        else if ( !selected.equals( other.selected ) )
         {
             return false;
         }

@@ -220,7 +220,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> resulting = getDataManager().getAllDirectRelationshipsWithExactSource( rels.getProjectRef(), null );
+        final Set<ProjectRelationship<?>> resulting = getDataManager().getAllDirectRelationshipsWithExactSource( rels.getProjectRef(), null, null );
 
         final Set<ProjectVersionRef> targets = RelationshipUtils.targets( resulting );
 
@@ -278,12 +278,12 @@ public abstract class AbstractCartoDataManagerTest
             private static final long serialVersionUID = 1L;
 
             {
-                put( parent, getDataManager().getAllDirectRelationshipsWithExactTarget( parent, null ) );
-                put( papi.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( papi.getTarget(), null ) );
-                put( art.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( art.getTarget(), null ) );
-                put( jarp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( jarp.getTarget(), null ) );
-                put( comp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( comp.getTarget(), null ) );
-                put( wag.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( wag.getTarget(), null ) );
+                put( parent, getDataManager().getAllDirectRelationshipsWithExactTarget( parent, null, null ) );
+                put( papi.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( papi.getTarget(), null, null ) );
+                put( art.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( art.getTarget(), null, null ) );
+                put( jarp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( jarp.getTarget(), null, null ) );
+                put( comp.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( comp.getTarget(), null, null ) );
+                put( wag.getTarget(), getDataManager().getAllDirectRelationshipsWithExactTarget( wag.getTarget(), null, null ) );
             }
         };
 
@@ -372,7 +372,7 @@ public abstract class AbstractCartoDataManagerTest
 
         final Set<ProjectRelationship<?>> dependents = getDataManager().getAllDirectRelationshipsWithExactTarget( rels.getDependencies()
                                                                                                                       .get( 0 )
-                                                                                                                      .getTarget(), null );
+                                                                                                                      .getTarget(), null, null );
 
         assertThat( dependents, notNullValue() );
         assertThat( dependents.size(), equalTo( 1 ) );
@@ -393,7 +393,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -416,7 +416,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -439,7 +439,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter() );
+        final Set<ProjectRelationship<?>> storedRels = getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter(), null );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -462,7 +462,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactSource( project, new ExtensionOnlyFilter() );
+        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactSource( project, new ExtensionOnlyFilter(), null );
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
                         .next()
@@ -481,7 +481,7 @@ public abstract class AbstractCartoDataManagerTest
 
         getDataManager().storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactTarget( ext, new ExtensionOnlyFilter() );
+        final Set<ProjectRelationship<?>> exts = getDataManager().getAllDirectRelationshipsWithExactTarget( ext, new ExtensionOnlyFilter(), null );
 
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()

@@ -28,6 +28,7 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
@@ -62,10 +63,22 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getKnownChildren( ProjectVersionRef parent )
         throws CartoDataException;
 
+    /**
+     * @deprecated Use {@link #getAllDirectRelationshipsWithExactSource(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
+     */
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter, GraphMutator mutator )
+        throws CartoDataException;
+
+    /**
+     * @deprecated Use {@link #getAllDirectRelationshipsWithExactTarget(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
+     */
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter )
+        throws CartoDataException;
+
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter, GraphMutator mutator )
         throws CartoDataException;
 
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source, ProjectRelationshipFilter filter )
@@ -89,22 +102,46 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectVersionRef ref )
         throws CartoDataException;
 
+    /**
+     * @deprecated Use {@link #getIncompleteSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
+     */
     Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
+        throws CartoDataException;
+
+    Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef ref )
         throws CartoDataException;
 
     Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectVersionRef ref )
         throws CartoDataException;
 
+    /**
+     * @deprecated Use {@link #getVariableSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
+     */
     Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
         throws CartoDataException;
 
+    Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef ref )
+        throws CartoDataException;
+
+    /**
+     * @deprecated Use {@link #getAllIncompleteSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
+     */
     Set<ProjectVersionRef> getAllIncompleteSubgraphs( ProjectRelationshipFilter filter )
+        throws CartoDataException;
+
+    Set<ProjectVersionRef> getAllIncompleteSubgraphs( ProjectRelationshipFilter filter, GraphMutator mutator )
         throws CartoDataException;
 
     Set<ProjectVersionRef> getAllIncompleteSubgraphs()
         throws CartoDataException;
 
+    /**
+     * @deprecated Use {@link #getAllVariableSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
+     */
     Set<ProjectVersionRef> getAllVariableSubgraphs( ProjectRelationshipFilter filter )
+        throws CartoDataException;
+
+    Set<ProjectVersionRef> getAllVariableSubgraphs( ProjectRelationshipFilter filter, GraphMutator mutator )
         throws CartoDataException;
 
     Set<ProjectVersionRef> getAllVariableSubgraphs()

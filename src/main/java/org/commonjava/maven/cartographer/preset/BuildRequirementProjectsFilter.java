@@ -16,11 +16,13 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
+import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -39,7 +41,7 @@ public class BuildRequirementProjectsFilter
 
     private final ProjectRelationshipFilter filter;
 
-    private final Set<ProjectRef> excludes = new HashSet<ProjectRef>();
+    private final Set<ProjectRef> excludes;
 
     private final boolean acceptManaged;
 
@@ -48,6 +50,7 @@ public class BuildRequirementProjectsFilter
         this.runtimeOnly = false;
         this.acceptManaged = false;
         this.filter = null;
+        this.excludes = null;
     }
 
     public BuildRequirementProjectsFilter( final boolean acceptManaged )
@@ -55,6 +58,7 @@ public class BuildRequirementProjectsFilter
         this.acceptManaged = acceptManaged;
         this.runtimeOnly = false;
         this.filter = null;
+        this.excludes = null;
     }
 
     private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged, final Set<ProjectRef> excludes )
@@ -67,7 +71,7 @@ public class BuildRequirementProjectsFilter
         this.filter =
             runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
                                         new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
-        this.excludes.addAll( excludes );
+        this.excludes = excludes;
     }
 
     @Override
@@ -89,8 +93,8 @@ public class BuildRequirementProjectsFilter
         }
         else
         {
-            result = !excludes.contains( rel.getTarget()
-                                            .asProjectRef() ) && ( filter == null || filter.accept( rel ) );
+            result = ( excludes == null || !excludes.contains( rel.getTarget()
+                                                                  .asProjectRef() ) ) && ( filter == null || filter.accept( rel ) );
         }
 
         //        logger.info( "%s: accept(%s)", Boolean.toString( result )
@@ -141,19 +145,58 @@ public class BuildRequirementProjectsFilter
             {
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
 
-                final Set<ProjectRef> exc = new HashSet<ProjectRef>();
-                exc.addAll( excludes );
-                if ( dr.getExcludes() != null )
+                Set<ProjectRef> exc = null;
+                boolean construct = false;
+
+                // if there are new excludes, ALWAYS construct a new child filter.
+                if ( dr.getExcludes() != null && !dr.getExcludes()
+                                                    .isEmpty() )
                 {
+                    if ( excludes != null )
+                    {
+                        exc = new HashSet<ProjectRef>( excludes );
+                    }
+
                     exc.addAll( dr.getExcludes() );
+                    construct = true;
                 }
 
-                //                logger.info( "getChildFilter(%s)", lastRelationship );
+                boolean nextRuntimeOnly = runtimeOnly;
 
-                // As long as the scope is runtime or compile, this is still in the train to be rebuilt.
-                // Otherwise, it's test or provided scope, and it's a build-requires situation...we don't need to rebuild it.
-                return new BuildRequirementProjectsFilter( !DependencyScope.runtime.implies( dr.getScope() ), acceptManaged
-                    && DependencyScope.runtime.implies( dr.getScope() ), exc );
+                // runtimeOnly => runtime scope ...include only runtime ...return THIS
+                // runtimeOnly => test scope  ...exclude all
+                if ( runtimeOnly )
+                {
+                    if ( !DependencyScope.runtime.implies( dr.getScope() ) )
+                    {
+                        return NoneFilter.INSTANCE;
+                    }
+                    else
+                    {
+                        // defer to the excludes calculation above...
+                    }
+                }
+                // !runtimeOnly => test scope ...include only runtime
+                // !runtimeOnly => runtime scope ...include all ...return THIS
+                else
+                {
+                    if ( !DependencyScope.runtime.implies( dr.getScope() ) )
+                    {
+                        nextRuntimeOnly = true;
+                        construct = true;
+                    }
+                    else
+                    {
+                        // defer to excludes
+                    }
+                }
+
+                if ( construct )
+                {
+                    return new BuildRequirementProjectsFilter( nextRuntimeOnly, acceptManaged && nextRuntimeOnly, exc );
+                }
+
+                return this;
             }
         }
     }
@@ -178,17 +221,9 @@ public class BuildRequirementProjectsFilter
 
         sb.append( "; runtimeOnly=" )
           .append( runtimeOnly )
-          .append( "; excludes=[" );
-        for ( final Iterator<ProjectRef> iterator = excludes.iterator(); iterator.hasNext(); )
-        {
-            final ProjectRef exclude = iterator.next();
-            sb.append( exclude );
-            if ( iterator.hasNext() )
-            {
-                sb.append( ", " );
-            }
-        }
-        sb.append( "]; acceptManaged=" )
+          .append( "; excludes=[" )
+          .append( join( excludes, ", " ) )
+          .append( "]; acceptManaged=" )
           .append( acceptManaged )
           .append( "])" );
     }
