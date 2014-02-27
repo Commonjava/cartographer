@@ -590,8 +590,9 @@ public class DefaultGraphAggregator
             return new LinkedList<DiscoveryTodo>();
         }
 
-        logger.info( "Finding paths from: {} to:\n  {}", new JoinString( ", ", initialIncomplete ), new JoinString( "\n  ", net.getView()
-                                                                                                                               .getRoots() ) );
+        logger.info( "Finding paths from:\n  {} \n\nto:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ), new JoinString( "\n  ",
+                                                                                                                                net.getView()
+                                                                                                                                   .getRoots() ) );
 
         final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
         final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef = new HashMap<ProjectVersionRef, Set<GraphMutator>>();

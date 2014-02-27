@@ -21,6 +21,7 @@ import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstan
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,8 +82,14 @@ public class PatcherSupport
         ctx.put( POM_VIEW_CTX_KEY, pomView );
         ctx.put( TRANSFER_CTX_KEY, transfer );
 
+        final Set<String> done = new HashSet<String>();
         for ( final String patcherId : enabledPatchers )
         {
+            if ( done.contains( patcherId ) )
+            {
+                continue;
+            }
+
             final DepgraphPatcher patcher = patchers.get( patcherId );
             if ( patcher == null )
             {
@@ -100,7 +107,9 @@ public class PatcherSupport
                 logger.error( "Failed to execute patcher: {} against: {}. Reason: {}", e, patcherId, result, e.getMessage() );
             }
 
-            logger.info( "After patching with {}, result is: {}", patcherId, result );
+            logger.debug( "After patching with {}, result is: {}", patcherId, result );
+
+            done.add( patcherId );
         }
 
         return result;
