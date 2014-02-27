@@ -88,8 +88,8 @@ public class MetadataScannerSupport
                 continue;
             }
 
-            logger.info( "Running metadata scanner: {} for: {}", scanner.getClass()
-                                                                        .getSimpleName(), ref );
+            logger.debug( "Running metadata scanner: {} for: {}", scanner.getClass()
+                                                                         .getSimpleName(), ref );
             try
             {
                 final Map<String, String> scanResult = scanner.scan( ref, locations, ctx );
