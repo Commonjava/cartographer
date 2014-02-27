@@ -88,7 +88,7 @@ public class ResolveOps
     private CalculationOps calculations;
 
     @Inject
-    @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 100 )
+    @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
 
     protected ResolveOps()
