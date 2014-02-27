@@ -68,7 +68,7 @@ public class CartoEventManagerImpl
 
         for ( final ProjectVersionRef ref : refs )
         {
-            logger.info( "Unlocking {} due to new relationships available.", ref );
+            logger.debug( "Unlocking {} due to new relationships available.", ref );
             notifyOfGraph( ref );
         }
     }
@@ -77,7 +77,7 @@ public class CartoEventManagerImpl
     public void fireErrorEvent( final ProjectRelationshipsErrorEvent evt )
     {
         final ErrorKey key = evt.getKey();
-        logger.info( "Unlocking {} due to error in model.", key );
+        logger.debug( "Unlocking {} due to error in model.", key );
         try
         {
             final ProjectVersionRef ref = key.toProjectVersionRef();
@@ -172,7 +172,7 @@ public class CartoEventManagerImpl
             lock = locks.get( ref );
             if ( lock == null )
             {
-                logger.info( "Submitting lock for: {}", ref );
+                logger.debug( "Submitting lock for: {}", ref );
                 lock = new LockState();
                 locks.put( ref, lock );
             }

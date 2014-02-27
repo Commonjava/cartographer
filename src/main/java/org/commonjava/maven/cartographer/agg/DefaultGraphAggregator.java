@@ -364,7 +364,7 @@ public class DefaultGraphAggregator
 
                 // De-selected relationships (not mutated) should be stored but NOT followed for discovery purposes.
                 // Likewise, mutated (selected) relationships should be followed but NOT stored.
-                logger.info( "{}.{}. Processing {} new relationships for: {}\n\n  {}", pass, index, discoveredRels.size(), result.getSelectedRef() );
+                logger.info( "{}.{}. Processing {} new relationships for: {}", pass, index, discoveredRels.size(), result.getSelectedRef() );
                 logger.debug( "Relationships:\n  {}", new JoinString( "\n  ", discoveredRels ) );
 
                 boolean contributedRels = false;
@@ -547,8 +547,7 @@ public class DefaultGraphAggregator
         final DiscoveryResult result = runnable.getResult();
         if ( result != null )
         {
-            final ProjectVersionRef selectdRef = runnable.getResult()
-                                                         .getSelectedRef();
+            final ProjectVersionRef selectdRef = result.getSelectedRef();
 
             if ( !originalRef.equals( selectdRef ) )
             {

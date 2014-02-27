@@ -74,8 +74,8 @@ public class PatcherSupport
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
                                   final MavenPomView pomView, final Transfer transfer )
     {
-        logger.info( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
-                     new JoinString( ", ", enabledPatchers ) );
+        logger.debug( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
+                      new JoinString( ", ", enabledPatchers ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );

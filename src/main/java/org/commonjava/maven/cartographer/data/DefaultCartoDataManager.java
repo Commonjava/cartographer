@@ -665,7 +665,7 @@ public class DefaultCartoDataManager
 
         final EProjectNet web = getProjectWeb( refs );
 
-        logger.info( "BEFORE filtering: {} leaf projects:\n  {}", leaves.size(), new JoinString( "\n  ", leaves ) );
+        logger.debug( "BEFORE filtering: {} leaf projects:\n  {}", leaves.size(), new JoinString( "\n  ", leaves ) );
 
         final Set<ProjectVersionRef> result = new HashSet<ProjectVersionRef>();
         logger.info( "Looking for paths to missing projects: {} in network: {} filtered by: {}", new JoinString( ", ", leaves ), web, filter );
@@ -704,7 +704,7 @@ public class DefaultCartoDataManager
             }
         }
 
-        logger.info( "AFTER filtering: {} leaf projects:\n  {}", result.size(), new JoinString( "\n  ", result ) );
+        logger.debug( "AFTER filtering: {} leaf projects:\n  {}", result.size(), new JoinString( "\n  ", result ) );
 
         return result;
     }

@@ -16,8 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.util;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -345,8 +343,8 @@ public class MavenModelProcessor
 
                 addPluginDependencies( pluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
 
-                logger.info( "Adding implied dependencies for: {}\n\n  {}", pluginRef,
-                             impliedPluginDependencies == null ? "-NONE-" : new JoinString( "\n  ", impliedPluginDependencies ) );
+                logger.debug( "Adding implied dependencies for: {}\n\n  {}", pluginRef, impliedPluginDependencies == null ? "-NONE-"
+                                : new JoinString( "\n  ", impliedPluginDependencies ) );
                 addPluginDependencies( impliedPluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
             }
         }
