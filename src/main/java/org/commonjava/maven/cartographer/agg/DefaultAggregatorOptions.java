@@ -136,8 +136,8 @@ public class DefaultAggregatorOptions
     @Override
     public String toString()
     {
-        return String.format( "DefaultAggregatorOptions [\n\tmutator={}\n\tprocessIncomplete={}" + "\n\tprocessVariable={}"
-                                  + "\n\tdiscoveryEnabled={}" + "\n\tdiscoveryTimeoutMillis={}" + "\n\n\tfilter:\n\n{}\n\n]", mutator,
+        return String.format( "DefaultAggregatorOptions [\n\tmutator=%s\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s"
+                                  + "\n\tdiscoveryEnabled=%s" + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", mutator,
                               processIncomplete, processVariable,
                               discoveryEnabled, discoveryTimeoutMillis, filter );
     }

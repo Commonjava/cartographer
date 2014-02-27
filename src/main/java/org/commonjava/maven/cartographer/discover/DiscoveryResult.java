@@ -122,7 +122,7 @@ public class DiscoveryResult
     @Override
     public synchronized String toString()
     {
-        return String.format( "DiscoveryResult [selected={}]\n  {}", selected,
+        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
                               discovered == null ? "-NONE-" : join( new HashSet<ProjectRelationship<?>>( discovered ), "\n  " ) );
     }
 

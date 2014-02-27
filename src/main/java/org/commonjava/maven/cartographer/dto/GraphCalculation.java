@@ -92,7 +92,7 @@ public class GraphCalculation
     @Override
     public String toString()
     {
-        return String.format( "GraphCalculation [operation={}, result={}, graphs={}]", operation, result, graphs );
+        return String.format( "GraphCalculation [operation=%s, result=%s, graphs=%s]", operation, result, graphs );
     }
 
 }
