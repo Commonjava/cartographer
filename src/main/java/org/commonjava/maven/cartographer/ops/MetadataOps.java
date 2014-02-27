@@ -16,7 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.ops;
 
-import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.gavs;
 
 import java.net.URI;
@@ -33,6 +32,7 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
@@ -119,7 +119,7 @@ public class MetadataOps
     {
         if ( metadata != null && !metadata.isEmpty() )
         {
-            logger.info( "Adding metadata for: {}\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
+            logger.info( "Adding metadata for: {}\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
 
             data.addMetadata( ref, metadata );
         }
@@ -190,7 +190,7 @@ public class MetadataOps
 
             if ( web == null )
             {
-                throw new CartoDataException( "Failed to retrieve web for roots: {}", join( roots, ", " ) );
+                throw new CartoDataException( "Failed to retrieve web for roots: {}", new JoinString( ", ", roots ) );
             }
 
             gavs = web.getAllProjects();

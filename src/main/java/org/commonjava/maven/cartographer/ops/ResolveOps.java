@@ -16,7 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.ops;
 
-import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectVersionReferences;
 
 import java.net.URI;
@@ -40,6 +39,7 @@ import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
@@ -208,7 +208,7 @@ public class ResolveOps
 
             if ( items != null && !items.isEmpty() )
             {
-                logger.info( "{} Returning for: {}\n\n  {}", collector, collector.getRef(), join( items.entrySet(), "\n  " ) );
+                logger.debug( "{} Returning for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", items.entrySet() ) );
                 Map<ArtifactRef, ConcreteResource> existingItems = itemMap.get( collector.getRef() );
                 if ( existingItems == null )
                 {
@@ -220,7 +220,7 @@ public class ResolveOps
                     existingItems.putAll( items );
                 }
 
-                logger.info( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(), join( existingItems.entrySet(), "\n  " ) );
+                logger.debug( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", existingItems.entrySet() ) );
             }
             else
             {
@@ -322,7 +322,7 @@ public class ResolveOps
 
             if ( web == null )
             {
-                throw new CartoDataException( "Failed to retrieve web for roots: {}", join( roots, ", " ) );
+                throw new CartoDataException( "Failed to retrieve web for roots: {}", new JoinString( ", ", roots ) );
             }
 
             refMap = collectProjectVersionReferences( web );

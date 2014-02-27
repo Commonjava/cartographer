@@ -71,7 +71,7 @@ public class DependencyPluginPatcher
             // get all artifactItems with a version element. Only these need to be verified.
             final String depArtifactItemsPath = join( PATHS, "|" );
 
-            logger.info( "Looking for dependency-plugin usages matching: '{}'", depArtifactItemsPath );
+            logger.debug( "Looking for dependency-plugin usages matching: '{}'", depArtifactItemsPath );
             // TODO: Switch to a DependencyView here, with path to dependencyManagement...
             final List<DependencyView> depArtifactItems = pomView.getAllDependenciesMatching( depArtifactItemsPath );
             if ( depArtifactItems == null || depArtifactItems.isEmpty() )
@@ -87,7 +87,7 @@ public class DependencyPluginPatcher
                 if ( rel instanceof DependencyRelationship && !rel.isManaged() )
                 {
                     final VersionlessArtifactRef key = new VersionlessArtifactRef( rel.getTargetArtifact() );
-                    logger.info( "Mapping existing dependency via key: {}", key );
+                    logger.debug( "Mapping existing dependency via key: {}", key );
                     concreteDeps.put( key, (DependencyRelationship) rel );
                 }
             }
@@ -112,7 +112,7 @@ public class DependencyPluginPatcher
                                                  final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
                                                  final MavenPomView pomView, final DiscoveryResult result )
     {
-        logger.info( "Detected {} dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
+        logger.debug( "Detected {} dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
                         : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )
         {
@@ -123,7 +123,7 @@ public class DependencyPluginPatcher
                 {
                     final URI pomLocation = RelationshipUtils.profileLocation( depView.getProfileId() );
                     final VersionlessArtifactRef depRef = depView.asVersionlessArtifactRef();
-                    logger.info( "Detected dependency-plugin usage with key: {}", depRef );
+                    logger.debug( "Detected dependency-plugin usage with key: {}", depRef );
 
                     final DependencyRelationship dep = concreteDeps.get( depRef );
                     if ( dep != null )
@@ -132,7 +132,7 @@ public class DependencyPluginPatcher
                             && ( dep.getPomLocation()
                                     .equals( pomLocation ) || dep.getPomLocation() == RelationshipUtils.POM_ROOT_URI ) )
                         {
-                            logger.info( "Correcting scope for: {}", dep );
+                            logger.debug( "Correcting scope for: {}", dep );
 
                             if ( !result.removeDiscoveredRelationship( dep ) )
                             {
@@ -155,7 +155,7 @@ public class DependencyPluginPatcher
                     }
                     else if ( depView.getVersion() != null )
                     {
-                        logger.info( "Injecting new dep: {}", depView.asArtifactRef() );
+                        logger.debug( "Injecting new dep: {}", depView.asArtifactRef() );
                         final DependencyRelationship injected =
                             new DependencyRelationship( source, RelationshipUtils.profileLocation( depView.getProfileId() ), ref,
                                                         depView.asArtifactRef(), DependencyScope.embedded, concreteDeps.size(), false );

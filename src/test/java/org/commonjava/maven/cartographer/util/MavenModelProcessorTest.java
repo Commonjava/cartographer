@@ -32,6 +32,7 @@ import java.util.Set;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -113,7 +114,7 @@ public class MavenModelProcessorTest
 
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
-        logger.info( "Found {} relationships:\n\n  {}", rels.size(), join( rels, "\n  " ) );
+        logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
 
         boolean seen = false;
         for ( final ProjectRelationship<?> rel : rels )
@@ -191,7 +192,7 @@ public class MavenModelProcessorTest
                                               .readRelationships( pomView, src );
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
-        logger.info( "Found {} relationships:\n\n  {}", rels.size(), join( rels, "\n  " ) );
+        logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
 
         boolean seen = false;
         for ( final ProjectRelationship<?> rel : rels )

@@ -17,7 +17,6 @@
 package org.commonjava.maven.cartographer.data;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.apache.commons.lang.StringUtils.join;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -53,6 +52,7 @@ import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.event.CartoEventManager;
 import org.commonjava.maven.cartographer.event.ErrorKey;
 import org.commonjava.maven.cartographer.event.ProjectRelationshipsErrorEvent;
@@ -346,7 +346,7 @@ public class DefaultCartoDataManager
             return;
         }
 
-        logger.info( "Adding metadata for: {}:\n\n  ", ref, join( metadata.entrySet(), "\n  " ) );
+        logger.info( "Adding metadata for: {}:\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
         graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
     }
 
@@ -665,10 +665,10 @@ public class DefaultCartoDataManager
 
         final EProjectNet web = getProjectWeb( refs );
 
-        logger.info( "BEFORE filtering: {} leaf projects:\n  {}", leaves.size(), join( leaves, "\n  " ) );
+        logger.info( "BEFORE filtering: {} leaf projects:\n  {}", leaves.size(), new JoinString( "\n  ", leaves ) );
 
         final Set<ProjectVersionRef> result = new HashSet<ProjectVersionRef>();
-        logger.info( "Looking for paths to missing projects: {} in network: {} filtered by: {}", join( leaves, ", " ), web, filter );
+        logger.info( "Looking for paths to missing projects: {} in network: {} filtered by: {}", new JoinString( ", ", leaves ), web, filter );
 
         final Set<List<ProjectRelationship<?>>> paths = web.getPathsTo( leaves.toArray( new ProjectVersionRef[] {} ) );
         if ( paths != null )
@@ -704,7 +704,7 @@ public class DefaultCartoDataManager
             }
         }
 
-        logger.info( "AFTER filtering: {} leaf projects:\n  {}", result.size(), join( result, "\n  " ) );
+        logger.info( "AFTER filtering: {} leaf projects:\n  {}", result.size(), new JoinString( "\n  ", result ) );
 
         return result;
     }

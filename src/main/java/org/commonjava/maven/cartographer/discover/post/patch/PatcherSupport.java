@@ -16,7 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.discover.post.patch;
 
-import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
@@ -30,6 +29,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
@@ -74,7 +74,8 @@ public class PatcherSupport
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
                                   final MavenPomView pomView, final Transfer transfer )
     {
-        logger.info( "Running enabled patchers: {} (available patchers: {})", join( enabledPatchers, ", " ), join( patchers.keySet(), ", " ) );
+        logger.info( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
+                     new JoinString( ", ", enabledPatchers ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );

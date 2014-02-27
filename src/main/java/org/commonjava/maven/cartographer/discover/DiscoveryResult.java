@@ -16,8 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.discover;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,6 +24,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 
 public class DiscoveryResult
 {
@@ -123,7 +122,7 @@ public class DiscoveryResult
     public synchronized String toString()
     {
         return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
-                              discovered == null ? "-NONE-" : join( new HashSet<ProjectRelationship<?>>( discovered ), "\n  " ) );
+                              discovered == null ? "-NONE-" : new JoinString( "\n  ", new HashSet<ProjectRelationship<?>>( discovered ) ) );
     }
 
     public synchronized boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )

@@ -38,6 +38,7 @@ import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
@@ -345,7 +346,7 @@ public class MavenModelProcessor
                 addPluginDependencies( pluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
 
                 logger.info( "Adding implied dependencies for: {}\n\n  {}", pluginRef,
-                             impliedPluginDependencies == null ? "-NONE-" : join( impliedPluginDependencies, "\n  " ) );
+                             impliedPluginDependencies == null ? "-NONE-" : new JoinString( "\n  ", impliedPluginDependencies ) );
                 addPluginDependencies( impliedPluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
             }
         }

@@ -16,8 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,6 +29,7 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 
 //TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
 public class BuildRequirementProjectsFilter
@@ -222,7 +221,7 @@ public class BuildRequirementProjectsFilter
         sb.append( "; runtimeOnly=" )
           .append( runtimeOnly )
           .append( "; excludes=[" )
-          .append( join( excludes, ", " ) )
+          .append( new JoinString( ", ", excludes ) )
           .append( "]; acceptManaged=" )
           .append( acceptManaged )
           .append( "])" );

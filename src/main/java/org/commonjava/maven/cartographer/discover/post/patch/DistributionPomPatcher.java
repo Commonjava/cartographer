@@ -71,7 +71,7 @@ public class DistributionPomPatcher
                 return;
             }
 
-            logger.info( "Detected pom-packaging project with an assembly that produces artifacts without classifiers..."
+            logger.debug( "Detected pom-packaging project with an assembly that produces artifacts without classifiers..."
                 + "Need to flip provided-scope deps to compile scope here." );
 
             for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
@@ -85,7 +85,7 @@ public class DistributionPomPatcher
                     // so this SHOULD be safe.
                     final DependencyRelationship dep = (DependencyRelationship) rel;
 
-                    logger.info( "Fixing scope for: {}", dep );
+                    logger.debug( "Fixing scope for: {}", dep );
 
                     result.removeDiscoveredRelationship( dep );
                     final Set<ProjectRef> excludes = dep.getExcludes();

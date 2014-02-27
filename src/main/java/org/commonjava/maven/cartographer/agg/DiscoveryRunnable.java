@@ -69,7 +69,7 @@ public class DiscoveryRunnable
     {
         final ProjectVersionRef ref = todo.getRef();
 
-        logger.info( "\n\n\n\n{}.{}. Processing missing project: {}\n\n\n\n", pass, idx, ref );
+        logger.info( "\n\n\n\n{}.{}. Discovering project graph for: {}\n\n\n\n", pass, idx, ref );
 
         try
         {
@@ -81,11 +81,11 @@ public class DiscoveryRunnable
             }
             else if ( roMissing.contains( ref ) )
             {
-                logger.info( "{}.{}. MISS: Already marked as missing: {}", pass, idx, ref );
+                logger.debug( "{}.{}. MISS: Already marked as missing: {}", pass, idx, ref );
             }
             else
             {
-                logger.info( "No discoverer! Skipping: {}", ref );
+                logger.error( "No discoverer! Skipping: {}", ref );
             }
         }
         catch ( final InvalidVersionSpecificationException e )

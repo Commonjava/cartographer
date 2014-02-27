@@ -16,8 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.agg;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,12 +43,12 @@ import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.maven.cartographer.util.JoinString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,14 +119,14 @@ public class DefaultGraphAggregator
                     final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
                     done.addAll( current );
 
-                    logger.info( "{}. Next batch of TODOs:\n  {}", pass, new JoinString( "\n  ", current ) );
+                    logger.debug( "{}. Next batch of TODOs:\n  {}", pass, new JoinString( "\n  ", current ) );
                     pending.clear();
 
                     final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
                     if ( newTodos != null )
                     {
                         newTodos.removeAll( done );
-                        logger.info( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
+                        logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
 
                         pending.addAll( newTodos );
                     }
@@ -146,13 +144,14 @@ public class DefaultGraphAggregator
                                          final int pass )
         throws CartoDataException
     {
+        logger.info( "Starting pass: {}", pass );
         logger.debug( "{}. Performing discovery and cycle-detection on {} missing subgraphs:\n  {}", pass, todos.size(), new JoinString( "\n  ",
                                                                                                                                          todos ) );
 
         final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, net, config, missing, cycleParticipants, pass );
 
-        logger.info( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass,
-                     new JoinString( "\n  ", missing ) );
+        logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass, new JoinString( "\n  ",
+                                                                                                                                       missing ) );
 
         final Set<ProjectRelationship<?>> toStore = new HashSet<ProjectRelationship<?>>();
         final Map<ProjectVersionRef, DiscoveryTodo> nextTodos = new HashMap<ProjectVersionRef, DiscoveryTodo>();
@@ -167,10 +166,10 @@ public class DefaultGraphAggregator
 
         if ( !toStore.isEmpty() )
         {
-            logger.info( "Storing relationships:\n\n  {}\n\n", join( toStore, "\n  " ) );
+            logger.debug( "Storing relationships:\n\n  {}\n\n", new JoinString( "\n  ", toStore ) );
             final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( toStore );
 
-            logger.info( "Marking rejected relationships as cycle-injectors:\n  {}", join( rejected, "\n  " ) );
+            logger.debug( "Marking rejected relationships as cycle-injectors:\n  {}", new JoinString( "\n  ", rejected ) );
             addToCycleParticipants( rejected, cycleParticipants );
         }
 
@@ -178,7 +177,8 @@ public class DefaultGraphAggregator
         // it may depend on lookup of context relationships (managed deps, for instance)
         mutateNextTodos( nextTodos, pass );
 
-        logger.info( "{}. After discovery, these are missing:\n\n  {}\n\n", pass, new JoinString( "\n  ", missing ) );
+        logger.info( "{}. After discovery, {} are missing", pass, missing.size() );
+        logger.debug( "Missing:\n\n  {}\n\n", new JoinString( "\n  ", missing ) );
 
         return new HashSet<DiscoveryTodo>( nextTodos.values() );
     }
@@ -206,18 +206,18 @@ public class DefaultGraphAggregator
                         final ProjectRelationship<?> selected = mutator.selectFor( rel );
                         if ( selected != null && selected != rel )
                         {
-                            logger.info( "{}\n\n  MUTATED TO:\n\n{}\n", rel, selected );
+                            logger.debug( "{}\n\n  MUTATED TO:\n\n{}\n", rel, selected );
 
                             ref = selected.getTarget()
                                           .asProjectVersionRef();
 
-                            logger.info( "{}.{}.{}. MUTATE-DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
-                                         new JoinString( "\n    ", todo.getFilters() ) );
+                            logger.debug( "{}.{}.{}. MUTATE-DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
+                                          new JoinString( "\n    ", todo.getFilters() ) );
                         }
                         else
                         {
-                            logger.info( "{}.{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
-                                         new JoinString( "\n    ", todo.getFilters() ) );
+                            logger.debug( "{}.{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
+                                          new JoinString( "\n    ", todo.getFilters() ) );
                         }
 
                         final GraphMutator childMutator = mutator.getMutatorFor( selected );
@@ -230,7 +230,7 @@ public class DefaultGraphAggregator
             }
             else
             {
-                logger.info( "{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, ref, new JoinString( "\n    ", todo.getFilters() ) );
+                logger.debug( "{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, ref, new JoinString( "\n    ", todo.getFilters() ) );
 
                 nextTodos.put( ref, todo );
             }
@@ -364,8 +364,8 @@ public class DefaultGraphAggregator
 
                 // De-selected relationships (not mutated) should be stored but NOT followed for discovery purposes.
                 // Likewise, mutated (selected) relationships should be followed but NOT stored.
-                logger.info( "{}.{}. Processing {} new relationships for: {}\n\n  {}", pass, index, discoveredRels.size(), result.getSelectedRef(),
-                             join( discoveredRels, "\n  " ) );
+                logger.info( "{}.{}. Processing {} new relationships for: {}\n\n  {}", pass, index, discoveredRels.size(), result.getSelectedRef() );
+                logger.debug( "Relationships:\n  {}", new JoinString( "\n  ", discoveredRels ) );
 
                 boolean contributedRels = false;
 
@@ -398,25 +398,25 @@ public class DefaultGraphAggregator
                         }
                         else if ( rel.isManaged() )
                         {
-                            logger.info( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): {}", pass, index, idx,
-                                         rel );
+                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): {}", pass, index, idx,
+                                          rel );
                             toStore.add( rel );
                             contributedRels = true;
                         }
                         else if ( rel.getType() == RelationshipType.PARENT )
                         {
-                            logger.info( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding parent relationship: {}", pass, index, idx, rel );
+                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding parent relationship: {}", pass, index, idx, rel );
                             toStore.add( rel );
                             contributedRels = true;
                         }
                         else
                         {
-                            logger.info( "{}.{}.{}. SKIP: {}", pass, index, idx, relTarget );
+                            logger.debug( "{}.{}.{}. SKIP: {}", pass, index, idx, relTarget );
                         }
                     }
                     else
                     {
-                        logger.info( "{}.{}.{}. SKIP (already discovered): {}", pass, index, idx, relTarget );
+                        logger.debug( "{}.{}.{}. SKIP (already discovered): {}", pass, index, idx, relTarget );
                     }
 
                     idx++;
@@ -425,15 +425,15 @@ public class DefaultGraphAggregator
                 // if all relationships have been discarded by filter...
                 if ( !contributedRels && !discoveredRels.isEmpty() )
                 {
-                    logger.info( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.", pass, index,
-                                 result.getSelectedRef() );
+                    logger.debug( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.", pass, index,
+                                  result.getSelectedRef() );
 
                     toStore.add( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
                 }
             }
             else
             {
-                logger.info( "{}.{}. discovered relationships were NULL for: {}", pass, r.getIndex(), result.getSelectedRef() );
+                logger.debug( "{}.{}. discovered relationships were NULL for: {}", pass, r.getIndex(), result.getSelectedRef() );
             }
 
             return true;
@@ -467,7 +467,7 @@ public class DefaultGraphAggregator
         for ( final ProjectRelationshipFilter filter : filters )
         {
             final boolean accepted = filter.accept( rel );
-            logger.info( "{}.{}.{}.{}. CHECK: {}\n  vs.\n\n  {}\n\n  Accepted? {}", pass, index, idx, fidx, rel, filter, accepted );
+            logger.debug( "{}.{}.{}.{}. CHECK: {}\n  vs.\n\n  {}\n\n  Accepted? {}", pass, index, idx, fidx, rel, filter, accepted );
             if ( accepted )
             {
                 nextFilters.add( filter.getChildFilter( rel ) );
@@ -541,7 +541,7 @@ public class DefaultGraphAggregator
         final ProjectVersionRef originalRef = runnable.getTodo()
                                                       .getRef();
 
-        logger.info( "{}.{}. MISSING(1) += {}", pass, index, originalRef );
+        logger.debug( "{}.{}. MISSING(1) += {}", pass, index, originalRef );
         missing.add( originalRef );
 
         final DiscoveryResult result = runnable.getResult();
@@ -552,7 +552,7 @@ public class DefaultGraphAggregator
 
             if ( !originalRef.equals( selectdRef ) )
             {
-                logger.info( "{}.{}. MISSING(2) += {}", pass, index, selectdRef );
+                logger.debug( "{}.{}. MISSING(2) += {}", pass, index, selectdRef );
                 missing.add( selectdRef );
             }
         }
@@ -591,8 +591,8 @@ public class DefaultGraphAggregator
             return new LinkedList<DiscoveryTodo>();
         }
 
-        logger.info( "Finding paths from: {} to:\n  {}", join( net.getView()
-                                                                  .getRoots(), ", " ), join( initialIncomplete, "\n  " ) );
+        logger.info( "Finding paths from: {} to:\n  {}", new JoinString( ", ", initialIncomplete ), new JoinString( "\n  ", net.getView()
+                                                                                                                               .getRoots() ) );
 
         final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
         final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef = new HashMap<ProjectVersionRef, Set<GraphMutator>>();
@@ -607,7 +607,7 @@ public class DefaultGraphAggregator
 
             if ( pathFilters.isEmpty() )
             {
-                logger.info( "INIT-SKIP: {}", ref );
+                logger.debug( "INIT-SKIP: {}", ref );
                 continue;
             }
 
@@ -615,26 +615,14 @@ public class DefaultGraphAggregator
             todo.setFilters( pathFilters );
             todo.setMutators( pathMutators );
 
-            logger.info( "INIT-DISCOVER += {}\n====\nfilters:\n    {}\n---\nmutators:\n  {}\n)", ref, new Object()
-            {
-                @Override
-                public String toString()
-                {
-                    return join( pathFilters, "\n    " );
-                }
-            }, new Object()
-            {
-                @Override
-                public String toString()
-                {
-                    return join( pathMutators, "\n    " );
-                }
-            } );
+            logger.debug( "INIT-DISCOVER += {}\n====\nfilters:\n    {}\n---\nmutators:\n  {}\n)", ref, new JoinString( "\n    ", pathFilters ),
+                          new JoinString( "\n    ", pathMutators ) );
 
             initialPending.add( todo );
         }
 
-        logger.info( "{} initial pending subgraphs:\n\n  {}\n", initialPending.size(), join( initialPending, "\n  " ) );
+        logger.info( "[INIT] {} subgraphs pending discovery", initialPending.size() );
+        logger.debug( "Initial pending:\n  {}\n", new JoinString( "\n  ", initialPending ) );
 
         return initialPending;
     }
@@ -677,7 +665,7 @@ public class DefaultGraphAggregator
                     continue nextPath;
                 }
 
-                logger.info( "Computing filtering/mutator for path step: {}", rel );
+                logger.debug( "Computing filtering/mutator for path step: {}", rel );
                 m = m.getMutatorFor( rel );
                 f = f.getChildFilter( rel );
             }
