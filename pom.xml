@@ -37,8 +37,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.10.0-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.4-SNAPSHOT</galleyVersion>
+    <atlasVersion>0.10.0</atlasVersion>
+    <galleyVersion>0.4</galleyVersion>
   </properties>
 
   <dependencyManagement>
@@ -102,7 +102,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>8-SNAPSHOT</version>
+        <version>8</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
