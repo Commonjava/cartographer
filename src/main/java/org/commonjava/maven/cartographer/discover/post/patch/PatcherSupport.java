@@ -31,6 +31,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
@@ -104,7 +105,7 @@ public class PatcherSupport
             }
             catch ( final Exception e )
             {
-                logger.error( "Failed to execute patcher: {} against: {}. Reason: {}", e, patcherId, result, e.getMessage() );
+                logger.error( "{}", e, new StringFormat( "Failed to execute patcher: {} against: {}. Reason: {}", patcherId, result, e.getMessage() ) );
             }
 
             logger.debug( "After patching with {}, result is: {}", patcherId, result );

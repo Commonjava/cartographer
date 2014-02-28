@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -130,7 +131,7 @@ public class RepoContentCollector
                 }
                 catch ( final CartoDataException e )
                 {
-                    logger.error( "ERROR for {}: {}", e, ar, e.getMessage() );
+                    logger.error( "{}", e, new StringFormat( "ERROR for {}: {}", ar, e.getMessage() ) );
                     this.errors.put( ar, e );
                 }
             }

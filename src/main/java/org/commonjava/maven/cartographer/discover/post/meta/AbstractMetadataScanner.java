@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
@@ -75,7 +76,7 @@ public abstract class AbstractMetadataScanner
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Failed to parse: {}. Reason: {}", e, ref, e.getMessage() );
+                logger.error( "{}", e, new StringFormat( "Failed to parse: {}. Reason: {}", ref, e.getMessage() ) );
                 return null;
             }
         }
@@ -102,7 +103,8 @@ public abstract class AbstractMetadataScanner
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "Failed to resolve SCM element via XPath '{}' in: {}. Reason: {}", e, xpath, ref, e.getMessage() );
+                logger.error( "{}", e,
+                              new StringFormat( "Failed to resolve SCM element via XPath '{}' in: {}. Reason: {}", xpath, ref, e.getMessage() ) );
             }
         }
 

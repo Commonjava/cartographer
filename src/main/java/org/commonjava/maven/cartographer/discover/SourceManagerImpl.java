@@ -28,6 +28,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -51,11 +52,11 @@ public class SourceManagerImpl
         }
         catch ( final URISyntaxException e )
         {
-            logger.error( "Invalid source URI: {}. Reason: {}", e, source, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Invalid source URI: {}. Reason: {}", source, e.getMessage() ) );
         }
         catch ( final MalformedURLException e )
         {
-            logger.error( "Invalid source URL: {}. Reason: {}", e, source, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Invalid source URL: {}. Reason: {}", source, e.getMessage() ) );
         }
 
         return null;

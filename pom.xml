@@ -26,7 +26,7 @@
 
   <groupId>org.commonjava.maven.cartographer</groupId>
   <artifactId>cartographer</artifactId>
-  <version>0.5-SNAPSHOT</version>
+  <version>0.4.1-SNAPSHOT</version>
 
   <name>Cartographer Project-Discovery API</name>
   
@@ -37,8 +37,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.10.0</atlasVersion>
-    <galleyVersion>0.4</galleyVersion>
+    <atlasVersion>0.10.1-SNAPSHOT</atlasVersion>
+    <galleyVersion>0.4.1-SNAPSHOT</galleyVersion>
   </properties>
 
   <dependencyManagement>

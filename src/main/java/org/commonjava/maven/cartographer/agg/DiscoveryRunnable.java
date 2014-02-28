@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -90,11 +91,11 @@ public class DiscoveryRunnable
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "{}.{}. Cannot discover subgraph for: {}. Reason: {}.", e, pass, idx, ref, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "{}.{}. Cannot discover subgraph for: {}. Reason: {}.", pass, idx, ref, e.getMessage() ) );
         }
         catch ( final CartoDataException e )
         {
-            logger.error( "{}.{}. Failed to discover subgraph for: {}. Reason: {}.", e, pass, idx, ref, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "{}.{}. Failed to discover subgraph for: {}. Reason: {}.", pass, idx, ref, e.getMessage() ) );
         }
         finally
         {

@@ -16,7 +16,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.util;
 
-import static org.apache.commons.lang.StringUtils.join;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
