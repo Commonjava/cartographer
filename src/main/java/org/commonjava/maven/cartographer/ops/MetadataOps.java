@@ -33,7 +33,6 @@ import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
@@ -149,13 +148,12 @@ public class MetadataOps
             }
             catch ( final TransferException e )
             {
-                logger.error( "{}", e,
-                              new StringFormat( "Cannot read: {} from locations: {}. Reason: {}", ref.asPomArtifact(), locations, e.getMessage() ) );
+                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(), locations, e.getMessage() ), e );
                 continue;
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( "{}", e, new StringFormat( "Cannot build POM view for: {}. Reason: {}", ref.asPomArtifact(), e.getMessage() ) );
+                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(), e.getMessage() ), e );
                 continue;
             }
 

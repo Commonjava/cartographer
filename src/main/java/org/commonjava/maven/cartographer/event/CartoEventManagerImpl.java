@@ -26,7 +26,6 @@ import javax.inject.Named;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
@@ -86,9 +85,8 @@ public class CartoEventManagerImpl
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "{}", e,
-                          new StringFormat( "Cannot parse version for error key: '{}'. Failed to unlock waiting threads. Reason: {}", key.toString(),
-                                            e.getMessage() ) );
+            logger.error( String.format( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s", key.toString(),
+                                         e.getMessage() ), e );
         }
     }
 

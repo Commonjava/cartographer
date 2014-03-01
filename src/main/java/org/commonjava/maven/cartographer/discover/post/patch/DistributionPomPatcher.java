@@ -29,7 +29,6 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -102,18 +101,15 @@ public class DistributionPomPatcher
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( "{}", e,
-                          new StringFormat( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", ref, locations, e.getMessage() ) );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( "{}", e,
-                          new StringFormat( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", ref, locations, e.getMessage() ) );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( "{}", e,
-                          new StringFormat( "Failed to build/query MavenPomView for: {} from: {}. Reason: {}", ref, locations, e.getMessage() ) );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
         }
     }
 
