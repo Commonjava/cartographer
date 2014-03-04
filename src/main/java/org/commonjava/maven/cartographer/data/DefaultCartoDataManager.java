@@ -92,7 +92,15 @@ public class DefaultCartoDataManager
     public Set<ProjectRelationship<?>> storeRelationships( final ProjectRelationship<?>... relationships )
         throws CartoDataException
     {
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
+        Set<ProjectRelationship<?>> rels;
+        try
+        {
+            rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to store new relationships. Reason: %s", e, e.getMessage() );
+        }
 
         return rels;
     }
@@ -101,7 +109,16 @@ public class DefaultCartoDataManager
     public Set<ProjectRelationship<?>> storeRelationships( final Collection<ProjectRelationship<?>> relationships )
         throws CartoDataException
     {
-        final Set<ProjectRelationship<?>> rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
+        Set<ProjectRelationship<?>> rels;
+        try
+        {
+            rels = graphs.storeRelationships( getCurrentWorkspace(), relationships );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to store new relationships. Reason: %s", e, e.getMessage() );
+        }
+
         fireStorageEvents( relationships, rels );
 
         return rels;
@@ -328,6 +345,7 @@ public class DefaultCartoDataManager
 
     @Override
     public void addMetadata( final ProjectVersionRef ref, final String name, final String value )
+        throws CartoDataException
     {
         if ( ref == null || name == null || value == null )
         {
@@ -335,11 +353,19 @@ public class DefaultCartoDataManager
         }
 
         logger.info( "Adding metadata: '{}' = '{}' for: {}", name, value, ref );
-        graphs.addMetadata( getCurrentWorkspace(), ref, name, value );
+        try
+        {
+            graphs.addMetadata( getCurrentWorkspace(), ref, name, value );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to store new metadata for: '%s'. Reason: %s", e, ref, e.getMessage() );
+        }
     }
 
     @Override
     public void addMetadata( final ProjectVersionRef ref, final Map<String, String> metadata )
+        throws CartoDataException
     {
         if ( metadata == null )
         {
@@ -347,7 +373,14 @@ public class DefaultCartoDataManager
         }
 
         logger.info( "Adding metadata for: {}:\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
-        graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
+        try
+        {
+            graphs.setMetadata( getCurrentWorkspace(), ref, metadata );
+        }
+        catch ( final GraphDriverException e )
+        {
+            throw new CartoDataException( "Failed to store new metadata for: '%s'. Reason: %s", e, ref, e.getMessage() );
+        }
     }
 
     @Override
@@ -488,6 +521,7 @@ public class DefaultCartoDataManager
 
     @Override
     public synchronized void clearErrors( final ProjectVersionRef ref )
+        throws CartoDataException
     {
         final Map<String, String> md = getMetadata( ref );
         if ( md == null )
@@ -498,7 +532,14 @@ public class DefaultCartoDataManager
         final String removed = md.remove( MODEL_ERRORS );
         if ( removed != null )
         {
-            graphs.setMetadata( getCurrentWorkspace(), ref, md );
+            try
+            {
+                graphs.setMetadata( getCurrentWorkspace(), ref, md );
+            }
+            catch ( final GraphDriverException e )
+            {
+                throw new CartoDataException( "Failed to update metadata for: '%s' Reason: %s", e, ref, e.getMessage() );
+            }
         }
     }
 
@@ -513,7 +554,14 @@ public class DefaultCartoDataManager
             if ( !contains( ref ) )
             {
                 logger.info( "No metadata for: {}. Creating disconnected project entry in database.", ref );
-                graphs.addDisconnectedProject( getCurrentWorkspace(), ref );
+                try
+                {
+                    graphs.addDisconnectedProject( getCurrentWorkspace(), ref );
+                }
+                catch ( final GraphDriverException e )
+                {
+                    throw new CartoDataException( "Failed to store new disconnected project: '%s' Reason: %s", e, ref, e.getMessage() );
+                }
             }
 
             md = getMetadata( ref );

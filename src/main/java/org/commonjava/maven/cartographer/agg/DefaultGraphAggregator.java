@@ -338,10 +338,12 @@ public class DefaultGraphAggregator
      * since discovery was initiated by the caller (part of the graph may have been pre-existing)
      * @return true if output contained a valid result, or false to indicate the 
      * GAV should be marked missing.
+     * @throws CartoDataException 
      */
     private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Set<ProjectRelationship<?>> toStore,
                                             final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final EProjectNet net,
                                             final DiscoveryConfig config, final int pass )
+        throws CartoDataException
     {
         final DiscoveryResult result = r.getResult();
 

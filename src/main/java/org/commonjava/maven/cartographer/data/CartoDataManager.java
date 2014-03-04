@@ -66,19 +66,23 @@ public interface CartoDataManager
     /**
      * @deprecated Use {@link #getAllDirectRelationshipsWithExactSource(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
      */
+    @Deprecated
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter, GraphMutator mutator )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter,
+                                                                          GraphMutator mutator )
         throws CartoDataException;
 
     /**
      * @deprecated Use {@link #getAllDirectRelationshipsWithExactTarget(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
      */
+    @Deprecated
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter, GraphMutator mutator )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter,
+                                                                          GraphMutator mutator )
         throws CartoDataException;
 
     Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source, ProjectRelationshipFilter filter )
@@ -95,9 +99,11 @@ public interface CartoDataManager
     Map<String, String> getMetadata( ProjectVersionRef ref )
         throws CartoDataException;
 
-    void addMetadata( ProjectVersionRef ref, String name, String value );
+    void addMetadata( ProjectVersionRef ref, String name, String value )
+        throws CartoDataException;
 
-    void addMetadata( ProjectVersionRef ref, Map<String, String> metadata );
+    void addMetadata( ProjectVersionRef ref, Map<String, String> metadata )
+        throws CartoDataException;
 
     Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectVersionRef ref )
         throws CartoDataException;
@@ -105,6 +111,7 @@ public interface CartoDataManager
     /**
      * @deprecated Use {@link #getIncompleteSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
      */
+    @Deprecated
     Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
         throws CartoDataException;
 
@@ -117,6 +124,7 @@ public interface CartoDataManager
     /**
      * @deprecated Use {@link #getVariableSubgraphsFor(ProjectRelationshipFilter,GraphMutator,ProjectVersionRef)} instead
      */
+    @Deprecated
     Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
         throws CartoDataException;
 
@@ -126,6 +134,7 @@ public interface CartoDataManager
     /**
      * @deprecated Use {@link #getAllIncompleteSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
      */
+    @Deprecated
     Set<ProjectVersionRef> getAllIncompleteSubgraphs( ProjectRelationshipFilter filter )
         throws CartoDataException;
 
@@ -138,6 +147,7 @@ public interface CartoDataManager
     /**
      * @deprecated Use {@link #getAllVariableSubgraphs(ProjectRelationshipFilter,GraphMutator)} instead
      */
+    @Deprecated
     Set<ProjectVersionRef> getAllVariableSubgraphs( ProjectRelationshipFilter filter )
         throws CartoDataException;
 

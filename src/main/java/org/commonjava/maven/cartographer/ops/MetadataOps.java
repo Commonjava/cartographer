@@ -116,6 +116,7 @@ public class MetadataOps
     }
 
     public void updateMetadata( final ProjectVersionRef ref, final Map<String, String> metadata )
+        throws CartoDataException
     {
         if ( metadata != null && !metadata.isEmpty() )
         {
