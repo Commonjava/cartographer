@@ -62,7 +62,7 @@ public class MavenModelProcessor
 
     private final boolean processManagedDependencyInfo = true;
 
-    private final boolean processManagedPluginInfo = false;
+    private final boolean processManagedPluginInfo = true;
 
     private final boolean processBuildInfo = true;
 
