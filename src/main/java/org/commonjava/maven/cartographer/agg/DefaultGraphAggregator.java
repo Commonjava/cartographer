@@ -374,6 +374,12 @@ public class DefaultGraphAggregator
                 int idx = 0;
                 for ( final ProjectRelationship<?> rel : discoveredRels )
                 {
+                    // NOTE: If we don't store EVERY relationship we parse, 
+                    // later discovery passes using looser filters will miss 
+                    // discovered projects' relationships that we reject with a 
+                    // previous, tighter filter.
+                    toStore.add( rel );
+
                     final ProjectVersionRef relTarget = rel.getTarget()
                                                            .asProjectVersionRef();
                     if ( !net.containsGraph( relTarget ) )
@@ -385,7 +391,6 @@ public class DefaultGraphAggregator
                         if ( !nextFilters.isEmpty() )
                         {
                             contributedRels = true;
-                            toStore.add( rel );
                             incorporateTodoInfo( relTarget, nextFilters, nextTodos, mutators );
 
                             final DiscoveryTodo nextTodo = nextTodos.get( relTarget );
@@ -402,13 +407,11 @@ public class DefaultGraphAggregator
                         {
                             logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): {}", pass, index, idx,
                                           rel );
-                            toStore.add( rel );
                             contributedRels = true;
                         }
                         else if ( rel.getType() == RelationshipType.PARENT )
                         {
                             logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding parent relationship: {}", pass, index, idx, rel );
-                            toStore.add( rel );
                             contributedRels = true;
                         }
                         else
