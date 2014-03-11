@@ -29,7 +29,13 @@ public interface ProjectRelationshipDiscoverer
     ProjectVersionRef resolveSpecificVersion( ProjectVersionRef ref, DiscoveryConfig discoveryConfig )
         throws CartoDataException;
 
+    /**
+     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
+     */
     DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig, boolean store )
+        throws CartoDataException;
+
+    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig )
         throws CartoDataException;
 
 }

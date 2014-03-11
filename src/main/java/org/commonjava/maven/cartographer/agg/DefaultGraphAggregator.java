@@ -42,6 +42,7 @@ import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.graph.spi.model.GraphPath;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -56,6 +57,8 @@ import org.slf4j.LoggerFactory;
 public class DefaultGraphAggregator
     implements GraphAggregator
 {
+
+    private static final int MAX_BATCHSIZE = 20;
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -109,20 +112,26 @@ public class DefaultGraphAggregator
                 logger.debug( "Loading existing cycle participants..." );
                 final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
 
+                final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
+
                 logger.debug( "Loading initial set of GAVs to be resolved..." );
-                final LinkedList<DiscoveryTodo> pending = loadInitialPending( net, config.getMutator() );
+                final LinkedList<DiscoveryTodo> pending = loadInitialPending( net, seen, config.getMutator() );
                 final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
                 int pass = 0;
                 while ( !pending.isEmpty() )
                 {
-                    final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
+                    final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
+                    final int i = 0;
+                    while ( !pending.isEmpty() && i < MAX_BATCHSIZE )
+                    {
+                        current.add( pending.removeFirst() );
+                    }
+
                     done.addAll( current );
 
                     logger.debug( "{}. Next batch of TODOs:\n  {}", pass, new JoinString( "\n  ", current ) );
-                    pending.clear();
-
-                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, net, pass );
+                    final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, seen, net, pass );
                     if ( newTodos != null )
                     {
                         newTodos.removeAll( done );
@@ -140,15 +149,15 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing, final EProjectNet net,
-                                         final int pass )
+                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing,
+                                         final Set<ProjectVersionRef> seen, final EProjectNet net, final int pass )
         throws CartoDataException
     {
         logger.info( "Starting pass: {}", pass );
         logger.debug( "{}. Performing discovery and cycle-detection on {} missing subgraphs:\n  {}", pass, todos.size(), new JoinString( "\n  ",
                                                                                                                                          todos ) );
 
-        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, net, config, missing, cycleParticipants, pass );
+        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, net, config, missing, seen, cycleParticipants, pass );
 
         logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass, new JoinString( "\n  ",
                                                                                                                                        missing ) );
@@ -158,7 +167,7 @@ public class DefaultGraphAggregator
 
         for ( final DiscoveryRunnable r : runnables )
         {
-            if ( !processDiscoveryOutput( r, toStore, nextTodos, net, config.getDiscoveryConfig(), pass ) )
+            if ( !processDiscoveryOutput( r, toStore, nextTodos, net, config.getDiscoveryConfig(), seen, pass ) )
             {
                 markMissing( r, missing, pass );
             }
@@ -166,16 +175,17 @@ public class DefaultGraphAggregator
 
         if ( !toStore.isEmpty() )
         {
+            logger.info( "Storing {} relationships.", toStore.size() );
             logger.debug( "Storing relationships:\n\n  {}\n\n", new JoinString( "\n  ", toStore ) );
             final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( toStore );
 
-            logger.debug( "Marking rejected relationships as cycle-injectors:\n  {}", new JoinString( "\n  ", rejected ) );
+            logger.info( "Marking {} rejected relationships as cycle-injectors", rejected.size() );
             addToCycleParticipants( rejected, cycleParticipants );
         }
 
         // this has to wait until the "vanilla" relationships are stored, since
         // it may depend on lookup of context relationships (managed deps, for instance)
-        mutateNextTodos( nextTodos, pass );
+        mutateNextTodos( nextTodos, net, pass );
 
         logger.info( "{}. After discovery, {} are missing", pass, missing.size() );
         logger.debug( "Missing:\n\n  {}\n\n", new JoinString( "\n  ", missing ) );
@@ -183,12 +193,15 @@ public class DefaultGraphAggregator
         return new HashSet<DiscoveryTodo>( nextTodos.values() );
     }
 
-    private void mutateNextTodos( final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final int pass )
+    private void mutateNextTodos( final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final EProjectNet net, final int pass )
     {
         int index = 0;
         for ( ProjectVersionRef ref : new HashSet<ProjectVersionRef>( nextTodos.keySet() ) )
         {
             final DiscoveryTodo todo = nextTodos.remove( ref );
+            final GraphPath<?> parentPath = net.getView()
+                                               .getDatabase()
+                                               .createPath( todo.getParentPath(), ref );
 
             final Set<GraphMutator> mutators = todo.getMutators();
             if ( mutators != null && !mutators.isEmpty() )
@@ -203,26 +216,27 @@ public class DefaultGraphAggregator
                 {
                     for ( final GraphMutator mutator : mutators )
                     {
-                        final ProjectRelationship<?> selected = mutator.selectFor( rel );
+                        final ProjectRelationship<?> selected = mutator.selectFor( rel, todo.getParentPath() );
                         if ( selected != null && selected != rel )
                         {
-                            logger.debug( "{}\n\n  MUTATED TO:\n\n{}\n", rel, selected );
-
                             ref = selected.getTarget()
                                           .asProjectVersionRef();
 
-                            logger.debug( "{}.{}.{}. MUTATE-DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
-                                          new JoinString( "\n    ", todo.getFilters() ) );
+                            logger.info( "{}.{}.{}. MUTATED-DISCOVER += {}\n  (filters:\n    {})\n        Was: {}", pass, index, idx, ref,
+                                         new JoinString( "\n    ", todo.getFilters() ), rel );
                         }
                         else
                         {
-                            logger.debug( "{}.{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
-                                          new JoinString( "\n    ", todo.getFilters() ) );
+                            logger.info( "{}.{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, idx, ref,
+                                         new JoinString( "\n    ", todo.getFilters() ) );
                         }
 
                         final GraphMutator childMutator = mutator.getMutatorFor( selected );
 
                         incorporateTodoInfo( ref, todo.getFilters(), nextTodos, Collections.singleton( childMutator ) );
+
+                        final DiscoveryTodo nextTodo = nextTodos.get( ref );
+                        nextTodo.setParentPath( parentPath );
                     }
 
                     idx++;
@@ -230,7 +244,7 @@ public class DefaultGraphAggregator
             }
             else
             {
-                logger.debug( "{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, ref, new JoinString( "\n    ", todo.getFilters() ) );
+                logger.info( "{}.{}. DISCOVER += {}\n  (filters:\n    {})", pass, index, ref, new JoinString( "\n    ", todo.getFilters() ) );
 
                 nextTodos.put( ref, todo );
             }
@@ -263,8 +277,8 @@ public class DefaultGraphAggregator
      * output to be processed and incorporated in the graph.
      */
     private Set<DiscoveryRunnable> executeTodoBatch( final Set<DiscoveryTodo> todos, final EProjectNet net, final AggregationOptions config,
-                                                     final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> cycleParticipants,
-                                                     final int pass )
+                                                     final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                                     final Set<ProjectVersionRef> cycleParticipants, final int pass )
     {
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
 
@@ -284,7 +298,8 @@ public class DefaultGraphAggregator
                 logger.info( "{}.{}. Skipping cycle-participant reference: {}", pass, idx++, todoRef );
                 continue;
             }
-            else if ( net.containsGraph( todoRef ) )
+            // WAS: net.containsProject(todoRef) ...this is pretty expensive, since it requires traversal. Instead, we track as we go.
+            else if ( seen.contains( todoRef ) )
             {
                 logger.info( "{}.{}. Skipping already-discovered reference: {}", pass, idx++, todoRef );
                 continue;
@@ -334,6 +349,7 @@ public class DefaultGraphAggregator
      * MAY be augmented by output from this discovery runnable 
      * @param net The top-level dependency graph for which discovery is taking place
      * @param config Configuration for how discovery should proceed
+     * @param seen 
      * @param pass For diagnostic/logging purposes, the number of discovery passes 
      * since discovery was initiated by the caller (part of the graph may have been pre-existing)
      * @return true if output contained a valid result, or false to indicate the 
@@ -342,7 +358,7 @@ public class DefaultGraphAggregator
      */
     private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Set<ProjectRelationship<?>> toStore,
                                             final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final EProjectNet net,
-                                            final DiscoveryConfig config, final int pass )
+                                            final DiscoveryConfig config, final Set<ProjectVersionRef> seen, final int pass )
         throws CartoDataException
     {
         final DiscoveryResult result = r.getResult();
@@ -360,6 +376,13 @@ public class DefaultGraphAggregator
             if ( discoveredRels != null )
             {
                 final DiscoveryTodo todo = r.getTodo();
+                GraphPath<?> parentPath = todo.getParentPath();
+                parentPath = net.getView()
+                                .getDatabase()
+                                .createPath( parentPath, todo.getRef() );
+
+                seen.add( todo.getRef() );
+
                 final int index = r.getIndex();
                 final Set<ProjectRelationshipFilter> filters = todo.getFilters();
                 final Set<GraphMutator> mutators = todo.getMutators();
@@ -382,7 +405,7 @@ public class DefaultGraphAggregator
 
                     final ProjectVersionRef relTarget = rel.getTarget()
                                                            .asProjectVersionRef();
-                    if ( !net.containsGraph( relTarget ) )
+                    if ( !seen.contains( relTarget ) )
                     {
                         // TODO: We're filtering on the original relationship THEN potentially mutating it for the next 
                         // layer of discovery...is it wise not to filter those as well??
@@ -402,6 +425,8 @@ public class DefaultGraphAggregator
                             }
 
                             sourceRelationships.add( rel );
+
+                            nextTodo.setParentPath( parentPath );
                         }
                         else if ( rel.isManaged() )
                         {
@@ -574,12 +599,12 @@ public class DefaultGraphAggregator
         return participants;
     }
 
-    private LinkedList<DiscoveryTodo> loadInitialPending( final EProjectNet net, final GraphMutator rootMutator )
+    private LinkedList<DiscoveryTodo> loadInitialPending( final EProjectNet net, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
     {
         final GraphView view = net.getView();
         final ProjectRelationshipFilter topFilter = view.getFilter();
 
-        final GraphMutator topMutator = rootMutator == null ? new ManagedDependencyMutator( view, true ) : rootMutator;
+        final GraphMutator topMutator = rootMutator == null ? new ManagedDependencyMutator( view ) : rootMutator;
         logger.info( "Using root-level mutator: {}", topMutator );
 
         final Set<ProjectVersionRef> initialIncomplete = net.getIncompleteSubgraphs();
@@ -601,7 +626,7 @@ public class DefaultGraphAggregator
 
         final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef = new HashMap<ProjectVersionRef, Set<ProjectRelationshipFilter>>();
         final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef = new HashMap<ProjectVersionRef, Set<GraphMutator>>();
-        calculateInitialFiltersAndMutators( paths, topFilter, topMutator, filtersByRef, mutatorsByRef );
+        calculateInitialFiltersAndMutators( paths, topFilter, topMutator, filtersByRef, mutatorsByRef, seen );
 
         final LinkedList<DiscoveryTodo> initialPending = new LinkedList<DiscoveryTodo>();
         for ( final Entry<ProjectVersionRef, Set<ProjectRelationshipFilter>> entry : filtersByRef.entrySet() )
@@ -612,7 +637,7 @@ public class DefaultGraphAggregator
 
             if ( pathFilters.isEmpty() )
             {
-                logger.debug( "INIT-SKIP: {}", ref );
+                logger.info( "INIT-SKIP: {}", ref );
                 continue;
             }
 
@@ -620,8 +645,8 @@ public class DefaultGraphAggregator
             todo.setFilters( pathFilters );
             todo.setMutators( pathMutators );
 
-            logger.debug( "INIT-DISCOVER += {}\n====\nfilters:\n    {}\n---\nmutators:\n  {}\n)", ref, new JoinString( "\n    ", pathFilters ),
-                          new JoinString( "\n    ", pathMutators ) );
+            logger.info( "INIT-DISCOVER += {}\n====\nfilters:\n    {}\n---\nmutators:\n  {}\n)", ref, new JoinString( "\n    ", pathFilters ),
+                         new JoinString( "\n    ", pathMutators ) );
 
             initialPending.add( todo );
         }
@@ -635,7 +660,7 @@ public class DefaultGraphAggregator
     private void calculateInitialFiltersAndMutators( final Set<List<ProjectRelationship<?>>> paths, final ProjectRelationshipFilter topFilter,
                                                      final GraphMutator topMutator,
                                                      final Map<ProjectVersionRef, Set<ProjectRelationshipFilter>> filtersByRef,
-                                                     final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef )
+                                                     final Map<ProjectVersionRef, Set<GraphMutator>> mutatorsByRef, final Set<ProjectVersionRef> seen )
     {
         nextPath: for ( final List<ProjectRelationship<?>> path : paths )
         {
@@ -647,6 +672,7 @@ public class DefaultGraphAggregator
             final ProjectVersionRef ref = path.get( path.size() - 1 )
                                               .getTarget()
                                               .asProjectVersionRef();
+
             Set<ProjectRelationshipFilter> pathFilters = filtersByRef.get( ref );
             if ( pathFilters == null )
             {
@@ -669,6 +695,9 @@ public class DefaultGraphAggregator
                 {
                     continue nextPath;
                 }
+
+                seen.add( rel.getDeclaring()
+                             .asProjectVersionRef() );
 
                 logger.debug( "Computing filtering/mutator for path step: {}", rel );
                 m = m.getMutatorFor( rel );

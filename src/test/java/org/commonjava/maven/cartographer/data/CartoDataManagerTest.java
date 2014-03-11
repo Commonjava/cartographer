@@ -126,14 +126,15 @@ public class CartoDataManagerTest
         final LocationExpander locationExpander = new NoOpLocationExpander();
 
         final ArtifactMetadataManager meta = new ArtifactMetadataManagerImpl( transferManager, locationExpander );
-        final MavenMetadataReader mmr = new MavenMetadataReader( xml, meta, xpath );
+        final MavenMetadataReader mmr = new MavenMetadataReader( xml, locationExpander, meta, xpath );
 
         final VersionResolver versions = new VersionResolverImpl( mmr );
 
         final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, locationExpander, new StandardTypeMapper(), versions );
 
         final MavenPomReader pomReader =
-            new MavenPomReader( xml, artifacts, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ) );
+            new MavenPomReader( xml, locationExpander, artifacts, xpath, new StandardMaven304PluginDefaults(),
+                                new StandardMavenPluginImplications( xml ) );
 
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );

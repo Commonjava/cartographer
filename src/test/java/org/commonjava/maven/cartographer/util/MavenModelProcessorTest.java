@@ -32,6 +32,7 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -108,8 +109,13 @@ public class MavenModelProcessorTest
         assertThat( pv, notNullValue() );
         assertThat( pv.getVersion(), equalTo( "1.0" ) );
 
+        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( src );
+        discoveryConfig.setIncludeManagedDependencies( true );
+        discoveryConfig.setIncludeBuildSection( true );
+        discoveryConfig.setIncludeManagedPlugins( false );
+
         final DiscoveryResult result = fixture.getModelProcessor()
-                                              .readRelationships( pomView, src );
+                                              .readRelationships( pomView, src, discoveryConfig );
 
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
@@ -187,8 +193,13 @@ public class MavenModelProcessorTest
         assertThat( pdv.asArtifactRef()
                        .getVersionString(), equalTo( "1.0" ) );
 
+        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( src );
+        discoveryConfig.setIncludeManagedDependencies( true );
+        discoveryConfig.setIncludeBuildSection( true );
+        discoveryConfig.setIncludeManagedPlugins( false );
+
         final DiscoveryResult result = fixture.getModelProcessor()
-                                              .readRelationships( pomView, src );
+                                              .readRelationships( pomView, src, discoveryConfig );
         final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
 
         logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );

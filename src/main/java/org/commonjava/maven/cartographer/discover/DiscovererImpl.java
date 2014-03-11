@@ -97,8 +97,20 @@ public class DiscovererImpl
         }
     }
 
+    /**
+     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
+     */
+    @Deprecated
     @Override
     public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
+        throws CartoDataException
+    {
+        discoveryConfig.setStoreRelationships( storeRelationships );
+        return discoverRelationships( ref, discoveryConfig );
+    }
+
+    @Override
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
         ProjectVersionRef specific = ref;
@@ -141,7 +153,7 @@ public class DiscovererImpl
         DiscoveryResult result = null;
         if ( pomView != null )
         {
-            result = modelProcessor.readRelationships( pomView, discoveryConfig.getDiscoverySource() );
+            result = modelProcessor.readRelationships( pomView, discoveryConfig.getDiscoverySource(), discoveryConfig );
         }
 
         if ( result != null )
@@ -151,7 +163,7 @@ public class DiscovererImpl
             final Map<String, String> metadata = metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
             result.setMetadata( metadata );
 
-            if ( storeRelationships )
+            if ( discoveryConfig.isStoreRelationships() )
             {
                 final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( result.getAcceptedRelationships() );
                 dataManager.addMetadata( result.getSelectedRef(), metadata );

@@ -356,7 +356,7 @@ public class CartographerBuilder
 
         if ( this.metadataReader == null )
         {
-            this.metadataReader = new MavenMetadataReader( xml, artifactMetadataManager, xpath );
+            this.metadataReader = new MavenMetadataReader( xml, locationExpander, artifactMetadataManager, xpath );
         }
 
         if ( this.versionResolver == null )
@@ -371,7 +371,7 @@ public class CartographerBuilder
 
         if ( pomReader == null )
         {
-            pomReader = new MavenPomReader( xml, artifactManager, xpath, pluginDefaults, pluginImplications );
+            pomReader = new MavenPomReader( xml, locationExpander, artifactManager, xpath, pluginDefaults, pluginImplications );
         }
 
         if ( this.metadataScanners == null )

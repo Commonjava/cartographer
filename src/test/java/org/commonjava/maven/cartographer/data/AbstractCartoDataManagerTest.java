@@ -269,7 +269,7 @@ public abstract class AbstractCartoDataManagerTest
 
         for ( final Map.Entry<ProjectVersionRef, Set<ProjectRelationship<?>>> entry : byTarget.entrySet() )
         {
-            System.out.printf( "\n\n\nFor key: {}, dependencies:\n  {}\n\n\n", entry.getKey(), formatWithClassname( entry.getValue(), "\n  " ) );
+            System.out.printf( "\n\n\nFor key: %s, dependencies:\n  %s\n\n\n", entry.getKey(), formatWithClassname( entry.getValue(), "\n  " ) );
 
             assertThat( "Null dependents set for: " + entry.getKey() + "!", entry.getValue(), notNullValue() );
 

@@ -59,15 +59,27 @@ public class TestAggregatorDiscoverer
         return ref;
     }
 
+    /**
+     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
+     */
+    @Deprecated
     @Override
     public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
+        throws CartoDataException
+    {
+        discoveryConfig.setStoreRelationships( storeRelationships );
+        return discoverRelationships( ref, discoveryConfig );
+    }
+
+    @Override
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
         seen.add( ref );
 
         final DiscoveryResult result = mappedResults.get( ref );
         logger.info( "DISCOVER: {}....\n  {}", ref, result );
-        if ( result != null && storeRelationships )
+        if ( result != null && discoveryConfig.isStoreRelationships() )
         {
             data.storeRelationships( result.getAllDiscoveredRelationships() );
         }

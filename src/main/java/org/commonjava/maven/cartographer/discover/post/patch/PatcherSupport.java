@@ -63,6 +63,11 @@ public class PatcherSupport
         mapPatchers( this.patcherInstances );
     }
 
+    public Set<String> getAvailablePatchers()
+    {
+        return new HashSet<String>( patchers.keySet() );
+    }
+
     private void mapPatchers( final Iterable<DepgraphPatcher> patcherInstances )
     {
         this.patchers = new HashMap<String, DepgraphPatcher>();
@@ -75,6 +80,11 @@ public class PatcherSupport
     public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
                                   final MavenPomView pomView, final Transfer transfer )
     {
+        if ( enabledPatchers == null || enabledPatchers.isEmpty() )
+        {
+            return orig;
+        }
+
         logger.debug( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
                       new JoinString( ", ", enabledPatchers ) );
         final DiscoveryResult result = orig;

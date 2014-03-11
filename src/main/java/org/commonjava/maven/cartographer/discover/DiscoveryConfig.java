@@ -17,10 +17,13 @@
 package org.commonjava.maven.cartographer.discover;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.galley.model.Location;
 
 public interface DiscoveryConfig
 {
@@ -56,6 +59,46 @@ public interface DiscoveryConfig
         {
             return null;
         }
+
+        @Override
+        public List<? extends Location> getLocations()
+        {
+            return null;
+        }
+
+        @Override
+        public void setLocations( final Collection<? extends Location> locations )
+        {
+        }
+
+        @Override
+        public boolean isStoreRelationships()
+        {
+            return false;
+        }
+
+        @Override
+        public void setStoreRelationships( final boolean store )
+        {
+        }
+
+        @Override
+        public boolean isIncludeBuildSection()
+        {
+            return false;
+        }
+
+        @Override
+        public boolean isIncludeManagedDependencies()
+        {
+            return false;
+        }
+
+        @Override
+        public boolean isIncludeManagedPlugins()
+        {
+            return false;
+        }
     };
 
     boolean isEnabled();
@@ -67,5 +110,19 @@ public interface DiscoveryConfig
     Set<String> getEnabledPatchers();
 
     GraphMutator getMutator();
+
+    List<? extends Location> getLocations();
+
+    void setLocations( Collection<? extends Location> locations );
+
+    boolean isStoreRelationships();
+
+    void setStoreRelationships( boolean store );
+
+    boolean isIncludeBuildSection();
+
+    boolean isIncludeManagedDependencies();
+
+    boolean isIncludeManagedPlugins();
 
 }

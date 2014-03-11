@@ -18,12 +18,16 @@ package org.commonjava.maven.cartographer.discover;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.galley.model.Location;
 
 public class DefaultDiscoveryConfig
     implements DiscoveryConfig
@@ -35,9 +39,19 @@ public class DefaultDiscoveryConfig
 
     private final URI discoverySource;
 
+    private List<? extends Location> discoveryLocations;
+
     private Set<String> patchers;
 
     private GraphMutator mutator;
+
+    private boolean storeRelationships = false;
+
+    private boolean includeManagedPlugins = false;
+
+    private boolean includeBuildSection = true;
+
+    private boolean includeManagedDependencies = true;
 
     public DefaultDiscoveryConfig( final URI discoverySource )
     {
@@ -48,6 +62,13 @@ public class DefaultDiscoveryConfig
         throws URISyntaxException
     {
         this.discoverySource = new URI( discoverySource );
+    }
+
+    public DefaultDiscoveryConfig( final Location location )
+        throws URISyntaxException
+    {
+        this.discoverySource = new URI( location.getUri() );
+        this.discoveryLocations = Collections.singletonList( location );
     }
 
     public DefaultDiscoveryConfig( final DiscoveryConfig discoveryConfig )
@@ -67,6 +88,11 @@ public class DefaultDiscoveryConfig
         this.timeoutMillis = discoveryConfig.getTimeoutMillis();
         this.discoverySource = discoveryConfig.getDiscoverySource();
         this.mutator = discoveryConfig.getMutator();
+        this.discoveryLocations = discoveryConfig.getLocations();
+        this.storeRelationships = discoveryConfig.isStoreRelationships();
+        this.includeBuildSection = discoveryConfig.isIncludeBuildSection();
+        this.includeManagedDependencies = discoveryConfig.isIncludeManagedDependencies();
+        this.includeManagedPlugins = discoveryConfig.isIncludeManagedPlugins();
     }
 
     public DefaultDiscoveryConfig setEnabled( final boolean enabled )
@@ -121,6 +147,63 @@ public class DefaultDiscoveryConfig
     {
         this.mutator = mutator;
         return this;
+    }
+
+    @Override
+    public List<? extends Location> getLocations()
+    {
+        return discoveryLocations;
+    }
+
+    @Override
+    public void setLocations( final Collection<? extends Location> locations )
+    {
+        this.discoveryLocations = ( locations instanceof List ) ? (List<? extends Location>) locations : new ArrayList<Location>( locations );
+    }
+
+    @Override
+    public boolean isStoreRelationships()
+    {
+        return storeRelationships;
+    }
+
+    @Override
+    public void setStoreRelationships( final boolean store )
+    {
+        this.storeRelationships = store;
+    }
+
+    public void setIncludeManagedDependencies( final boolean include )
+    {
+        this.includeManagedDependencies = include;
+    }
+
+    public void setIncludeBuildSection( final boolean include )
+    {
+        this.includeBuildSection = include;
+    }
+
+    public void setIncludeManagedPlugins( final boolean include )
+    {
+        this.includeManagedPlugins = include;
+    }
+
+    @Override
+    public boolean isIncludeBuildSection()
+    {
+        return includeBuildSection;
+    }
+
+    @Override
+    public boolean isIncludeManagedDependencies()
+    {
+        return includeManagedDependencies;
+    }
+
+    @Override
+    public boolean isIncludeManagedPlugins()
+    {
+        return includeManagedPlugins;
     }
 
 }

@@ -127,6 +127,7 @@ public class ResolveOps
         //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
+        config.setStoreRelationships( true );
 
         final List<ProjectVersionRef> results = new ArrayList<ProjectVersionRef>();
         for ( final ProjectVersionRef root : roots )
@@ -150,7 +151,7 @@ public class ResolveOps
 
             if ( doDiscovery )
             {
-                final DiscoveryResult result = discoverer.discoverRelationships( specific, config, true );
+                final DiscoveryResult result = discoverer.discoverRelationships( specific, config );
                 if ( result != null && data.contains( result.getSelectedRef() ) )
                 {
                     results.add( result.getSelectedRef() );
@@ -170,6 +171,7 @@ public class ResolveOps
         final EProjectWeb web = data.getProjectWeb( filter, resultsArray );
         if ( options.isDiscoveryEnabled() )
         {
+            config.setStoreRelationships( false );
             aggregator.connectIncomplete( web, options );
         }
 

@@ -21,6 +21,7 @@ import java.util.Set;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.spi.model.GraphPath;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 final class DiscoveryTodo
@@ -33,7 +34,9 @@ final class DiscoveryTodo
 
     private Set<ProjectRelationship<?>> sourceRelationships;
 
-    DiscoveryTodo( final ProjectVersionRef ref )
+    private GraphPath<?> parentPath;
+
+    public DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
@@ -45,17 +48,17 @@ final class DiscoveryTodo
         this.mutators = mutators;
     }
 
-    ProjectVersionRef getRef()
+    public ProjectVersionRef getRef()
     {
         return ref;
     }
 
-    Set<ProjectRelationshipFilter> getFilters()
+    public Set<ProjectRelationshipFilter> getFilters()
     {
         return filters;
     }
 
-    void setFilters( final Set<ProjectRelationshipFilter> filters )
+    public void setFilters( final Set<ProjectRelationshipFilter> filters )
     {
         this.filters = filters;
     }
@@ -123,6 +126,16 @@ final class DiscoveryTodo
     public void setSourceRelationships( final Set<ProjectRelationship<?>> sourceRelationships )
     {
         this.sourceRelationships = sourceRelationships;
+    }
+
+    public GraphPath<?> getParentPath()
+    {
+        return parentPath;
+    }
+
+    public void setParentPath( final GraphPath<?> path )
+    {
+        this.parentPath = path;
     }
 
 }

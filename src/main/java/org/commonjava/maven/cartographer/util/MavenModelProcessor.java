@@ -40,6 +40,8 @@ import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
+import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
@@ -60,12 +62,6 @@ public class MavenModelProcessor
     @Inject
     private CartoDataManager dataManager;
 
-    private final boolean processManagedDependencyInfo = true;
-
-    private final boolean processManagedPluginInfo = true;
-
-    private final boolean processBuildInfo = true;
-
     protected MavenModelProcessor()
     {
     }
@@ -75,10 +71,19 @@ public class MavenModelProcessor
         this.dataManager = dataManager;
     }
 
+    /**
+     * @deprecated Use {@link #readRelationships(MavenPomView, URI, boolean, boolean, boolean)} instead, and store using external logic.
+     */
+    @Deprecated
     public DiscoveryResult storeModelRelationships( final MavenPomView pomView, final URI source )
         throws CartoDataException
     {
-        final DiscoveryResult fromRead = readRelationships( pomView, source );
+        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( source );
+        discoveryConfig.setIncludeManagedDependencies( true );
+        discoveryConfig.setIncludeBuildSection( true );
+        discoveryConfig.setIncludeManagedPlugins( false );
+
+        final DiscoveryResult fromRead = readRelationships( pomView, source, discoveryConfig );
         final ProjectVersionRef projectRef = fromRead.getSelectedRef();
         dataManager.clearErrors( projectRef );
         final Set<ProjectRelationship<?>> skipped = dataManager.storeRelationships( fromRead.getAllDiscoveredRelationships() );
@@ -87,9 +92,28 @@ public class MavenModelProcessor
 
     }
 
+    /**
+     * @deprecated Use {@link #readRelationships(MavenPomView,URI,boolean,boolean,boolean)} instead
+     */
+    @Deprecated
     public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source )
         throws CartoDataException
     {
+        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( source );
+        discoveryConfig.setIncludeManagedDependencies( true );
+        discoveryConfig.setIncludeBuildSection( true );
+        discoveryConfig.setIncludeManagedPlugins( false );
+
+        return readRelationships( pomView, source, discoveryConfig );
+    }
+
+    public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source, final DiscoveryConfig discoveryConfig )
+        throws CartoDataException
+    {
+        final boolean includeManagedDependencies = discoveryConfig.isIncludeManagedDependencies();
+        final boolean includeBuildSection = discoveryConfig.isIncludeBuildSection();
+        final boolean includeManagedPlugins = discoveryConfig.isIncludeManagedPlugins();
+
         logger.info( "Reading relationships for: {}\n  (from: {})", pomView.getRef(), source );
 
         try
@@ -100,12 +124,12 @@ public class MavenModelProcessor
 
             addParentRelationship( source, builder, pomView, projectRef );
 
-            addDependencyRelationships( source, builder, pomView, projectRef );
+            addDependencyRelationships( source, builder, pomView, projectRef, includeManagedDependencies );
 
-            if ( processBuildInfo )
+            if ( includeBuildSection )
             {
                 addExtensionUsages( source, builder, pomView, projectRef );
-                addPluginUsages( source, builder, pomView, projectRef );
+                addPluginUsages( source, builder, pomView, projectRef, includeManagedPlugins );
             }
 
             final EProjectDirectRelationships rels = builder.build();
@@ -173,10 +197,11 @@ public class MavenModelProcessor
         }
     }
 
-    private void addPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    private void addPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef,
+                                  final boolean includeManagedPlugins )
         throws CartoDataException
     {
-        addBuildPluginUsages( source, builder, pomView, projectRef );
+        addBuildPluginUsages( source, builder, pomView, projectRef, includeManagedPlugins );
         addReportPluginUsages( source, builder, pomView, projectRef );
         addSiteReportPluginUsages( source, builder, pomView, projectRef );
     }
@@ -231,10 +256,11 @@ public class MavenModelProcessor
         addPlugins( plugins, projectRef, builder, source, false );
     }
 
-    public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef,
+                                      final boolean includeManagedPlugins )
         throws CartoDataException
     {
-        if ( processManagedPluginInfo )
+        if ( includeManagedPlugins )
         {
             List<PluginView> plugins = null;
             try
@@ -393,9 +419,10 @@ public class MavenModelProcessor
         }
     }
 
-    protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView,
+                                               final ProjectVersionRef projectRef, final boolean includeManagedDependencies )
     {
-        if ( processManagedDependencyInfo )
+        if ( includeManagedDependencies )
         {
             List<DependencyView> deps = null;
             try

@@ -77,7 +77,7 @@ public class DiscoveryRunnable
 
             if ( discoverer != null && !roMissing.contains( ref ) )
             {
-                result = discoverer.discoverRelationships( ref, discoveryConfig, storeRelationships );
+                result = discoverer.discoverRelationships( ref, discoveryConfig );
             }
             else if ( roMissing.contains( ref ) )
             {
