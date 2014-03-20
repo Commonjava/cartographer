@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.galley.model.Location;
 
 public class DefaultDiscoveryConfig
@@ -140,7 +141,7 @@ public class DefaultDiscoveryConfig
     @Override
     public GraphMutator getMutator()
     {
-        return mutator;
+        return mutator == null ? new ManagedDependencyMutator() : mutator;
     }
 
     public DefaultDiscoveryConfig setMutator( final GraphMutator mutator )

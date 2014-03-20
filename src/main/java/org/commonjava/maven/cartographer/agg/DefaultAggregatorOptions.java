@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -155,7 +156,7 @@ public class DefaultAggregatorOptions
     @Override
     public GraphMutator getMutator()
     {
-        return mutator;
+        return mutator == null ? new ManagedDependencyMutator() : mutator;
     }
 
 }

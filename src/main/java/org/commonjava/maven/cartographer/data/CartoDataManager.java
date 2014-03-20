@@ -221,7 +221,10 @@ public interface CartoDataManager
     void clearCurrentWorkspace()
         throws CartoDataException;
 
+    @Deprecated
     EGraphManager getGraphManager();
+
+    EGraphManager graphs();
 
     GraphWorkspace getWorkspace( String id )
         throws CartoDataException;

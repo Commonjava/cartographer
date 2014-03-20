@@ -16,51 +16,34 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.agg;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.spi.model.GraphPath;
+import org.commonjava.maven.atlas.graph.model.GraphPath;
+import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 final class DiscoveryTodo
 {
     private final ProjectVersionRef ref;
 
-    private Set<ProjectRelationshipFilter> filters;
-
-    private Set<GraphMutator> mutators;
-
-    private Set<ProjectRelationship<?>> sourceRelationships;
-
-    private GraphPath<?> parentPath;
+    private Map<GraphPath<?>, GraphPathInfo> parentPaths;
 
     public DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
 
-    public DiscoveryTodo( final ProjectVersionRef ref, final Set<ProjectRelationshipFilter> filters, final Set<GraphMutator> mutators )
+    public DiscoveryTodo( final ProjectVersionRef ref, final GraphPath<?> path, final GraphPathInfo pathInfo )
     {
         this.ref = ref;
-        this.filters = filters;
-        this.mutators = mutators;
+        this.parentPaths = new HashMap<GraphPath<?>, GraphPathInfo>();
+        parentPaths.put( path, pathInfo );
     }
 
     public ProjectVersionRef getRef()
     {
         return ref;
-    }
-
-    public Set<ProjectRelationshipFilter> getFilters()
-    {
-        return filters;
-    }
-
-    public void setFilters( final Set<ProjectRelationshipFilter> filters )
-    {
-        this.filters = filters;
     }
 
     @Override
@@ -105,37 +88,27 @@ final class DiscoveryTodo
     @Override
     public String toString()
     {
-        return String.format( "DiscoveryTodo [ref=%s, filters=%s, mutators: %s]", ref, filters, mutators );
+        return String.format( "DiscoveryTodo [ref=%s, filters=%s, paths: %s]", ref, parentPaths );
     }
 
-    public void setMutators( final Set<GraphMutator> mutators )
+    public Map<GraphPath<?>, GraphPathInfo> getParentPathMap()
     {
-        this.mutators = mutators;
+        return parentPaths;
     }
 
-    public Set<GraphMutator> getMutators()
+    public void setParentPathMap( final Map<GraphPath<?>, GraphPathInfo> paths )
     {
-        return mutators;
+        this.parentPaths = paths;
     }
 
-    public Set<ProjectRelationship<?>> getSourceRelationships()
+    public void addParentPath( final GraphPath<?> path, final GraphPathInfo pathInfo )
     {
-        return sourceRelationships;
-    }
+        if ( parentPaths == null )
+        {
+            parentPaths = new HashMap<GraphPath<?>, GraphPathInfo>();
+        }
 
-    public void setSourceRelationships( final Set<ProjectRelationship<?>> sourceRelationships )
-    {
-        this.sourceRelationships = sourceRelationships;
-    }
-
-    public GraphPath<?> getParentPath()
-    {
-        return parentPath;
-    }
-
-    public void setParentPath( final GraphPath<?> path )
-    {
-        this.parentPath = path;
+        parentPaths.put( path, pathInfo );
     }
 
 }

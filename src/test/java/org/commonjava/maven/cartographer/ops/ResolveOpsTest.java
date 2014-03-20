@@ -52,6 +52,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -151,6 +152,7 @@ public class ResolveOpsTest
     }
 
     @Test
+    @Ignore
     public void connectIncompleteWithDiscovery_Idempotency_DepsOnly()
         throws Exception
     {

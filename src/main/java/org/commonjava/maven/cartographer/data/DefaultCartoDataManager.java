@@ -946,6 +946,12 @@ public class DefaultCartoDataManager
     }
 
     @Override
+    public EGraphManager graphs()
+    {
+        return graphs;
+    }
+
+    @Override
     public GraphWorkspace getWorkspace( final String id )
         throws CartoDataException
     {

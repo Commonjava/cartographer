@@ -35,6 +35,7 @@ import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
@@ -56,7 +57,6 @@ import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.dto.ResolverRecipe;
-import org.commonjava.maven.cartographer.preset.WorkspaceRecorder;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -130,6 +130,7 @@ public class ResolveOps
         config.setStoreRelationships( true );
 
         final List<ProjectVersionRef> results = new ArrayList<ProjectVersionRef>();
+
         for ( final ProjectVersionRef root : roots )
         {
             ProjectVersionRef specific = discoverer.resolveSpecificVersion( root, config );
@@ -137,10 +138,10 @@ public class ResolveOps
             {
                 specific = root;
             }
-            else if ( !specific.equals( root ) )
-            {
-                ws.selectVersion( root, specific );
-            }
+            //            else if ( !specific.equals( root ) )
+            //            {
+            //                view.selectVersion( root, specific );
+            //            }
 
             boolean doDiscovery = !data.contains( specific );
             if ( !doDiscovery && data.hasErrors( specific ) )
@@ -163,21 +164,13 @@ public class ResolveOps
             }
         }
 
-        final ProjectRelationshipFilter filter = options.getFilter();
-        final ProjectVersionRef[] resultsArray = results.toArray( new ProjectVersionRef[results.size()] );
-
-        logger.info( "Retrieving web for roots: {} with filter: {}", results, filter );
-
-        final EProjectWeb web = data.getProjectWeb( filter, resultsArray );
+        final GraphView view = new GraphView( ws, options.getFilter(), options.getMutator(), results );
+        final EProjectWeb web = data.graphs()
+                                    .getWeb( view );
         if ( options.isDiscoveryEnabled() )
         {
             config.setStoreRelationships( false );
             aggregator.connectIncomplete( web, options );
-        }
-
-        if ( filter != null && ( filter instanceof WorkspaceRecorder ) )
-        {
-            ( (WorkspaceRecorder) filter ).save( data.getCurrentWorkspace() );
         }
 
         return results;

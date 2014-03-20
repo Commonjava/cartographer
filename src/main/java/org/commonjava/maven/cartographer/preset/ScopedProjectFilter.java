@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -30,11 +31,17 @@ public class ScopedProjectFilter
     implements ProjectRelationshipFilter
 {
 
+    private static final long serialVersionUID = 1L;
+
     private final ProjectRelationshipFilter filter;
 
     private final boolean acceptManaged;
 
     private final DependencyScope scope;
+
+    private transient String longId;
+
+    private transient String shortId;
 
     public ScopedProjectFilter()
     {
@@ -116,34 +123,36 @@ public class ScopedProjectFilter
     }
 
     @Override
-    public void render( final StringBuilder sb )
+    public String getLongId()
     {
-        if ( sb.length() > 0 )
+        if ( longId == null )
         {
-            sb.append( " " );
-        }
-        sb.append( "Scoped Projects Filter (sub-filter=" );
+            final StringBuilder sb = new StringBuilder();
+            sb.append( "Scoped-Projects(sub-filter:" );
 
-        if ( filter == null )
-        {
-            sb.append( "NONE" );
-        }
-        else
-        {
-            filter.render( sb );
+            if ( filter == null )
+            {
+                sb.append( "none" );
+            }
+            else
+            {
+                sb.append( filter.getLongId() );
+            }
+
+            sb.append( ",acceptManaged:" )
+              .append( acceptManaged )
+              .append( ")" );
+
+            longId = sb.toString();
         }
 
-        sb.append( " [acceptManaged=" )
-          .append( acceptManaged )
-          .append( "])" );
+        return longId;
     }
 
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        render( sb );
-        return sb.toString();
+        return getLongId();
     }
 
     @Override
@@ -193,6 +202,17 @@ public class ScopedProjectFilter
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getCondensedId()
+    {
+        if ( shortId == null )
+        {
+            shortId = DigestUtils.shaHex( getLongId() );
+        }
+
+        return shortId;
     }
 
 }

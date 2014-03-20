@@ -19,6 +19,7 @@ package org.commonjava.maven.cartographer.preset;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -36,6 +37,8 @@ public class BuildRequirementProjectsFilter
     implements ProjectRelationshipFilter
 {
 
+    private static final long serialVersionUID = 1L;
+
     private final boolean runtimeOnly;
 
     private final ProjectRelationshipFilter filter;
@@ -43,6 +46,10 @@ public class BuildRequirementProjectsFilter
     private final Set<ProjectRef> excludes;
 
     private final boolean acceptManaged;
+
+    private transient String longId;
+
+    private transient String shortId;
 
     public BuildRequirementProjectsFilter()
     {
@@ -201,38 +208,9 @@ public class BuildRequirementProjectsFilter
     }
 
     @Override
-    public void render( final StringBuilder sb )
-    {
-        if ( sb.length() > 0 )
-        {
-            sb.append( " " );
-        }
-        sb.append( "Build-Requires Filter (sub-filter=" );
-
-        if ( filter == null )
-        {
-            sb.append( "NONE" );
-        }
-        else
-        {
-            filter.render( sb );
-        }
-
-        sb.append( "; runtimeOnly=" )
-          .append( runtimeOnly )
-          .append( "; excludes=[" )
-          .append( new JoinString( ", ", excludes ) )
-          .append( "]; acceptManaged=" )
-          .append( acceptManaged )
-          .append( "])" );
-    }
-
-    @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        render( sb );
-        return sb.toString();
+        return getLongId();
     }
 
     @Override
@@ -294,6 +272,48 @@ public class BuildRequirementProjectsFilter
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getLongId()
+    {
+        if ( longId == null )
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append( "Build-Requires(sub-filter:" );
+
+            if ( filter == null )
+            {
+                sb.append( "none" );
+            }
+            else
+            {
+                sb.append( filter.getLongId() );
+            }
+
+            sb.append( ",runtimeOnly:" )
+              .append( runtimeOnly )
+              .append( ",excludes:{" )
+              .append( new JoinString( ",", excludes ) )
+              .append( "},acceptManaged:" )
+              .append( acceptManaged )
+              .append( ")" );
+
+            longId = sb.toString();
+        }
+
+        return longId;
+    }
+
+    @Override
+    public String getCondensedId()
+    {
+        if ( shortId == null )
+        {
+            shortId = DigestUtils.shaHex( getLongId() );
+        }
+
+        return shortId;
     }
 
 }

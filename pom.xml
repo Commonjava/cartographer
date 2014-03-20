@@ -37,8 +37,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.11.0</atlasVersion>
-    <galleyVersion>0.4.2</galleyVersion>
+    <atlasVersion>0.12.0-SNAPSHOT</atlasVersion>
+    <galleyVersion>0.4.3-SNAPSHOT</galleyVersion>
   </properties>
 
   <dependencyManagement>
@@ -224,9 +224,9 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
-            <source>1.6</source>
+<!--             <source>1.6</source>
             <target>1.6</target>
-            <annotationProcessors>
+ -->            <annotationProcessors>
               <annotationProcessor>org.commonjava.atservice.processor.ServiceAnnotationProcessor</annotationProcessor>
             </annotationProcessors>
           </configuration>

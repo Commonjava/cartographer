@@ -23,6 +23,8 @@ public class GroupIdFilter
     implements ProjectRelationshipFilter
 {
 
+    private static final long serialVersionUID = 1L;
+
     private final String groupId;
 
     public GroupIdFilter( final String groupId )
@@ -44,18 +46,20 @@ public class GroupIdFilter
     }
 
     @Override
-    public void render( final StringBuilder sb )
+    public String toString()
     {
-        sb.append( "Artifacts with groupId [" )
-          .append( groupId )
-          .append( ']' );
+        return getLongId();
     }
 
     @Override
-    public String toString()
+    public String getLongId()
     {
-        final StringBuilder sb = new StringBuilder();
-        render( sb );
-        return sb.toString();
+        return "GROUP_ID[" + groupId + "]";
+    }
+
+    @Override
+    public String getCondensedId()
+    {
+        return getLongId();
     }
 }

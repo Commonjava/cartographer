@@ -46,20 +46,17 @@ public class DiscoveryRunnable
 
     private DiscoveryResult result;
 
-    private final boolean storeRelationships;
-
     private final int pass;
 
     private final int idx;
 
     public DiscoveryRunnable( final DiscoveryTodo todo, final AggregationOptions config, final Set<ProjectVersionRef> missing,
-                              final ProjectRelationshipDiscoverer discoverer, final boolean storeRelationships, final int pass, final int idx )
+                              final ProjectRelationshipDiscoverer discoverer, final int pass, final int idx )
     {
         this.todo = todo;
         this.config = config;
         this.roMissing = missing;
         this.discoverer = discoverer;
-        this.storeRelationships = storeRelationships;
         this.pass = pass;
         this.idx = idx;
     }
