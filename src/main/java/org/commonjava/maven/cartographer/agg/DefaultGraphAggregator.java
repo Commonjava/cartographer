@@ -16,10 +16,11 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.agg;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -110,17 +111,16 @@ public class DefaultGraphAggregator
             final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading initial set of GAVs to be resolved..." );
-            final LinkedList<DiscoveryTodo> pending = loadInitialPending( view, seen, config.getMutator() );
+            final List<DiscoveryTodo> pending = loadInitialPending( view, seen, config.getMutator() );
             final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
             int pass = 0;
             while ( !pending.isEmpty() )
             {
                 final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
-                final int i = 0;
-                while ( !pending.isEmpty() && i < MAX_BATCHSIZE )
+                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
                 {
-                    current.add( pending.removeFirst() );
+                    current.add( pending.remove( 0 ) );
                 }
 
                 done.addAll( current );
@@ -129,10 +129,16 @@ public class DefaultGraphAggregator
                 final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, seen, view, pass );
                 if ( newTodos != null )
                 {
-                    newTodos.removeAll( done );
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
 
-                    pending.addAll( newTodos );
+                    for ( final DiscoveryTodo todo : newTodos )
+                    {
+                        if ( !done.contains( todo ) && !pending.contains( todo ) )
+                        {
+                            logger.debug( "+= {}", todo );
+                            pending.add( todo );
+                        }
+                    }
                 }
 
                 pass++;
@@ -462,7 +468,7 @@ public class DefaultGraphAggregator
         return participants;
     }
 
-    private LinkedList<DiscoveryTodo> loadInitialPending( final GraphView view, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
+    private List<DiscoveryTodo> loadInitialPending( final GraphView view, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
     {
         logger.info( "Using root-level mutator: {}", view.getMutator() );
 
@@ -471,7 +477,7 @@ public class DefaultGraphAggregator
 
         if ( initialIncomplete == null || initialIncomplete.isEmpty() )
         {
-            return new LinkedList<DiscoveryTodo>();
+            return new ArrayList<DiscoveryTodo>();
         }
 
         final Map<GraphPath<?>, GraphPathInfo> pathMap = dataManager.graphs()
@@ -479,7 +485,7 @@ public class DefaultGraphAggregator
 
         if ( pathMap == null || pathMap.isEmpty() )
         {
-            return new LinkedList<DiscoveryTodo>();
+            return new ArrayList<DiscoveryTodo>();
         }
 
         logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ),
@@ -512,6 +518,6 @@ public class DefaultGraphAggregator
         logger.info( "[INIT] {} subgraphs pending discovery", initialPending.size() );
         logger.debug( "Initial pending:\n  {}\n", new JoinString( "\n  ", initialPending.keySet() ) );
 
-        return new LinkedList<DiscoveryTodo>( initialPending.values() );
+        return new ArrayList<DiscoveryTodo>( initialPending.values() );
     }
 }
