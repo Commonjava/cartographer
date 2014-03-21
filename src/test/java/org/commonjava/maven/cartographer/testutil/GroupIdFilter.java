@@ -42,7 +42,8 @@ public class GroupIdFilter
     @Override
     public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> parent )
     {
-        return new GroupIdFilter( groupId + ".child" );
+        //        return new GroupIdFilter( groupId + ".child" );
+        return this;
     }
 
     @Override

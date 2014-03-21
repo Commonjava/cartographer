@@ -52,7 +52,6 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -152,7 +151,6 @@ public class ResolveOpsTest
     }
 
     @Test
-    @Ignore
     public void connectIncompleteWithDiscovery_Idempotency_DepsOnly()
         throws Exception
     {
@@ -161,11 +159,13 @@ public class ResolveOpsTest
 
         final ProjectVersionRef root = new ProjectVersionRef( baseG, "root", "1" );
         final ProjectVersionRef c1 = new ProjectVersionRef( baseG, "child-1", "1.0" );
-        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG + ".child", "grandchild-1", "1.0" );
+        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG, "grandchild-1", "1.0" );
         final ProjectVersionRef c2 = new ProjectVersionRef( "org.bar", "child-2", "1.0" );
         final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
         final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
         final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
+
+        ws.addActiveSource( src );
 
         /* @formatter:off */
         fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList(

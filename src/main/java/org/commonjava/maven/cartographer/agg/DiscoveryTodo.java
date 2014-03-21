@@ -88,7 +88,7 @@ final class DiscoveryTodo
     @Override
     public String toString()
     {
-        return String.format( "DiscoveryTodo [ref=%s, filters=%s, paths: %s]", ref, parentPaths );
+        return String.format( "DiscoveryTodo [ref=%s, parent-paths: %s]", ref, parentPaths );
     }
 
     public Map<GraphPath<?>, GraphPathInfo> getParentPathMap()
