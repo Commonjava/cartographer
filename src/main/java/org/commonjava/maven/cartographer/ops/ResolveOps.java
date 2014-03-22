@@ -152,14 +152,20 @@ public class ResolveOps
 
             if ( doDiscovery )
             {
+                logger.info( "Resolving direct relationships for root: {}", specific );
                 final DiscoveryResult result = discoverer.discoverRelationships( specific, config );
+                logger.info( "Result: {} relationships", ( result == null ? 0 : result.getAcceptedRelationships()
+                                                                                      .size() ) );
                 if ( result != null && data.contains( result.getSelectedRef() ) )
                 {
+                    logger.info( "Resolved {} relationships for root: {}", result.getAcceptedRelationships()
+                                                                                 .size(), specific );
                     results.add( result.getSelectedRef() );
                 }
             }
             else
             {
+                logger.info( "NOT doing discovery for root: {}", specific );
                 results.add( specific );
             }
         }
@@ -169,6 +175,7 @@ public class ResolveOps
                                     .getWeb( view );
         if ( options.isDiscoveryEnabled() )
         {
+            logger.info( "Performing graph discovery for: {}", results );
             config.setStoreRelationships( false );
             aggregator.connectIncomplete( web, options );
         }
