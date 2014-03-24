@@ -168,7 +168,8 @@ public class CalculationOps
         Set<ProjectRelationship<?>> result = null;
         for ( final GraphDescription graph : composition.getGraphs() )
         {
-            final EProjectNet web = data.getProjectWeb( graph.getFilter(), graph.getRootsArray() );
+            final EProjectNet web =
+                graph.getView() == null ? data.getProjectWeb( graph.getFilter(), graph.getRootsArray() ) : data.getProjectWeb( graph.getView() );
 
             if ( web == null )
             {

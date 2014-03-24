@@ -695,6 +695,12 @@ public class DefaultCartoDataManager
     }
 
     @Override
+    public EProjectWeb getProjectWeb( final GraphView view )
+    {
+        return graphs.getWeb( view );
+    }
+
+    @Override
     public Set<ProjectVersionRef> getMatchingGAVs( final ProjectRef projectRef )
         throws CartoDataException
     {

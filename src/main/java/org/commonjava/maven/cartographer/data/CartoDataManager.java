@@ -28,6 +28,7 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
@@ -231,5 +232,7 @@ public interface CartoDataManager
 
     Map<Map<String, String>, Set<ProjectVersionRef>> collateProjectsByMetadata( Set<ProjectVersionRef> refs, Set<String> keys )
         throws CartoDataException;
+
+    EProjectWeb getProjectWeb( GraphView view );
 
 }

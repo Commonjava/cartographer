@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -190,8 +191,9 @@ public class ResolveOpsTest
                                                                                .setProcessVariableSubgraphs( true )
                                                                                .setDiscoveryTimeoutMillis( 10 );
 
-        List<ProjectVersionRef> resolved = fixture.getResolveOps()
-                                                  .resolve( src.toString(), options, root );
+        GraphView view = fixture.getResolveOps()
+                                .resolve( src.toString(), options, root );
+        Set<ProjectVersionRef> resolved = view.getRoots();
         assertThat( resolved.contains( root ), equalTo( true ) );
 
         assertThat( fixture.getDiscoverer()
@@ -208,8 +210,11 @@ public class ResolveOpsTest
         ) );
         /* @formatter:on */
 
-        resolved = fixture.getResolveOps()
-                          .resolve( src.toString(), options, root );
+        view = fixture.getResolveOps()
+                      .resolve( src.toString(), options, root );
+
+        resolved = view.getRoots();
+
         assertThat( resolved.contains( root ), equalTo( true ) );
 
         assertThat( fixture.getDiscoverer()

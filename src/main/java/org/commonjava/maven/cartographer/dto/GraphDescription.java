@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 public class GraphDescription
@@ -36,6 +37,8 @@ public class GraphDescription
     private Map<String, Object> presetParams;
 
     private transient ProjectRelationshipFilter filter;
+
+    private transient GraphView view;
 
     protected GraphDescription()
     {
@@ -119,6 +122,17 @@ public class GraphDescription
     public Map<String, Object> getPresetParams()
     {
         return presetParams;
+    }
+
+    public void setView( final GraphView view )
+    {
+        this.view = view;
+        this.roots = view.getRoots();
+    }
+
+    public GraphView getView()
+    {
+        return view;
     }
 
 }

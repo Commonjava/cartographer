@@ -57,8 +57,6 @@ public class DefaultGraphAggregator
     implements GraphAggregator
 {
 
-    private static final int MAX_BATCHSIZE = 20;
-
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
@@ -117,15 +115,16 @@ public class DefaultGraphAggregator
             int pass = 0;
             while ( !pending.isEmpty() )
             {
-                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
-                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
-                {
-                    current.add( pending.remove( 0 ) );
-                }
+                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
+                pending.clear();
+                //                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
+                //                {
+                //                    current.add( pending.remove( 0 ) );
+                //                }
 
                 done.addAll( current );
 
-                logger.debug( "{}. Next batch of TODOs:\n  {}", pass, new JoinString( "\n  ", current ) );
+                logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ", current ) );
                 final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, seen, view, pass );
                 if ( newTodos != null )
                 {
@@ -143,6 +142,8 @@ public class DefaultGraphAggregator
 
                 pass++;
             }
+
+            logger.info( "Discovery complete. {} seen, {} missing in {} passes.", seen.size(), missing.size(), pass - 1 );
         }
 
         return net;

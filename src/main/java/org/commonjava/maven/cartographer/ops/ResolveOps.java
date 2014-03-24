@@ -21,7 +21,6 @@ import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProj
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,7 +106,7 @@ public class ResolveOps
         this.executor = executor;
     }
 
-    public List<ProjectVersionRef> resolve( final String fromUri, final AggregationOptions options, final ProjectVersionRef... roots )
+    public GraphView resolve( final String fromUri, final AggregationOptions options, final ProjectVersionRef... roots )
         throws CartoDataException
     {
         final URI source = sourceManager.createSourceURI( fromUri );
@@ -180,7 +179,7 @@ public class ResolveOps
             aggregator.connectIncomplete( web, options );
         }
 
-        return results;
+        return view;
     }
 
     public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
@@ -302,16 +301,17 @@ public class ResolveOps
             throw new CartoDataException( "Invalid repository recipe: {}", recipe );
         }
 
-        final GraphComposition graphs = recipe.getGraphComposition();
+        GraphComposition graphs = recipe.getGraphComposition();
 
         if ( recipe.isResolve() )
         {
-            resolve( recipe );
+            graphs = resolve( recipe );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap;
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
+
             final GraphCalculation result = calculations.calculate( graphs );
             refMap = collectProjectVersionReferences( result.getResult() );
         }
@@ -319,8 +319,9 @@ public class ResolveOps
         {
             final GraphDescription graphDesc = graphs.getGraphs()
                                                      .get( 0 );
+
             final ProjectVersionRef[] roots = graphDesc.getRootsArray();
-            web = data.getProjectWeb( graphDesc.getFilter(), roots );
+            web = graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(), roots ) : data.getProjectWeb( graphDesc.getView() );
 
             if ( web == null )
             {
@@ -372,10 +373,12 @@ public class ResolveOps
 
             final ProjectVersionRef[] rootsArray = graph.getRootsArray();
 
-            final List<ProjectVersionRef> roots = resolve( sourceUri.toString(), options, rootsArray );
+            final GraphView view = resolve( sourceUri.toString(), options, rootsArray );
+            final Set<ProjectVersionRef> roots = view.getRoots();
+
             outDescs.add( new GraphDescription( graph.getFilter(), roots ) );
 
-            graph.setRoots( new HashSet<ProjectVersionRef>( roots ) );
+            graph.setView( view );
         }
 
         return new GraphComposition( recipe.getGraphComposition()
