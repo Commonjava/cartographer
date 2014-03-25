@@ -57,6 +57,8 @@ public class DefaultGraphAggregator
     implements GraphAggregator
 {
 
+    private static final int MAX_BATCHSIZE = 50;
+
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
@@ -115,12 +117,14 @@ public class DefaultGraphAggregator
             int pass = 0;
             while ( !pending.isEmpty() )
             {
-                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
-                pending.clear();
-                //                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
-                //                {
-                //                    current.add( pending.remove( 0 ) );
-                //                }
+                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
+                //                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
+                //                pending.clear();
+
+                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
+                {
+                    current.add( pending.remove( 0 ) );
+                }
 
                 done.addAll( current );
 
@@ -163,25 +167,14 @@ public class DefaultGraphAggregator
         logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass, new JoinString( "\n  ",
                                                                                                                                        missing ) );
 
-        final Set<ProjectRelationship<?>> toStore = new HashSet<ProjectRelationship<?>>();
         final Map<ProjectVersionRef, DiscoveryTodo> nextTodos = new HashMap<ProjectVersionRef, DiscoveryTodo>();
 
         for ( final DiscoveryRunnable r : runnables )
         {
-            if ( !processDiscoveryOutput( r, toStore, nextTodos, view, config.getDiscoveryConfig(), seen, pass ) )
+            if ( !processDiscoveryOutput( r, nextTodos, view, config.getDiscoveryConfig(), seen, pass ) )
             {
                 markMissing( r, missing, pass );
             }
-        }
-
-        if ( !toStore.isEmpty() )
-        {
-            logger.info( "Storing {} relationships.", toStore.size() );
-            logger.debug( "Storing relationships:\n\n  {}\n\n", new JoinString( "\n  ", toStore ) );
-            final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( toStore );
-
-            logger.info( "Marking {} rejected relationships as cycle-injectors", rejected.size() );
-            addToCycleParticipants( rejected, cycleParticipants );
         }
 
         logger.info( "{}. After discovery, {} are missing", pass, missing.size() );
@@ -279,8 +272,6 @@ public class DefaultGraphAggregator
      * 
      * @param r The runnable containing discovery output to process for a specific 
      * input GAV
-     * @param toStore The accumulated list of relationships that shoudl be stored 
-     * in the graph db for this input GAV
      * @param nextTodos The accumulated next crop of {@link DiscoveryTodo}'s, which 
      * MAY be augmented by output from this discovery runnable 
      * @param net The top-level dependency graph for which discovery is taking place
@@ -292,8 +283,7 @@ public class DefaultGraphAggregator
      * GAV should be marked missing.
      * @throws CartoDataException 
      */
-    private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Set<ProjectRelationship<?>> toStore,
-                                            final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final GraphView view,
+    private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Map<ProjectVersionRef, DiscoveryTodo> nextTodos, final GraphView view,
                                             final DiscoveryConfig config, final Set<ProjectVersionRef> seen, final int pass )
         throws CartoDataException
     {
@@ -328,12 +318,6 @@ public class DefaultGraphAggregator
                 int idx = 0;
                 for ( final ProjectRelationship<?> rel : discoveredRels )
                 {
-                    // NOTE: If we don't store EVERY relationship we parse, 
-                    // later discovery passes using looser filters will miss 
-                    // discovered projects' relationships that we reject with a 
-                    // previous, tighter filter.
-                    toStore.add( rel );
-
                     final ProjectVersionRef relTarget = rel.getTarget()
                                                            .asProjectVersionRef();
                     if ( !seen.contains( relTarget ) )
@@ -356,11 +340,11 @@ public class DefaultGraphAggregator
                                 continue;
                             }
 
-                            toStore.add( selected );
                             contributedRels = true;
 
                             path = dataManager.graphs()
                                               .createPath( view, path, selected );
+
                             pathInfo = pathInfo.getChildPathInfo( selected );
 
                             DiscoveryTodo nextTodo = nextTodos.get( selectedTarget );
@@ -407,7 +391,7 @@ public class DefaultGraphAggregator
                     logger.debug( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.", pass, index,
                                   result.getSelectedRef() );
 
-                    toStore.add( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
+                    dataManager.storeRelationships( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
                 }
             }
             else
@@ -423,16 +407,16 @@ public class DefaultGraphAggregator
         }
     }
 
-    private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
-    {
-        for ( final ProjectRelationship<?> rejected : rejectedRelationships )
-        {
-            cycleParticipants.add( rejected.getDeclaring()
-                                           .asProjectVersionRef() );
-            cycleParticipants.add( rejected.getTarget()
-                                           .asProjectVersionRef() );
-        }
-    }
+    //    private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
+    //    {
+    //        for ( final ProjectRelationship<?> rejected : rejectedRelationships )
+    //        {
+    //            cycleParticipants.add( rejected.getDeclaring()
+    //                                           .asProjectVersionRef() );
+    //            cycleParticipants.add( rejected.getTarget()
+    //                                           .asProjectVersionRef() );
+    //        }
+    //    }
 
     private void markMissing( final DiscoveryRunnable runnable, final Set<ProjectVersionRef> missing, final int pass )
     {

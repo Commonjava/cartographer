@@ -133,14 +133,8 @@ public class BuildRequirementProjectsFilter
         {
             case EXTENSION:
             case PLUGIN:
-            {
-                return new BuildRequirementProjectsFilter( true, false, excludes );
-            }
             case PLUGIN_DEP:
             {
-                //                logger.info( "getChildFilter({})", lastRelationship );
-
-                // reset selections map to simulate classloader isolation.
                 return new BuildRequirementProjectsFilter( true, false, excludes );
             }
             case PARENT:
@@ -164,7 +158,7 @@ public class BuildRequirementProjectsFilter
                     }
 
                     exc.addAll( dr.getExcludes() );
-                    construct = true;
+                    construct = exc.equals( dr.getExcludes() );
                 }
 
                 boolean nextRuntimeOnly = runtimeOnly;
@@ -314,6 +308,18 @@ public class BuildRequirementProjectsFilter
         }
 
         return shortId;
+    }
+
+    @Override
+    public boolean includeManagedRelationships()
+    {
+        return acceptManaged;
+    }
+
+    @Override
+    public boolean includeConcreteRelationships()
+    {
+        return true;
     }
 
 }

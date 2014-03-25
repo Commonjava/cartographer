@@ -63,4 +63,16 @@ public class GroupIdFilter
     {
         return getLongId();
     }
+
+    @Override
+    public boolean includeManagedRelationships()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean includeConcreteRelationships()
+    {
+        return true;
+    }
 }

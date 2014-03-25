@@ -46,7 +46,7 @@ public class DefaultDiscoveryConfig
 
     private GraphMutator mutator;
 
-    private boolean storeRelationships = false;
+    private boolean storeRelationships = true;
 
     private boolean includeManagedPlugins = false;
 

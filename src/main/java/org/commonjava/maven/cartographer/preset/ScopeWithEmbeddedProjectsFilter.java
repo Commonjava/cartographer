@@ -243,4 +243,16 @@ public class ScopeWithEmbeddedProjectsFilter
         return shortId;
     }
 
+    @Override
+    public boolean includeManagedRelationships()
+    {
+        return acceptManaged;
+    }
+
+    @Override
+    public boolean includeConcreteRelationships()
+    {
+        return true;
+    }
+
 }

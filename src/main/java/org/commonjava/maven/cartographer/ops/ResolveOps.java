@@ -126,7 +126,6 @@ public class ResolveOps
         //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
-        config.setStoreRelationships( true );
 
         final List<ProjectVersionRef> results = new ArrayList<ProjectVersionRef>();
 
@@ -175,7 +174,6 @@ public class ResolveOps
         if ( options.isDiscoveryEnabled() )
         {
             logger.info( "Performing graph discovery for: {}", results );
-            config.setStoreRelationships( false );
             aggregator.connectIncomplete( web, options );
         }
 
