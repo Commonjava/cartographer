@@ -87,7 +87,9 @@ public abstract class AbstractCartoDataManagerTest
         throws Exception
     {
         final ProjectVersionRef r = new ProjectVersionRef( "org.test", "root", "1" );
-        final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).build();
+        final ProjectVersionRef d = new ProjectVersionRef( "org.test", "dep", "1" );
+        final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).withDependency( d, null, null, null, false )
+                                                                                                        .build();
 
         getDataManager().storeRelationships( root.getExactAllRelationships() );
 

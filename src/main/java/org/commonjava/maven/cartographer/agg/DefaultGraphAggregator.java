@@ -57,7 +57,7 @@ public class DefaultGraphAggregator
     implements GraphAggregator
 {
 
-    private static final int MAX_BATCHSIZE = 50;
+    //    private static final int MAX_BATCHSIZE = 50;
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -117,14 +117,14 @@ public class DefaultGraphAggregator
             int pass = 0;
             while ( !pending.isEmpty() )
             {
-                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
-                //                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
-                //                pending.clear();
+                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( pending );
+                pending.clear();
 
-                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
-                {
-                    current.add( pending.remove( 0 ) );
-                }
+                //                final HashSet<DiscoveryTodo> current = new HashSet<DiscoveryTodo>( MAX_BATCHSIZE );
+                //                while ( !pending.isEmpty() && current.size() < MAX_BATCHSIZE )
+                //                {
+                //                    current.add( pending.remove( 0 ) );
+                //                }
 
                 done.addAll( current );
 
