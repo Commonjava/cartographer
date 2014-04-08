@@ -345,6 +345,11 @@ public class DefaultGraphAggregator
                             path = dataManager.graphs()
                                               .createPath( view, path, selected );
 
+                            if ( path == null )
+                            {
+                                continue;
+                            }
+
                             pathInfo = pathInfo.getChildPathInfo( selected );
 
                             DiscoveryTodo nextTodo = nextTodos.get( selectedTarget );
