@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 import static org.commonjava.maven.atlas.ident.DependencyScope.compile;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.rel.BomRelationship;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
@@ -43,7 +45,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SOBBuildablesFilterTest
+public class ScopeWithEmbeddedProjectsFilterTest
 {
 
     private ScopeWithEmbeddedProjectsFilter filter;
@@ -68,15 +70,15 @@ public class SOBBuildablesFilterTest
     }
 
     @Test
-    public void initialInstanceAcceptsRuntimeAndCompileDependencies_AndParent()
+    public void initialInstanceAcceptsRuntimeAndCompileDependencies_AndBom_AndParent()
         throws Exception
     {
         assertConcreteAcceptance( filter, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT );
+                                  PARENT, BOM );
     }
 
     @Test
-    public void initialInstanceRejectsAllManagedRelationships_EXCEPT_BOM()
+    public void initialInstanceRejectsAllManagedRelationships()
     {
         assertRejectsAllManaged( filter, from, src, tgt );
     }
@@ -132,7 +134,7 @@ public class SOBBuildablesFilterTest
     }
 
     @Test
-    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingRuntimeDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingRuntimeDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), runtime, 0, false );
@@ -140,13 +142,13 @@ public class SOBBuildablesFilterTest
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT );
+                                  PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingCompileDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingCompileDependency()
         throws Exception
     {
         final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), compile, 0, false );
@@ -154,13 +156,13 @@ public class SOBBuildablesFilterTest
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT );
+                                  PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingParent()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingParent()
         throws Exception
     {
         final ParentRelationship parent = new ParentRelationship( from, src, root );
@@ -168,13 +170,13 @@ public class SOBBuildablesFilterTest
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT );
+                                  PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptParentAfterTraversingParent()
+    public void acceptParentAndBomAfterTraversingParent()
         throws Exception
     {
         final ProjectVersionRef parentRef = new ProjectVersionRef( "group.id", "intermediate-parent", "2" );
@@ -184,6 +186,9 @@ public class SOBBuildablesFilterTest
 
         final ParentRelationship gparent = new ParentRelationship( from, parentRef, root );
         assertThat( child.accept( gparent ), equalTo( true ) );
+
+        final BomRelationship bom = new BomRelationship( from, parentRef, root, 0 );
+        assertThat( child.accept( bom ), equalTo( true ) );
     }
 
 }

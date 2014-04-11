@@ -16,8 +16,13 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.testutil;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 
 public class GroupIdFilter
     implements ProjectRelationshipFilter
@@ -74,5 +79,11 @@ public class GroupIdFilter
     public boolean includeConcreteRelationships()
     {
         return true;
+    }
+
+    @Override
+    public Set<RelationshipType> getAllowedTypes()
+    {
+        return new HashSet<RelationshipType>( Arrays.asList( RelationshipType.values() ) );
     }
 }

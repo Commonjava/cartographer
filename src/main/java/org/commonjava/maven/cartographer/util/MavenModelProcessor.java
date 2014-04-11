@@ -26,6 +26,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships.Builder;
+import org.commonjava.maven.atlas.graph.rel.BomRelationship;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
@@ -422,6 +423,46 @@ public class MavenModelProcessor
     protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView,
                                                final ProjectVersionRef projectRef, final boolean includeManagedDependencies )
     {
+        // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
+        List<DependencyView> boms = null;
+        try
+        {
+            boms = pomView.getAllBOMs();
+        }
+        catch ( final GalleyMavenException e )
+        {
+            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
+        }
+        catch ( final InvalidVersionSpecificationException e )
+        {
+            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
+        }
+        catch ( final InvalidRefException e )
+        {
+            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
+        }
+
+        for ( int i = 0; i < boms.size(); i++ )
+        {
+            final DependencyView bomView = boms.get( i );
+            try
+            {
+                builder.withBoms( new BomRelationship( source, projectRef, bomView.asProjectVersionRef(), i ) );
+            }
+            catch ( final InvalidRefException e )
+            {
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+            }
+            catch ( final InvalidVersionSpecificationException e )
+            {
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+            }
+            catch ( final GalleyMavenException e )
+            {
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+            }
+        }
+
         if ( includeManagedDependencies )
         {
             List<DependencyView> deps = null;
@@ -444,27 +485,6 @@ public class MavenModelProcessor
 
             addDependencies( deps, projectRef, builder, source, true );
         }
-
-        // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
-        List<DependencyView> boms = null;
-        try
-        {
-            boms = pomView.getAllBOMs();
-        }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
-        }
-        catch ( final InvalidVersionSpecificationException e )
-        {
-            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
-        }
-        catch ( final InvalidRefException e )
-        {
-            logger.error( String.format( "Failed to retrieve BOM declarations: %s. Skipping", e.getMessage() ), e );
-        }
-
-        addDependencies( boms, projectRef, builder, source, true );
 
         List<DependencyView> deps = null;
         try

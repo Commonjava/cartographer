@@ -31,7 +31,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
-import org.commonjava.maven.atlas.graph.model.EProjectCycle;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
@@ -106,7 +105,7 @@ public class DefaultGraphAggregator
             final Set<ProjectVersionRef> missing = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading existing cycle participants..." );
-            final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
+            //            final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
 
             final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
@@ -129,7 +128,7 @@ public class DefaultGraphAggregator
                 done.addAll( current );
 
                 logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ", current ) );
-                final Set<DiscoveryTodo> newTodos = discover( current, config, cycleParticipants, missing, seen, view, pass );
+                final Set<DiscoveryTodo> newTodos = discover( current, config, /*cycleParticipants,*/missing, seen, view, pass );
                 if ( newTodos != null )
                 {
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
@@ -154,15 +153,15 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> cycleParticipants, final Set<ProjectVersionRef> missing,
-                                         final Set<ProjectVersionRef> seen, final GraphView view, final int pass )
+    /*final Set<ProjectVersionRef> cycleParticipants,*/final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                         final GraphView view, final int pass )
         throws CartoDataException
     {
         logger.info( "Starting pass: {}", pass );
         logger.debug( "{}. Performing discovery and cycle-detection on {} missing subgraphs:\n  {}", pass, todos.size(), new JoinString( "\n  ",
                                                                                                                                          todos ) );
 
-        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, config, missing, seen, cycleParticipants, pass );
+        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, config, missing, seen, /*cycleParticipants,*/pass );
 
         logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass, new JoinString( "\n  ",
                                                                                                                                        missing ) );
@@ -207,7 +206,7 @@ public class DefaultGraphAggregator
      */
     private Set<DiscoveryRunnable> executeTodoBatch( final Set<DiscoveryTodo> todos, final AggregationOptions config,
                                                      final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
-                                                     final Set<ProjectVersionRef> cycleParticipants, final int pass )
+                                                     /*final Set<ProjectVersionRef> cycleParticipants,*/final int pass )
     {
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
 
@@ -222,11 +221,11 @@ public class DefaultGraphAggregator
                 logger.info( "{}.{}. Skipping missing reference: {}", pass, idx++, todoRef );
                 continue;
             }
-            else if ( cycleParticipants.contains( todoRef ) )
-            {
-                logger.info( "{}.{}. Skipping cycle-participant reference: {}", pass, idx++, todoRef );
-                continue;
-            }
+            //            else if ( cycleParticipants.contains( todoRef ) )
+            //            {
+            //                logger.info( "{}.{}. Skipping cycle-participant reference: {}", pass, idx++, todoRef );
+            //                continue;
+            //            }
             // WAS: net.containsProject(todoRef) ...this is pretty expensive, since it requires traversal. Instead, we track as we go.
             else if ( seen.contains( todoRef ) )
             {
@@ -446,17 +445,17 @@ public class DefaultGraphAggregator
         }
     }
 
-    private Set<ProjectVersionRef> loadExistingCycleParticipants( final EProjectNet net )
-    {
-        final Set<ProjectVersionRef> participants = new HashSet<ProjectVersionRef>();
-        final Set<EProjectCycle> cycles = net.getCycles();
-        for ( final EProjectCycle cycle : cycles )
-        {
-            participants.addAll( cycle.getAllParticipatingProjects() );
-        }
-
-        return participants;
-    }
+    //    private Set<ProjectVersionRef> loadExistingCycleParticipants( final EProjectNet net )
+    //    {
+    //        final Set<ProjectVersionRef> participants = new HashSet<ProjectVersionRef>();
+    //        final Set<EProjectCycle> cycles = net.getCycles();
+    //        for ( final EProjectCycle cycle : cycles )
+    //        {
+    //            participants.addAll( cycle.getAllParticipatingProjects() );
+    //        }
+    //
+    //        return participants;
+    //    }
 
     private List<DiscoveryTodo> loadInitialPending( final GraphView view, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
     {
@@ -487,6 +486,15 @@ public class DefaultGraphAggregator
         {
             final GraphPath<?> path = entry.getKey();
             final GraphPathInfo pathInfo = entry.getValue();
+
+            final List<ProjectVersionRef> pathRefs = dataManager.graphs()
+                                                                .getPathRefs( view, path );
+            if ( pathRefs.size() > 1 )
+            {
+                // we have to remove the last ref, since that's what we're about to discover!
+                pathRefs.remove( pathRefs.size() - 1 );
+                seen.addAll( pathRefs );
+            }
 
             final ProjectVersionRef ref = dataManager.graphs()
                                                      .getPathTargetRef( view, path );

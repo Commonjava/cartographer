@@ -704,7 +704,7 @@ public class DefaultCartoDataManager
     public Set<ProjectVersionRef> getMatchingGAVs( final ProjectRef projectRef )
         throws CartoDataException
     {
-        return graphs.getProjectsMatching( projectRef, workspaceHolder.getCurrentWorkspace() );
+        return graphs.getProjectsMatching( workspaceHolder.getCurrentWorkspace(), projectRef );
     }
 
     @Override

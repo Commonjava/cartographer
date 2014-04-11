@@ -16,13 +16,16 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
+import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -75,7 +78,9 @@ public class BuildRequirementProjectsFilter
         this.runtimeOnly = runtimeOnly;
         this.acceptManaged = acceptManaged;
         this.filter =
-            runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false, true, excludes ),
+            runtimeOnly ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE, new DependencyFilter( DependencyScope.runtime,
+                                                                                                                         ScopeTransitivity.maven,
+                                                                                                                         false, true, excludes ),
                                         new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, excludes ) ) : null;
         this.excludes = excludes;
     }
@@ -85,17 +90,9 @@ public class BuildRequirementProjectsFilter
     {
         boolean result = false;
 
-        if ( isBOM( rel ) )
-        {
-            result = true;
-        }
-        else if ( !acceptManaged && rel.isManaged() )
+        if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
-        }
-        else if ( rel.getType() == RelationshipType.PARENT )
-        {
-            result = true;
         }
         else
         {
@@ -109,28 +106,12 @@ public class BuildRequirementProjectsFilter
         return result;
     }
 
-    private boolean isBOM( final ProjectRelationship<?> rel )
-    {
-        if ( !rel.isManaged() )
-        {
-            return false;
-        }
-
-        if ( !( rel instanceof DependencyRelationship ) )
-        {
-            return false;
-        }
-
-        final DependencyRelationship dr = (DependencyRelationship) rel;
-        return ( dr.getScope() == DependencyScope._import && "pom".equals( dr.getTargetArtifact()
-                                                                             .getType() ) );
-    }
-
     @Override
     public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {
+            case BOM:
             case EXTENSION:
             case PLUGIN:
             case PLUGIN_DEP:
@@ -320,6 +301,12 @@ public class BuildRequirementProjectsFilter
     public boolean includeConcreteRelationships()
     {
         return true;
+    }
+
+    @Override
+    public Set<RelationshipType> getAllowedTypes()
+    {
+        return filter == null ? new HashSet<RelationshipType>( Arrays.asList( RelationshipType.values() ) ) : filter.getAllowedTypes();
     }
 
 }

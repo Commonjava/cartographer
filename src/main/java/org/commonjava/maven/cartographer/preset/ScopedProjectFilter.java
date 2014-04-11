@@ -16,7 +16,10 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import java.util.Set;
+
 import org.apache.commons.codec.digest.DigestUtils;
+import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
@@ -24,6 +27,7 @@ import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 
@@ -53,7 +57,8 @@ public class ScopedProjectFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) );
+            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE, new DependencyFilter( this.scope, ScopeTransitivity.maven,
+                                                                                                           false, true, true, null ) );
     }
 
     private ScopedProjectFilter( final ProjectRelationshipFilter childFilter )
@@ -61,9 +66,8 @@ public class ScopedProjectFilter
         this.scope = DependencyScope.runtime;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, new DependencyFilter( this.scope, ScopeTransitivity.maven,
-                                                                                                             false, true, true, null ) )
-                            : childFilter;
+            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE,
+                                                new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) ) : childFilter;
     }
 
     @Override
@@ -91,6 +95,7 @@ public class ScopedProjectFilter
     {
         switch ( lastRelationship.getType() )
         {
+            case BOM:
             case EXTENSION:
             case PLUGIN:
             case PLUGIN_DEP:
@@ -225,6 +230,12 @@ public class ScopedProjectFilter
     public boolean includeConcreteRelationships()
     {
         return true;
+    }
+
+    @Override
+    public Set<RelationshipType> getAllowedTypes()
+    {
+        return filter.getAllowedTypes();
     }
 
 }

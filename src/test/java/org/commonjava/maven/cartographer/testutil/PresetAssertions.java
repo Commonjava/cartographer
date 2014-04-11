@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.testutil;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.EXTENSION;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
@@ -35,6 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.rel.BomRelationship;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
@@ -90,10 +92,13 @@ public final class PresetAssertions
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( provided ) ) );
 
         final DependencyRelationship embeddedDep = new DependencyRelationship( from, src, tgt, embedded, 0, false );
-        final boolean emAccept = filter.accept( embeddedDep );
-        final boolean emScope = acceptedScopes.contains( embedded );
+        //        final boolean emAccept = filter.accept( embeddedDep );
+        //        final boolean emScope = acceptedScopes.contains( embedded );
         assertThat( "Embedded dependency acceptance does not match expectations", filter.accept( embeddedDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( embedded ) ) );
+
+        final BomRelationship bom = new BomRelationship( from, src, tgt, 0 );
+        assertThat( "BOM Dependency rejected!", filter.accept( bom ), equalTo( accepted.contains( BOM ) ) );
     }
 
     public static void assertRejectsAllManaged( final ProjectRelationshipFilter filter, final URI from, final ProjectVersionRef src,
@@ -109,8 +114,5 @@ public final class PresetAssertions
 
         final DependencyRelationship runtimeManagedDep = new DependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true );
         assertThat( "Managed Dependency not rejected", filter.accept( runtimeManagedDep ), equalTo( false ) );
-
-        final DependencyRelationship bom = new DependencyRelationship( from, src, tgt.asPomArtifact(), DependencyScope._import, 0, true );
-        assertThat( "BOM Dependency rejected!", filter.accept( bom ), equalTo( true ) );
     }
 }
