@@ -22,6 +22,8 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
@@ -157,13 +159,27 @@ public class GraphOps
     public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
         throws CartoDataException
     {
-        return data.getProjectGraph( filter, ref );
+        return data.getProjectGraph( filter, new ManagedDependencyMutator(), ref );
+    }
+
+    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                          final ProjectVersionRef ref )
+        throws CartoDataException
+    {
+        return data.getProjectGraph( filter, mutator, ref );
     }
 
     public EProjectNet getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
         throws CartoDataException
     {
-        return data.getProjectWeb( filter, refs );
+        return data.getProjectWeb( filter, new ManagedDependencyMutator(), refs );
+    }
+
+    public EProjectNet getProjectWeb( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                      final ProjectVersionRef... refs )
+        throws CartoDataException
+    {
+        return data.getProjectWeb( filter, mutator, refs );
     }
 
     public Set<String> getProjectErrors( final ProjectVersionRef ref )

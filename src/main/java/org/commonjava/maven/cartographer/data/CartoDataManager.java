@@ -43,7 +43,7 @@ public interface CartoDataManager
     Set<ProjectRelationship<?>> storeRelationships( Collection<ProjectRelationship<?>> relationships )
         throws CartoDataException;
 
-    EProjectGraph getProjectGraph( ProjectRelationshipFilter filter, ProjectVersionRef discovered )
+    EProjectGraph getProjectGraph( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef discovered )
         throws CartoDataException;
 
     EProjectGraph getProjectGraph( ProjectVersionRef ref )
@@ -176,7 +176,7 @@ public interface CartoDataManager
     void reindexAll()
         throws CartoDataException;
 
-    EProjectWeb getProjectWeb( ProjectRelationshipFilter filter, ProjectVersionRef... refs )
+    EProjectWeb getProjectWeb( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef... refs )
         throws CartoDataException;
 
     EProjectWeb getProjectWeb( ProjectVersionRef... refs )

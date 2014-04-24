@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -120,10 +121,11 @@ public class MetadataOps
         }
     }
 
+    // TODO: Is it important to allow a specific mutator here??
     public void rescanMetadata( final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        final EProjectNet web = data.getProjectWeb( filter, roots );
+        final EProjectNet web = data.getProjectWeb( filter, new ManagedDependencyMutator(), roots );
         final Set<URI> sources = web.getSources();
         final List<? extends Location> locations = sourceManager.createLocations( sources );
 
@@ -181,7 +183,7 @@ public class MetadataOps
                                                      .get( 0 );
 
             final ProjectVersionRef[] roots = graphDesc.getRootsArray();
-            final EProjectWeb web = data.getProjectWeb( graphDesc.getFilter(), roots );
+            final EProjectWeb web = data.getProjectWeb( graphDesc.getFilter(), new ManagedDependencyMutator(), roots );
 
             if ( web == null )
             {

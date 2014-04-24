@@ -21,6 +21,7 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
+// TODO: Allow configuration of mutator too...
 public class GraphDescription
 {
 

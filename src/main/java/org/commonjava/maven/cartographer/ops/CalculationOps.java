@@ -21,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -51,9 +52,11 @@ public class CalculationOps
     public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
-        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), from.getRootsArray() );
+        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
 
-        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), to.getRootsArray() );
+        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
+
+        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), mutator, to.getRootsArray() );
 
         final Collection<ProjectRelationship<?>> firstAll = firstWeb.getAllRelationships();
         final Collection<ProjectRelationship<?>> secondAll = secondWeb.getAllRelationships();
@@ -70,8 +73,9 @@ public class CalculationOps
     public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
-        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), from.getRootsArray() );
-        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), to.getRootsArray() );
+        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
+        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
+        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), mutator, to.getRootsArray() );
 
         final Map<ProjectRef, Set<ProjectVersionRef>> firstAll = mapTargetsToGA( firstWeb );
         final Map<ProjectRef, Set<ProjectVersionRef>> secondAll = mapTargetsToGA( secondWeb );
@@ -159,11 +163,15 @@ public class CalculationOps
     public GraphCalculation calculate( final GraphComposition composition )
         throws CartoDataException
     {
+        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
+
         Set<ProjectRelationship<?>> result = null;
+        Set<ProjectVersionRef> roots = null;
         for ( final GraphDescription graph : composition.getGraphs() )
         {
             final EProjectNet web =
-                graph.getView() == null ? data.getProjectWeb( graph.getFilter(), graph.getRootsArray() ) : data.getProjectWeb( graph.getView() );
+                graph.getView() == null ? data.getProjectWeb( graph.getFilter(), mutator, graph.getRootsArray() )
+                                : data.getProjectWeb( graph.getView() );
 
             if ( web == null )
             {
@@ -172,7 +180,8 @@ public class CalculationOps
 
             if ( result == null )
             {
-                result = new HashSet<ProjectRelationship<?>>( web.getAllRelationships() );
+                result = new HashSet<>( web.getAllRelationships() );
+                roots = new HashSet<>( graph.getRoots() );
             }
             else
             {
@@ -186,18 +195,20 @@ public class CalculationOps
                     case ADD:
                     {
                         result.addAll( web.getAllRelationships() );
+                        roots.addAll( graph.getRoots() );
                         break;
                     }
                     case INTERSECT:
                     {
                         result.retainAll( web.getAllRelationships() );
+                        roots.addAll( graph.getRoots() );
                         break;
                     }
                 }
             }
         }
 
-        return new GraphCalculation( composition.getCalculation(), composition.getGraphs(), result );
+        return new GraphCalculation( composition.getCalculation(), composition.getGraphs(), roots, result );
     }
 
 }

@@ -31,6 +31,8 @@ import org.apache.maven.model.Model;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.traverse.print.DependencyTreeRelationshipPrinter;
@@ -38,7 +40,6 @@ import org.commonjava.maven.atlas.graph.traverse.print.ListPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.TreePrinter;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
-import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
@@ -48,6 +49,8 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.dto.GraphCalculation;
+import org.commonjava.maven.cartographer.dto.GraphComposition;
 
 @ApplicationScoped
 public class GraphRenderingOps
@@ -55,6 +58,9 @@ public class GraphRenderingOps
 
     @Inject
     private CartoDataManager data;
+
+    @Inject
+    private CalculationOps calcOps;
 
     protected GraphRenderingOps()
     {
@@ -65,23 +71,39 @@ public class GraphRenderingOps
         this.data = data;
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
                            final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
         throws CartoDataException
     {
-        return depTree( ref, filter, scope, collapseTransitives, labels, null );
+        return depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, null );
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, GraphMutator mutator,
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
+        throws CartoDataException
+    {
+        return depTree( ref, filter, mutator, collapseTransitives, labels, null );
+    }
+
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
                            final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
                            StructureRelationshipPrinter relPrinter )
         throws CartoDataException
     {
-        final EProjectGraph graph = data.getProjectGraph( filter, ref );
+        return depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, relPrinter );
+    }
+
+    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, GraphMutator mutator,
+                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
+                           StructureRelationshipPrinter relPrinter )
+        throws CartoDataException
+    {
+        final EProjectGraph graph = data.getProjectGraph( filter, mutator, ref );
         if ( graph != null )
         {
             final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring = RelationshipUtils.mapByDeclaring( rels );
+            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+                RelationshipUtils.mapByDeclaring( rels );
 
             if ( relPrinter == null )
             {
@@ -95,22 +117,85 @@ public class GraphRenderingOps
         return null;
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+    public String depTree( final GraphComposition comp, final boolean collapseTransitives )
+        throws CartoDataException
+    {
+        return depTree( comp, collapseTransitives, new DependencyTreeRelationshipPrinter() );
+    }
+
+    public String depTree( final GraphComposition comp, final boolean collapseTransitives,
+                           StructureRelationshipPrinter relPrinter )
+        throws CartoDataException
+    {
+        GraphCalculation calculated = calcOps.calculate( comp );
+        if ( calculated != null )
+        {
+            final Set<ProjectRelationship<?>> rels = calculated.getResult();
+
+            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+                RelationshipUtils.mapByDeclaring( rels );
+
+            if ( relPrinter == null )
+            {
+                relPrinter = new DependencyTreeRelationshipPrinter();
+            }
+
+            Set<ProjectVersionRef> roots = calculated.getResultingRoots();
+
+            final Map<String, Set<ProjectVersionRef>> labels = new HashMap<String, Set<ProjectVersionRef>>();
+            labels.put( "ROOT", roots );
+
+            labels.put( "NOT-RESOLVED", data.getAllIncompleteSubgraphs() );
+
+            labels.put( "VARIABLE", data.getAllVariableSubgraphs() );
+
+            StringBuilder sb = new StringBuilder();
+
+            // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
+            TreePrinter printer = new TreePrinter( relPrinter );
+            for ( ProjectVersionRef root : calculated.getResultingRoots() )
+            {
+                sb.append( printer.printStructure( root, byDeclaring, labels ) );
+            }
+
+            return sb.toString();
+        }
+
+        return null;
+    }
+
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
                            final Map<String, Set<ProjectVersionRef>> labels )
         throws CartoDataException
     {
-        return depList( ref, filter, scope, labels, null );
+        return depList( ref, filter, new ManagedDependencyMutator(), labels, null );
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, final DependencyScope scope,
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                           final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels )
+        throws CartoDataException
+    {
+        return depList( ref, filter, mutator, labels, null );
+    }
+
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
                            final Map<String, Set<ProjectVersionRef>> labels, StructureRelationshipPrinter relPrinter )
         throws CartoDataException
     {
-        final EProjectGraph graph = data.getProjectGraph( filter, ref );
+        return depList( ref, filter, new ManagedDependencyMutator(), labels, relPrinter );
+    }
+
+    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                           final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels,
+                           StructureRelationshipPrinter relPrinter )
+        throws CartoDataException
+    {
+        final EProjectGraph graph = data.getProjectGraph( filter, mutator, ref );
         if ( graph != null )
         {
             final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring = RelationshipUtils.mapByDeclaring( rels );
+            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+                RelationshipUtils.mapByDeclaring( rels );
 
             if ( relPrinter == null )
             {
@@ -123,10 +208,18 @@ public class GraphRenderingOps
         return null;
     }
 
-    public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
+    public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter,
+                              final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        final EProjectNet web = data.getProjectWeb( filter, roots );
+        return generateBOM( bomCoord, filter, new ManagedDependencyMutator(), roots );
+    }
+
+    public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter,
+                              final GraphMutator mutator, final ProjectVersionRef... roots )
+        throws CartoDataException
+    {
+        final EProjectNet web = data.getProjectWeb( filter, mutator, roots );
 
         if ( web == null )
         {
@@ -201,10 +294,18 @@ public class GraphRenderingOps
         return new CompoundVersionSpec( null, versions );
     }
 
-    public String dotfile( final ProjectVersionRef coord, final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
+    public String dotfile( final ProjectVersionRef coord, final ProjectRelationshipFilter filter,
+                           final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        final EProjectNet web = data.getProjectWeb( filter, roots );
+        return dotfile( coord, filter, new ManagedDependencyMutator(), roots );
+    }
+
+    public String dotfile( final ProjectVersionRef coord, final ProjectRelationshipFilter filter,
+                           final GraphMutator mutator, final ProjectVersionRef... roots )
+        throws CartoDataException
+    {
+        final EProjectNet web = data.getProjectWeb( filter, mutator, roots );
 
         if ( web != null )
         {

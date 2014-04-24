@@ -29,6 +29,7 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
@@ -313,7 +314,10 @@ public class ResolveOps
                                                      .get( 0 );
 
             final ProjectVersionRef[] roots = graphDesc.getRootsArray();
-            web = graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(), roots ) : data.getProjectWeb( graphDesc.getView() );
+            web =
+                graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(),
+                                                                  new ManagedDependencyMutator(), roots )
+                                : data.getProjectWeb( graphDesc.getView() );
 
             if ( web == null )
             {

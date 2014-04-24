@@ -140,10 +140,11 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final ProjectVersionRef discovered )
+    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                          final ProjectVersionRef discovered )
         throws CartoDataException
     {
-        return graphs.getGraph( workspaceHolder.getCurrentWorkspace(), filter, discovered );
+        return graphs.getGraph( workspaceHolder.getCurrentWorkspace(), filter, mutator, discovered );
     }
 
     /* (non-Javadoc)
@@ -682,10 +683,11 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
+    public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final GraphMutator mutator,
+                                      final ProjectVersionRef... refs )
         throws CartoDataException
     {
-        return graphs.getWeb( workspaceHolder.getCurrentWorkspace(), filter, refs );
+        return graphs.getWeb( workspaceHolder.getCurrentWorkspace(), filter, mutator, refs );
     }
 
     @Override

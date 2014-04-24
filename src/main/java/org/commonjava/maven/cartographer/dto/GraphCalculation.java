@@ -25,16 +25,20 @@ public class GraphCalculation
 
     private Set<ProjectRelationship<?>> result;
 
+    private Set<ProjectVersionRef> roots;
+
     private List<GraphDescription> graphs;
 
     protected GraphCalculation()
     {
     }
 
-    public GraphCalculation( final Type operation, final List<GraphDescription> graphs, final Set<ProjectRelationship<?>> result )
+    public GraphCalculation( final Type operation, final List<GraphDescription> graphs,
+                             final Set<ProjectVersionRef> roots, final Set<ProjectRelationship<?>> result )
     {
         this.operation = operation;
         this.graphs = graphs;
+        this.roots = roots;
         this.result = result;
     }
 
@@ -46,6 +50,11 @@ public class GraphCalculation
     public Type getOperation()
     {
         return operation;
+    }
+
+    public Set<ProjectVersionRef> getResultingRoots()
+    {
+        return roots;
     }
 
     public Set<ProjectRelationship<?>> getResultingRelationships()
