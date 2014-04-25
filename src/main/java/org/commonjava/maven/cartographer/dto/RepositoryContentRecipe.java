@@ -31,7 +31,7 @@ public class RepositoryContentRecipe
 
     private boolean multiSourceGAVs;
 
-    private Set<Location> excludedSourceLocations;
+    private transient Set<Location> excludedSourceLocations;
 
     private Set<ExtraCT> extras;
 

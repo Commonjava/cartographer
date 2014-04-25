@@ -12,6 +12,7 @@ package org.commonjava.maven.cartographer.ops;
 
 import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectReferences;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,31 +72,34 @@ public class GraphRenderingOps
         this.data = data;
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
+    public void depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
+                         final PrintWriter writer )
         throws CartoDataException
     {
-        return depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, null );
+        depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, null, writer );
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, GraphMutator mutator,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels )
+    public void depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final GraphMutator mutator, final boolean collapseTransitives,
+                         final Map<String, Set<ProjectVersionRef>> labels, final PrintWriter writer )
         throws CartoDataException
     {
-        return depTree( ref, filter, mutator, collapseTransitives, labels, null );
+        depTree( ref, filter, mutator, collapseTransitives, labels, null, writer );
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
-                           StructureRelationshipPrinter relPrinter )
+    public void depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
+                         final StructureRelationshipPrinter relPrinter, final PrintWriter writer )
         throws CartoDataException
     {
-        return depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, relPrinter );
+        depTree( ref, filter, new ManagedDependencyMutator(), collapseTransitives, labels, relPrinter, writer );
     }
 
-    public String depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter, GraphMutator mutator,
-                           final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
-                           StructureRelationshipPrinter relPrinter )
+    public void depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final GraphMutator mutator, final boolean collapseTransitives,
+                         final Map<String, Set<ProjectVersionRef>> labels, StructureRelationshipPrinter relPrinter,
+                         final PrintWriter writer )
         throws CartoDataException
     {
         final EProjectGraph graph = data.getProjectGraph( filter, mutator, ref );
@@ -111,23 +115,21 @@ public class GraphRenderingOps
             }
 
             // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
-            return new TreePrinter( relPrinter/*, collapseTransitives*/).printStructure( ref, byDeclaring, labels );
+            new TreePrinter( relPrinter/*, collapseTransitives*/).printStructure( ref, byDeclaring, labels, writer );
         }
-
-        return null;
     }
 
-    public String depTree( final GraphComposition comp, final boolean collapseTransitives )
+    public void depTree( final GraphComposition comp, final boolean collapseTransitives, final PrintWriter writer )
         throws CartoDataException
     {
-        return depTree( comp, collapseTransitives, new DependencyTreeRelationshipPrinter() );
+        depTree( comp, collapseTransitives, new DependencyTreeRelationshipPrinter(), writer );
     }
 
-    public String depTree( final GraphComposition comp, final boolean collapseTransitives,
-                           StructureRelationshipPrinter relPrinter )
+    public void depTree( final GraphComposition comp, final boolean collapseTransitives,
+                         StructureRelationshipPrinter relPrinter, final PrintWriter writer )
         throws CartoDataException
     {
-        GraphCalculation calculated = calcOps.calculate( comp );
+        final GraphCalculation calculated = calcOps.calculate( comp );
         if ( calculated != null )
         {
             final Set<ProjectRelationship<?>> rels = calculated.getResult();
@@ -140,7 +142,7 @@ public class GraphRenderingOps
                 relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            Set<ProjectVersionRef> roots = calculated.getResultingRoots();
+            final Set<ProjectVersionRef> roots = calculated.getResultingRoots();
 
             final Map<String, Set<ProjectVersionRef>> labels = new HashMap<String, Set<ProjectVersionRef>>();
             labels.put( "ROOT", roots );
@@ -149,45 +151,42 @@ public class GraphRenderingOps
 
             labels.put( "VARIABLE", data.getAllVariableSubgraphs() );
 
-            StringBuilder sb = new StringBuilder();
-
             // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
-            TreePrinter printer = new TreePrinter( relPrinter );
-            for ( ProjectVersionRef root : calculated.getResultingRoots() )
+            final TreePrinter printer = new TreePrinter( relPrinter );
+            for ( final ProjectVersionRef root : calculated.getResultingRoots() )
             {
-                sb.append( printer.printStructure( root, byDeclaring, labels ) );
+                printer.printStructure( root, byDeclaring, labels, writer );
+                writer.println();
             }
-
-            return sb.toString();
         }
-
-        return null;
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final Map<String, Set<ProjectVersionRef>> labels )
+    public void depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final Map<String, Set<ProjectVersionRef>> labels, final PrintWriter writer )
         throws CartoDataException
     {
-        return depList( ref, filter, new ManagedDependencyMutator(), labels, null );
+        depList( ref, filter, new ManagedDependencyMutator(), labels, null, writer );
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels )
+    public void depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels,
+                         final PrintWriter writer )
         throws CartoDataException
     {
-        return depList( ref, filter, mutator, labels, null );
+        depList( ref, filter, mutator, labels, null, writer );
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final Map<String, Set<ProjectVersionRef>> labels, StructureRelationshipPrinter relPrinter )
+    public void depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final Map<String, Set<ProjectVersionRef>> labels,
+                         final StructureRelationshipPrinter relPrinter, final PrintWriter writer )
         throws CartoDataException
     {
-        return depList( ref, filter, new ManagedDependencyMutator(), labels, relPrinter );
+        depList( ref, filter, new ManagedDependencyMutator(), labels, relPrinter, writer );
     }
 
-    public String depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
-                           final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels,
-                           StructureRelationshipPrinter relPrinter )
+    public void depList( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,
+                         final GraphMutator mutator, final Map<String, Set<ProjectVersionRef>> labels,
+                         StructureRelationshipPrinter relPrinter, final PrintWriter writer )
         throws CartoDataException
     {
         final EProjectGraph graph = data.getProjectGraph( filter, mutator, ref );
@@ -202,10 +201,8 @@ public class GraphRenderingOps
                 relPrinter = new DependencyTreeRelationshipPrinter();
             }
 
-            return new ListPrinter( relPrinter ).printStructure( ref, byDeclaring, labels );
+            new ListPrinter( relPrinter ).printStructure( ref, byDeclaring, labels, writer );
         }
-
-        return null;
     }
 
     public Model generateBOM( final ProjectVersionRef bomCoord, final ProjectRelationshipFilter filter,

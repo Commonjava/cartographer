@@ -20,6 +20,7 @@ import java.util.HashSet;
 
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -97,7 +98,7 @@ public class DefaultGraphAggregatorTest
                                                                                .setDiscoveryTimeoutMillis( 10 );
 
         final EProjectWeb web = fixture.getData()
-                                       .getProjectWeb( options.getFilter(), root );
+                                       .getProjectWeb( options.getFilter(), new ManagedDependencyMutator(), root );
         assertThat( web, notNullValue() );
 
         EProjectNet result = fixture.getAggregator()

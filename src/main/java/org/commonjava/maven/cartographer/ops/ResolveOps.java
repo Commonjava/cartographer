@@ -399,7 +399,7 @@ public class ResolveOps
         final DefaultDiscoveryConfig dconf = new DefaultDiscoveryConfig( sourceUri );
         dconf.setEnabledPatchers( recipe.getPatcherIds() );
 
-        dconf.setEnabled( true );
+        dconf.setEnabled( recipe.isResolve() );
         dconf.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );
 
         return dconf;

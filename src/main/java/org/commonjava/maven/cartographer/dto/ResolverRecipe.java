@@ -29,7 +29,7 @@ public class ResolverRecipe
 
     protected Set<String> patcherIds;
 
-    protected Location sourceLocation;
+    protected transient Location sourceLocation;
 
     protected Integer timeoutSecs;
 
