@@ -12,6 +12,7 @@ package org.commonjava.maven.cartographer.dto;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.commonjava.maven.galley.model.Location;
 
@@ -31,11 +32,11 @@ public class RepositoryContentRecipe
 
     private boolean multiSourceGAVs;
 
+    private TreeSet<ExtraCT> extras;
+
+    private TreeSet<String> metas;
+
     private transient Set<Location> excludedSourceLocations;
-
-    private Set<ExtraCT> extras;
-
-    private Set<String> metas;
 
     @Override
     public String toString()
@@ -51,7 +52,7 @@ public class RepositoryContentRecipe
 
     public void setExtras( final Set<ExtraCT> extras )
     {
-        this.extras = extras;
+        this.extras = new TreeSet<>( extras );
     }
 
     public Set<String> getMetas()
@@ -61,7 +62,7 @@ public class RepositoryContentRecipe
 
     public void setMetas( final Set<String> metas )
     {
-        this.metas = metas;
+        this.metas = new TreeSet<>( metas );
     }
 
     public Set<Location> getExcludedSourceLocations()

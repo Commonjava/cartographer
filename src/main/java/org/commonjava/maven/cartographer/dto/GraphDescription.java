@@ -12,10 +12,11 @@ package org.commonjava.maven.cartographer.dto;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.GraphView;
@@ -25,11 +26,11 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 public class GraphDescription
 {
 
-    private Set<ProjectVersionRef> roots;
+    private TreeSet<ProjectVersionRef> roots;
 
     private String preset;
 
-    private Map<String, Object> presetParams;
+    private TreeMap<String, Object> presetParams;
 
     private transient ProjectRelationshipFilter filter;
 
@@ -42,8 +43,8 @@ public class GraphDescription
     public GraphDescription( final String preset, final Map<String, Object> presetParams, final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
-        this.presetParams = presetParams;
-        this.roots = new HashSet<ProjectVersionRef>( roots );
+        this.presetParams = new TreeMap<>( presetParams );
+        this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
     public GraphDescription( final String preset, final Map<String, Object> presetParams, final ProjectVersionRef... roots )
@@ -54,7 +55,7 @@ public class GraphDescription
     public GraphDescription( final ProjectRelationshipFilter filter, final Collection<ProjectVersionRef> roots )
     {
         this.filter = filter;
-        this.roots = new HashSet<ProjectVersionRef>( roots );
+        this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
     public GraphDescription( final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
@@ -74,7 +75,7 @@ public class GraphDescription
 
     public void setRoots( final Set<ProjectVersionRef> roots )
     {
-        this.roots = roots;
+        this.roots = new TreeSet<>( roots );
     }
 
     public void setPreset( final String preset )
@@ -122,7 +123,7 @@ public class GraphDescription
     public void setView( final GraphView view )
     {
         this.view = view;
-        this.roots = view.getRoots();
+        this.roots = new TreeSet<>( view.getRoots() );
     }
 
     public GraphView getView()

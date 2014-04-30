@@ -11,9 +11,10 @@
 package org.commonjava.maven.cartographer.dto;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -27,13 +28,13 @@ public class ResolverRecipe
 
     protected String workspaceId;
 
-    protected Set<String> patcherIds;
-
-    protected transient Location sourceLocation;
+    protected List<String> patcherIds;
 
     protected Integer timeoutSecs;
 
     protected boolean resolve;
+
+    protected transient Location sourceLocation;
 
     public String getWorkspaceId()
     {
@@ -74,14 +75,21 @@ public class ResolverRecipe
         this.timeoutSecs = timeoutSecs;
     }
 
-    public Set<String> getPatcherIds()
+    public List<String> getPatcherIds()
     {
         return patcherIds;
     }
 
-    public void setPatcherIds( final Set<String> patcherIds )
+    public void setPatcherIds( final Collection<String> patcherIds )
     {
-        this.patcherIds = patcherIds;
+        this.patcherIds = new ArrayList<>();
+        for ( final String id : patcherIds )
+        {
+            if ( !this.patcherIds.contains( id ) )
+            {
+                patcherIds.add( id );
+            }
+        }
     }
 
     public GraphComposition getGraphComposition()

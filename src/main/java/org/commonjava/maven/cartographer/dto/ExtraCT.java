@@ -13,6 +13,7 @@ package org.commonjava.maven.cartographer.dto;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 
 public class ExtraCT
+    implements Comparable<ExtraCT>
 {
 
     public static final String WILDCARD = "*";
@@ -65,6 +66,29 @@ public class ExtraCT
         final boolean clsMatch = WILDCARD.equals( c ) || c.equals( tc.getClassifier() );
 
         return typeMatch && clsMatch;
+    }
+
+    @Override
+    public int compareTo( final ExtraCT other )
+    {
+        int comp = getType().compareTo( other.getType() );
+        if ( comp == 0 )
+        {
+            if ( classifier == null && other.classifier != null )
+            {
+                return -1;
+            }
+            else if ( classifier != null && other.classifier == null )
+            {
+                return 1;
+            }
+            else
+            {
+                comp = classifier.compareTo( other.classifier );
+            }
+        }
+
+        return comp;
     }
 
 }

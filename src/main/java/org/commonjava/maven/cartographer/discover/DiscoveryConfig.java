@@ -101,7 +101,7 @@ public interface DiscoveryConfig
 
     URI getDiscoverySource();
 
-    Set<String> getEnabledPatchers();
+    Collection<String> getEnabledPatchers();
 
     GraphMutator getMutator();
 

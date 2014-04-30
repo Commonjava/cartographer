@@ -21,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
+import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -32,6 +33,8 @@ import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphDifference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class CalculationOps
@@ -39,6 +42,8 @@ public class CalculationOps
 
     @Inject
     private CartoDataManager data;
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     protected CalculationOps()
     {
@@ -52,7 +57,7 @@ public class CalculationOps
     public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
-        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
+        final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
 
         final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
 
@@ -73,7 +78,7 @@ public class CalculationOps
     public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from, final GraphDescription to )
         throws CartoDataException
     {
-        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
+        final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
         final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
         final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), mutator, to.getRootsArray() );
 
@@ -163,15 +168,21 @@ public class CalculationOps
     public GraphCalculation calculate( final GraphComposition composition )
         throws CartoDataException
     {
-        ManagedDependencyMutator mutator = new ManagedDependencyMutator();
-
         Set<ProjectRelationship<?>> result = null;
         Set<ProjectVersionRef> roots = null;
         for ( final GraphDescription graph : composition.getGraphs() )
         {
-            final EProjectNet web =
-                graph.getView() == null ? data.getProjectWeb( graph.getFilter(), mutator, graph.getRootsArray() )
-                                : data.getProjectWeb( graph.getView() );
+            GraphView view = graph.getView();
+            if ( view == null )
+            {
+                view =
+                    new GraphView( data.getCurrentWorkspace(), graph.getFilter(), new ManagedDependencyMutator(),
+                                   graph.getRootsArray() );
+            }
+
+            logger.info( "Retrieving project web for: {}", view );
+
+            final EProjectNet web = data.getProjectWeb( view );
 
             if ( web == null )
             {

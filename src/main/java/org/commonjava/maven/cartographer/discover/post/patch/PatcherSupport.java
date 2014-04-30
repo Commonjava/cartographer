@@ -14,6 +14,7 @@ import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstan
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,23 +72,24 @@ public class PatcherSupport
         }
     }
 
-    public DiscoveryResult patch( final DiscoveryResult orig, final Set<String> enabledPatchers, final List<? extends Location> locations,
+    public DiscoveryResult patch( final DiscoveryResult orig, final Collection<String> patcherIds,
+                                  final List<? extends Location> locations,
                                   final MavenPomView pomView, final Transfer transfer )
     {
-        if ( enabledPatchers == null || enabledPatchers.isEmpty() )
+        if ( patcherIds == null || patcherIds.isEmpty() )
         {
             return orig;
         }
 
         logger.debug( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
-                      new JoinString( ", ", enabledPatchers ) );
+ new JoinString( ", ", patcherIds ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
         ctx.put( TRANSFER_CTX_KEY, transfer );
 
         final Set<String> done = new HashSet<String>();
-        for ( final String patcherId : enabledPatchers )
+        for ( final String patcherId : patcherIds )
         {
             if ( done.contains( patcherId ) )
             {

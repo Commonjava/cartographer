@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
@@ -36,7 +35,7 @@ public class DefaultDiscoveryConfig
 
     private List<? extends Location> discoveryLocations;
 
-    private Set<String> patchers;
+    private Collection<String> patchers;
 
     private GraphMutator mutator;
 
@@ -68,7 +67,7 @@ public class DefaultDiscoveryConfig
 
     public DefaultDiscoveryConfig( final DiscoveryConfig discoveryConfig )
     {
-        Set<String> enabledPatchers = discoveryConfig.getEnabledPatchers();
+        Collection<String> enabledPatchers = discoveryConfig.getEnabledPatchers();
         if ( enabledPatchers == null )
         {
             enabledPatchers = new HashSet<String>();
@@ -102,7 +101,7 @@ public class DefaultDiscoveryConfig
         return this;
     }
 
-    public DefaultDiscoveryConfig setEnabledPatchers( final Set<String> patchers )
+    public DefaultDiscoveryConfig setEnabledPatchers( final Collection<String> patchers )
     {
         this.patchers = patchers;
         return this;
@@ -127,7 +126,7 @@ public class DefaultDiscoveryConfig
     }
 
     @Override
-    public Set<String> getEnabledPatchers()
+    public Collection<String> getEnabledPatchers()
     {
         return patchers == null ? Collections.<String> emptySet() : patchers;
     }

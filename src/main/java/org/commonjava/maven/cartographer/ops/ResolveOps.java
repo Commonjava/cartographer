@@ -361,6 +361,12 @@ public class ResolveOps
                                           sourceManager.getFormatHint() );
         }
 
+        GraphWorkspace ws = data.getCurrentWorkspace();
+        if ( ws == null )
+        {
+            ws = data.setCurrentWorkspace( recipe.getWorkspaceId() );
+        }
+
         final List<GraphDescription> outDescs = new ArrayList<GraphDescription>( recipe.getGraphComposition()
                                                                                        .size() );
         for ( final GraphDescription graph : recipe.getGraphComposition() )
@@ -370,11 +376,20 @@ public class ResolveOps
             final ProjectVersionRef[] rootsArray = graph.getRootsArray();
 
             final GraphView view = resolve( sourceUri.toString(), options, rootsArray );
-            final Set<ProjectVersionRef> roots = view.getRoots();
 
-            outDescs.add( new GraphDescription( graph.getFilter(), roots ) );
+            if ( view.getRoots()
+                     .isEmpty() )
+            {
+                // best guess if the roots came back empty...
+                outDescs.add( graph );
+            }
+            else
+            {
+                final GraphDescription outGraph = new GraphDescription( graph.getFilter(), rootsArray );
+                outGraph.setView( view );
 
-            graph.setView( view );
+                outDescs.add( outGraph );
+            }
         }
 
         return new GraphComposition( recipe.getGraphComposition()
