@@ -30,8 +30,6 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
-dent.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.util.JoinString;
 
 //TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
 public class BuildRequirementProjectsFilter
