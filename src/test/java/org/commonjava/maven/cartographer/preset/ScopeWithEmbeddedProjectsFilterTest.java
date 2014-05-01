@@ -109,7 +109,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), BOM, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -122,7 +122,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), BOM, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }

@@ -10,16 +10,17 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -33,9 +34,6 @@ import org.commonjava.maven.atlas.ident.util.JoinString;
 public class BuildRequirementProjectsFilter
     implements ProjectRelationshipFilter
 {
-
-    public static final OrFilter STRUCTURE_ONLY_FILTER = new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS,
-                                                                       BomFilter.INSTANCE );
 
     private static final long serialVersionUID = 1L;
 
@@ -55,7 +53,7 @@ public class BuildRequirementProjectsFilter
     {
         this.runtimeOnly = false;
         this.acceptManaged = false;
-        this.filter = AnyFilter.INSTANCE;
+        this.filter = null;
         this.excludes = null;
     }
 
@@ -63,7 +61,7 @@ public class BuildRequirementProjectsFilter
     {
         this.acceptManaged = acceptManaged;
         this.runtimeOnly = false;
-        this.filter = AnyFilter.INSTANCE;
+        this.filter = null;
         this.excludes = null;
     }
 
@@ -87,7 +85,7 @@ public class BuildRequirementProjectsFilter
     {
         boolean result = false;
 
-        if ( rel.getType() == RelationshipType.BOM || rel.getType() == RelationshipType.PARENT )
+        if ( rel.getType() == BOM || rel.getType() == PARENT )
         {
             result = true;
         }
@@ -98,7 +96,8 @@ public class BuildRequirementProjectsFilter
         else
         {
             result = ( excludes == null || !excludes.contains( rel.getTarget()
-                                                                  .asProjectRef() ) ) && filter.accept( rel );
+                                                             .asProjectRef() ) )
+                    && ( filter == null || filter.accept( rel ) );
         }
 
         //        logger.info( "{}: accept({})", Boolean.toString( result )
@@ -151,7 +150,7 @@ public class BuildRequirementProjectsFilter
                 {
                     if ( !DependencyScope.runtime.implies( dr.getScope() ) )
                     {
-                        return STRUCTURE_ONLY_FILTER;
+                        return StructuralRelationshipsFilter.INSTANCE;
                     }
                     else
                     {
@@ -307,7 +306,20 @@ public class BuildRequirementProjectsFilter
     @Override
     public Set<RelationshipType> getAllowedTypes()
     {
-        return filter == null ? new HashSet<RelationshipType>( Arrays.asList( RelationshipType.values() ) ) : filter.getAllowedTypes();
+        final Set<RelationshipType> types = new HashSet<>();
+        types.add( PARENT );
+        types.add( BOM );
+
+        if ( filter != null )
+        {
+            types.addAll( filter.getAllowedTypes() );
+        }
+        else
+        {
+            types.addAll( Arrays.asList( RelationshipType.values() ) );
+        }
+
+        return types;
     }
 
 }

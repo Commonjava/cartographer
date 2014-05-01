@@ -10,13 +10,14 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
+
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
-import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -27,9 +28,6 @@ import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 public class ScopedProjectFilter
     implements ProjectRelationshipFilter
 {
-
-    public static final OrFilter STRUCTURE_ONLY_FILTER = new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS,
-                                                                       BomFilter.INSTANCE );
 
     private static final long serialVersionUID = 1L;
 
@@ -52,8 +50,7 @@ public class ScopedProjectFilter
     {
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
-        this.filter =
- new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null );
+        this.filter = new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null );
     }
 
     private ScopedProjectFilter( final ProjectRelationshipFilter childFilter )
@@ -104,7 +101,7 @@ public class ScopedProjectFilter
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter({})", lastRelationship );
-                return STRUCTURE_ONLY_FILTER;
+                return StructuralRelationshipsFilter.INSTANCE;
             }
             default:
             {
@@ -112,7 +109,7 @@ public class ScopedProjectFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return STRUCTURE_ONLY_FILTER;
+                    return StructuralRelationshipsFilter.INSTANCE;
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
@@ -134,14 +131,7 @@ public class ScopedProjectFilter
             final StringBuilder sb = new StringBuilder();
             sb.append( "Scoped-Projects(sub-filter:" );
 
-            if ( filter == null )
-            {
-                sb.append( "none" );
-            }
-            else
-            {
                 sb.append( filter.getLongId() );
-            }
 
             sb.append( ",acceptManaged:" )
               .append( acceptManaged )
@@ -165,7 +155,7 @@ public class ScopedProjectFilter
         final int prime = 31;
         int result = 1;
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
-        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        result = prime * result + filter.hashCode();
         result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
         return result;
     }
@@ -190,14 +180,7 @@ public class ScopedProjectFilter
         {
             return false;
         }
-        if ( filter == null )
-        {
-            if ( other.filter != null )
-            {
-                return false;
-            }
-        }
-        else if ( !filter.equals( other.filter ) )
+        if ( !filter.equals( other.filter ) )
         {
             return false;
         }
@@ -234,7 +217,13 @@ public class ScopedProjectFilter
     @Override
     public Set<RelationshipType> getAllowedTypes()
     {
-        return filter.getAllowedTypes();
+        final Set<RelationshipType> types = new HashSet<>();
+        types.add( PARENT );
+        types.add( BOM );
+
+        types.addAll( filter.getAllowedTypes() );
+
+        return types;
     }
 
 }

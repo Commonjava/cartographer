@@ -10,6 +10,10 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.preset;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
+
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -95,13 +99,14 @@ public class ScopeWithEmbeddedProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                if ( filter == NoneFilter.INSTANCE )
-                {
-                    return this;
-                }
-
-                //                logger.info( "getChildFilter({})", lastRelationship );
-                return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
+                return NoneFilter.INSTANCE;
+                //                if ( filter == NoneFilter.INSTANCE )
+                //                {
+                //                    return this;
+                //                }
+                //
+                //                //                logger.info( "getChildFilter({})", lastRelationship );
+                //                return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
             }
             default:
             {
@@ -168,7 +173,7 @@ public class ScopeWithEmbeddedProjectsFilter
         final int prime = 31;
         int result = 1;
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
-        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        result = prime * result + filter.hashCode();
         result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
         return result;
     }
@@ -193,14 +198,7 @@ public class ScopeWithEmbeddedProjectsFilter
         {
             return false;
         }
-        if ( filter == null )
-        {
-            if ( other.filter != null )
-            {
-                return false;
-            }
-        }
-        else if ( !filter.equals( other.filter ) )
+        if ( !filter.equals( other.filter ) )
         {
             return false;
         }
@@ -237,7 +235,13 @@ public class ScopeWithEmbeddedProjectsFilter
     @Override
     public Set<RelationshipType> getAllowedTypes()
     {
-        return filter.getAllowedTypes();
+        final Set<RelationshipType> types = new HashSet<>();
+        types.add( PARENT );
+        types.add( BOM );
+
+        types.addAll( filter.getAllowedTypes() );
+
+        return types;
     }
 
 }
