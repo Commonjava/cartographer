@@ -80,7 +80,21 @@ public final class AggregationUtils
     public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final EProjectNet web )
     {
         final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
-        return collectProjectVersionReferences( rels );
+        final Map<ProjectVersionRef, ProjectRefCollection> result = collectProjectVersionReferences( rels );
+        for ( final ProjectVersionRef root : web.getView()
+                                                .getRoots() )
+        {
+            ProjectRefCollection collection = result.get( root );
+            if ( collection == null )
+            {
+                collection = new ProjectRefCollection();
+                result.put( root, collection );
+            }
+
+            collection.addArtifactRef( root.asPomArtifact() );
+        }
+
+        return result;
     }
 
     public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?>> rels )
