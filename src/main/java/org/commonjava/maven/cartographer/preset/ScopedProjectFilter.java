@@ -15,7 +15,6 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
-import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
@@ -28,6 +27,9 @@ import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 public class ScopedProjectFilter
     implements ProjectRelationshipFilter
 {
+
+    public static final OrFilter STRUCTURE_ONLY_FILTER = new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS,
+                                                                       BomFilter.INSTANCE );
 
     private static final long serialVersionUID = 1L;
 
@@ -51,8 +53,7 @@ public class ScopedProjectFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE, new DependencyFilter( this.scope, ScopeTransitivity.maven,
-                                                                                                           false, true, true, null ) );
+ new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null );
     }
 
     private ScopedProjectFilter( final ProjectRelationshipFilter childFilter )
@@ -60,8 +61,8 @@ public class ScopedProjectFilter
         this.scope = DependencyScope.runtime;
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE,
-                                                new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ) ) : childFilter;
+            childFilter == null ? new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null )
+                            : childFilter;
     }
 
     @Override
@@ -69,7 +70,11 @@ public class ScopedProjectFilter
     {
         boolean result = false;
 
-        if ( !acceptManaged && rel.isManaged() )
+        if ( rel.getType() == RelationshipType.BOM || rel.getType() == RelationshipType.PARENT )
+        {
+            result = true;
+        }
+        else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }
@@ -90,16 +95,16 @@ public class ScopedProjectFilter
         switch ( lastRelationship.getType() )
         {
             case BOM:
+            case PARENT:
+            {
+                return this;
+            }
             case EXTENSION:
             case PLUGIN:
             case PLUGIN_DEP:
             {
                 //                logger.info( "getChildFilter({})", lastRelationship );
-                return NoneFilter.INSTANCE;
-            }
-            case PARENT:
-            {
-                return this;
+                return STRUCTURE_ONLY_FILTER;
             }
             default:
             {
@@ -107,7 +112,7 @@ public class ScopedProjectFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    return NoneFilter.INSTANCE;
+                    return STRUCTURE_ONLY_FILTER;
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );

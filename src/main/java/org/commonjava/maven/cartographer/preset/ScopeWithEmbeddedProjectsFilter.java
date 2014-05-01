@@ -13,11 +13,9 @@ package org.commonjava.maven.cartographer.preset;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -46,8 +44,7 @@ public class ScopeWithEmbeddedProjectsFilter
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE, new DependencyFilter( this.scope, ScopeTransitivity.maven,
-                                                                                                           false, true, true, null ),
+            new OrFilter( new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
                           new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
     }
 
@@ -55,8 +52,8 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( ParentFilter.EXCLUDE_TERMINAL_PARENTS, BomFilter.INSTANCE,
-                                                new DependencyFilter( scope, ScopeTransitivity.maven, false, true, true, null ),
+            childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
+                                                                      true, null ),
                                                 new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
                             : childFilter;
     }
@@ -65,7 +62,11 @@ public class ScopeWithEmbeddedProjectsFilter
     public boolean accept( final ProjectRelationship<?> rel )
     {
         boolean result;
-        if ( !acceptManaged && rel.isManaged() )
+        if ( rel.getType() == RelationshipType.BOM || rel.getType() == RelationshipType.PARENT )
+        {
+            result = true;
+        }
+        else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
         }
@@ -86,6 +87,10 @@ public class ScopeWithEmbeddedProjectsFilter
         switch ( lastRelationship.getType() )
         {
             case BOM:
+            case PARENT:
+            {
+                return this;
+            }
             case EXTENSION:
             case PLUGIN:
             case PLUGIN_DEP:
@@ -97,10 +102,6 @@ public class ScopeWithEmbeddedProjectsFilter
 
                 //                logger.info( "getChildFilter({})", lastRelationship );
                 return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
-            }
-            case PARENT:
-            {
-                return this;
             }
             default:
             {
