@@ -26,12 +26,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
-import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
@@ -40,7 +35,6 @@ import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
@@ -73,9 +67,6 @@ public class ResolveOps
     private GraphAggregator aggregator;
 
     @Inject
-    private CartoDataManager data;
-
-    @Inject
     private ArtifactManager artifacts;
 
     @Inject
@@ -89,11 +80,10 @@ public class ResolveOps
     {
     }
 
-    public ResolveOps( final CalculationOps calculations, final CartoDataManager data, final DiscoverySourceManager sourceManager,
+    public ResolveOps( final CalculationOps calculations, final DiscoverySourceManager sourceManager,
                        final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator, final ArtifactManager artifacts,
                        final ExecutorService executor )
     {
-        this.data = data;
         this.sourceManager = sourceManager;
         this.discoverer = discoverer;
         this.aggregator = aggregator;

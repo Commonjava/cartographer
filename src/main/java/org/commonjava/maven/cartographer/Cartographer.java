@@ -13,7 +13,6 @@ package org.commonjava.maven.cartographer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
@@ -24,9 +23,6 @@ import org.commonjava.maven.cartographer.ops.WorkspaceOps;
 @ApplicationScoped
 public class Cartographer
 {
-
-    @Inject
-    private CartoDataManager database;
 
     @Inject CalculationOps calculator;
 
@@ -48,21 +44,15 @@ public class Cartographer
     {
     }
 
-    public Cartographer( final CartoDataManager database, final CalculationOps calculator, final GraphOps grapher, final GraphRenderingOps renderer,
+    public Cartographer( final CalculationOps calculator, final GraphOps grapher, final GraphRenderingOps renderer,
                          final MetadataOps metadata, final ResolveOps resolver, final WorkspaceOps workspace )
     {
-        this.database = database;
         this.calculator = calculator;
         this.grapher = grapher;
         this.renderer = renderer;
         this.metadata = metadata;
         this.resolver = resolver;
         this.workspaces = workspace;
-    }
-
-    public CartoDataManager getDatabase()
-    {
-        return database;
     }
 
     public CalculationOps getCalculator()

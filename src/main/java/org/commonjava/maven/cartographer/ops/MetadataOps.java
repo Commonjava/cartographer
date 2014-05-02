@@ -23,13 +23,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
@@ -54,9 +51,6 @@ public class MetadataOps
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private CartoDataManager data;
-
-    @Inject
     private ArtifactManager artifacts;
 
     @Inject
@@ -78,11 +72,10 @@ public class MetadataOps
     {
     }
 
-    public MetadataOps( final CartoDataManager data, final ArtifactManager artifacts, final MavenPomReader pomReader,
+    public MetadataOps( final ArtifactManager artifacts, final MavenPomReader pomReader,
                         final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager, final ResolveOps resolver,
                         final CalculationOps calculations )
     {
-        this.data = data;
         this.artifacts = artifacts;
         this.pomReader = pomReader;
         this.scannerSupport = scannerSupport;

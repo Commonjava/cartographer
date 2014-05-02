@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -29,9 +29,9 @@ public final class AggregationUtils
     {
     }
 
-    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final EProjectNet web )
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final RelationshipGraph graph )
     {
-        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
         return collectProjectReferences( rels );
     }
 
@@ -77,11 +77,11 @@ public final class AggregationUtils
         return projects;
     }
 
-    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final EProjectNet web )
+    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final RelationshipGraph graph )
     {
-        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
         final Map<ProjectVersionRef, ProjectRefCollection> result = collectProjectVersionReferences( rels );
-        for ( final ProjectVersionRef root : web.getView()
+        for ( final ProjectVersionRef root : graph.getParams()
                                                 .getRoots() )
         {
             ProjectRefCollection collection = result.get( root );
@@ -138,9 +138,10 @@ public final class AggregationUtils
         return projects;
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final EProjectNet web, final boolean includePomArtifacts )
+    public static Set<ArtifactRef> collectArtifactReferences( final RelationshipGraph graph,
+                                                              final boolean includePomArtifacts )
     {
-        final Collection<ProjectRelationship<?>> rels = web.getAllRelationships();
+        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
         return collectArtifactReferences( rels, includePomArtifacts );
     }
 

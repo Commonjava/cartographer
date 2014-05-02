@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.discover;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 
@@ -23,13 +24,8 @@ public interface ProjectRelationshipDiscoverer
     ProjectVersionRef resolveSpecificVersion( ProjectVersionRef ref, DiscoveryConfig discoveryConfig )
         throws CartoDataException;
 
-    /**
-     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
-     */
-    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig, boolean store )
-        throws CartoDataException;
-
-    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, DiscoveryConfig discoveryConfig )
+    DiscoveryResult discoverRelationships( ProjectVersionRef projectId, RelationshipGraph graph,
+                                           DiscoveryConfig discoveryConfig )
         throws CartoDataException;
 
 }

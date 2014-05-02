@@ -17,7 +17,6 @@ import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 
 @Named( "scope" )
 @ApplicationScoped
@@ -35,7 +34,7 @@ public class ScopedProjectFilterFactory
     }
 
     @Override
-    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
+    public ProjectRelationshipFilter newFilter( final String presetId, final Map<String, Object> parameters )
     {
         return null;
     }

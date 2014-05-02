@@ -30,8 +30,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -49,7 +47,6 @@ import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 
@@ -58,18 +55,15 @@ public class GraphRenderingOps
 {
 
     @Inject
-    private CartoDataManager data;
-
-    @Inject
     private CalculationOps calcOps;
 
     protected GraphRenderingOps()
     {
     }
 
-    public GraphRenderingOps( final CartoDataManager data )
+    public GraphRenderingOps( final CalculationOps calcOps )
     {
-        this.data = data;
+        this.calcOps = calcOps;
     }
 
     public void depTree( final ProjectVersionRef ref, final ProjectRelationshipFilter filter,

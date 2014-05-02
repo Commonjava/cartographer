@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
-import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
@@ -32,7 +32,7 @@ public class CartoFixture
 
     private EGraphManager graphs;
 
-    private DefaultCartoDataManager data;
+    private CartoGraphUtils data;
 
     private TestAggregatorDiscoverer discoverer;
 
@@ -77,7 +77,7 @@ public class CartoFixture
 
         if ( data == null )
         {
-            data = new DefaultCartoDataManager( graphs, wsHolder, cartoEvents );
+            data = new CartoGraphUtils( graphs, wsHolder, cartoEvents );
         }
         if ( discoverer == null )
         {
@@ -116,7 +116,7 @@ public class CartoFixture
         return graphs;
     }
 
-    public DefaultCartoDataManager getData()
+    public CartoGraphUtils getData()
     {
         return data;
     }
@@ -141,7 +141,7 @@ public class CartoFixture
         this.graphs = graphs;
     }
 
-    public void setData( final DefaultCartoDataManager data )
+    public void setData( final CartoGraphUtils data )
     {
         this.data = data;
     }

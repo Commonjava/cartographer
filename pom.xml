@@ -31,7 +31,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.12.0-SNAPSHOT</atlasVersion>
+    <atlasVersion>0.12.0-EXP-SNAPSHOT</atlasVersion>
     <galleyVersion>0.4.3-SNAPSHOT</galleyVersion>
   </properties>
 

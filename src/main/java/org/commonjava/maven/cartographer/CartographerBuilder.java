@@ -20,13 +20,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
-import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.DefaultCartoDataManager;
-import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
 import org.commonjava.maven.cartographer.discover.DiscovererImpl;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
@@ -86,7 +83,7 @@ import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 
 public class CartographerBuilder
 {
-    private GraphWorkspaceFactory wsFactory;
+    private RelationshipGraphFactory graphFactory;
 
     private int resolverThreads;
 
@@ -128,11 +125,7 @@ public class CartographerBuilder
 
     private GlobalHttpConfiguration globalHttpConfig;
 
-    private EGraphManager graphs;
-
     private NoOpCartoEventManager events;
-
-    private GraphWorkspaceHolder wsHolder;
 
     private NoOpFileEventManager fileEvents;
 
@@ -164,19 +157,17 @@ public class CartographerBuilder
 
     private MetadataScannerSupport scannerSupport;
 
-    private DefaultCartoDataManager database;
-
     private Collection<DepgraphPatcher> depgraphPatchers;
 
     private PatcherSupport patcherSupport;
 
     public CartographerBuilder( final String workspaceId, final File resolverCacheDir, final int resolverThreads,
-                                final GraphWorkspaceFactory wsFactory )
+                                final RelationshipGraphFactory graphFactory )
         throws CartoDataException
     {
         this.resolverCacheDir = resolverCacheDir;
         this.resolverThreads = resolverThreads;
-        this.wsFactory = wsFactory;
+        this.graphFactory = graphFactory;
     }
 
     public CartographerBuilder initHttpComponents()
@@ -218,11 +209,6 @@ public class CartographerBuilder
     public Cartographer build()
         throws CartoDataException
     {
-        if ( graphs == null )
-        {
-            graphs = new EGraphManager( wsFactory );
-        }
-
         // TODO: This needs to be replaced with a real implementation.
         if ( events == null )
         {
@@ -232,11 +218,6 @@ public class CartographerBuilder
         if ( this.sourceManager == null )
         {
             this.sourceManager = new SourceManagerImpl();
-        }
-
-        if ( wsHolder == null )
-        {
-            wsHolder = new GraphWorkspaceHolder();
         }
 
         initHttpComponents();
@@ -389,36 +370,31 @@ public class CartographerBuilder
             this.patcherSupport = new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
         }
 
-        if ( database == null )
-        {
-            database = new DefaultCartoDataManager( graphs, wsHolder, events );
-        }
-
-        final MavenModelProcessor mmp = new MavenModelProcessor( database );
+        final MavenModelProcessor mmp = new MavenModelProcessor();
 
         if ( this.discoverer == null )
         {
-            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, database, patcherSupport, scannerSupport );
+            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, patcherSupport, scannerSupport );
         }
 
-        final GraphAggregator aggregator = new DefaultGraphAggregator( database, discoverer, aggregatorExecutor );
+        final GraphAggregator aggregator = new DefaultGraphAggregator( discoverer, aggregatorExecutor );
 
-        final WorkspaceOps workspaceOps = new WorkspaceOps( database, sourceManager );
-        final CalculationOps calculationOps = new CalculationOps( database );
-        final GraphOps graphOps = new GraphOps( database );
-        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( database );
+        final WorkspaceOps workspaceOps = new WorkspaceOps( sourceManager );
+        final CalculationOps calculationOps = new CalculationOps();
+        final GraphOps graphOps = new GraphOps();
+        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( calculationOps );
         final ResolveOps resolveOps =
-            new ResolveOps( calculationOps, database, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
+            new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
 
         final MetadataOps metadataOps =
-            new MetadataOps( database, artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
+            new MetadataOps( artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
 
-        return new Cartographer( database, calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
+        return new Cartographer( calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
     }
 
-    public GraphWorkspaceFactory getWsFactory()
+    public RelationshipGraphFactory getGraphFactory()
     {
-        return wsFactory;
+        return graphFactory;
     }
 
     public int getResolverThreads()
@@ -491,9 +467,9 @@ public class CartographerBuilder
         return transports;
     }
 
-    public CartographerBuilder withWsFactory( final GraphWorkspaceFactory wsFactory )
+    public CartographerBuilder withGraphFactory( final RelationshipGraphFactory graphFactory )
     {
-        this.wsFactory = wsFactory;
+        this.graphFactory = graphFactory;
         return this;
     }
 
@@ -623,19 +599,9 @@ public class CartographerBuilder
         return globalHttpConfig;
     }
 
-    public EGraphManager getGraphs()
-    {
-        return graphs;
-    }
-
     public NoOpCartoEventManager getEvents()
     {
         return events;
-    }
-
-    public GraphWorkspaceHolder getWsHolder()
-    {
-        return wsHolder;
     }
 
     public NoOpFileEventManager getFileEvents()
@@ -713,11 +679,6 @@ public class CartographerBuilder
         return scannerSupport;
     }
 
-    public DefaultCartoDataManager getDatabase()
-    {
-        return database;
-    }
-
     public CartographerBuilder withVersionResolver( final VersionResolver versionResolver )
     {
         this.versionResolver = versionResolver;
@@ -748,21 +709,9 @@ public class CartographerBuilder
         return this;
     }
 
-    public CartographerBuilder withGraphs( final EGraphManager graphs )
-    {
-        this.graphs = graphs;
-        return this;
-    }
-
     public CartographerBuilder withEvents( final NoOpCartoEventManager events )
     {
         this.events = events;
-        return this;
-    }
-
-    public CartographerBuilder withWsHolder( final GraphWorkspaceHolder wsHolder )
-    {
-        this.wsHolder = wsHolder;
         return this;
     }
 
@@ -859,12 +808,6 @@ public class CartographerBuilder
     public CartographerBuilder withPatcherSupport( final PatcherSupport patcherSupport )
     {
         this.patcherSupport = patcherSupport;
-        return this;
-    }
-
-    public CartographerBuilder withDatabase( final DefaultCartoDataManager database )
-    {
-        this.database = database;
         return this;
     }
 

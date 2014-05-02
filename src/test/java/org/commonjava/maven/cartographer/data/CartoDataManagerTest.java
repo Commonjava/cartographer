@@ -91,7 +91,7 @@ public class CartoDataManagerTest
         provider = new TestCartoCoreProvider( temp );
         sessionManager = new GraphWorkspaceHolder();
 
-        dataManager = new DefaultCartoDataManager( provider.getGraphs(), sessionManager, new TestCartoEventManager() );
+        dataManager = new CartoGraphUtils( provider.getGraphs(), sessionManager, new TestCartoEventManager() );
 
         final MavenModelProcessor processor = new MavenModelProcessor( dataManager );
 

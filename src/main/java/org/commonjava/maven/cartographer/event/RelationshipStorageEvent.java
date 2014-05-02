@@ -10,29 +10,30 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.event;
 
-import java.util.Set;
+import java.util.Collection;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 
 public class RelationshipStorageEvent
 {
 
-    private final Set<ProjectRelationship<?>> stored;
+    private final Collection<? extends ProjectRelationship<?>> stored;
 
-    private final Set<ProjectRelationship<?>> rejected;
+    private final Collection<ProjectRelationship<?>> rejected;
 
-    public RelationshipStorageEvent( final Set<ProjectRelationship<?>> stored, final Set<ProjectRelationship<?>> rejected )
+    public RelationshipStorageEvent( final Collection<? extends ProjectRelationship<?>> relationships,
+                                     final Collection<ProjectRelationship<?>> rejected2 )
     {
-        this.stored = stored;
-        this.rejected = rejected;
+        this.stored = relationships;
+        this.rejected = rejected2;
     }
 
-    public final Set<ProjectRelationship<?>> getStored()
+    public final Collection<? extends ProjectRelationship<?>> getStored()
     {
         return stored;
     }
 
-    public final Set<ProjectRelationship<?>> getRejected()
+    public final Collection<ProjectRelationship<?>> getRejected()
     {
         return rejected;
     }

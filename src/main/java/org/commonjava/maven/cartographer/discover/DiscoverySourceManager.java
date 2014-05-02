@@ -14,7 +14,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.galley.model.Location;
 
@@ -29,7 +29,7 @@ public interface DiscoverySourceManager
 
     URI createSourceURI( String source );
 
-    boolean activateWorkspaceSources( GraphWorkspace ws, String... sources )
+    boolean activateWorkspaceSources( ViewParams params, String... sources )
         throws CartoDataException;
 
     String getFormatHint();

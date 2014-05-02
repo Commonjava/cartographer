@@ -18,16 +18,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
@@ -40,19 +36,7 @@ import org.slf4j.LoggerFactory;
 public class CalculationOps
 {
 
-    @Inject
-    private CartoDataManager data;
-
     private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    protected CalculationOps()
-    {
-    }
-
-    public CalculationOps( final CartoDataManager data )
-    {
-        this.data = data;
-    }
 
     public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to )
         throws CartoDataException

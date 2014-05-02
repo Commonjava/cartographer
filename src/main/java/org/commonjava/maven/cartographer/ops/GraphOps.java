@@ -17,20 +17,15 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.util.ProjectVersionRefComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,18 +35,6 @@ public class GraphOps
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    @Inject
-    private CartoDataManager data;
-
-    protected GraphOps()
-    {
-    }
-
-    public GraphOps( final CartoDataManager data )
-    {
-        this.data = data;
-    }
 
     public void reindexAll()
         throws CartoDataException

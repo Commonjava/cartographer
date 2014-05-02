@@ -14,9 +14,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 
 @ApplicationScoped
 @Named( "no-op" )
@@ -26,7 +26,7 @@ public class NoOpCartoEventManager
 {
 
     @Override
-    public void waitForGraph( final ProjectVersionRef ref, final CartoDataManager data, final long timeoutMillis )
+    public void waitForGraph( final ProjectVersionRef ref, final RelationshipGraph graph, final long timeoutMillis )
         throws CartoDataException
     {
     }

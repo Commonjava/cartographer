@@ -17,7 +17,6 @@ import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 
 @Named( "build-env" )
 @ApplicationScoped
@@ -29,7 +28,7 @@ public class BuildRequirementProjectsFilterFactory
         "managed-br" };
 
     @Override
-    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
+    public ProjectRelationshipFilter newFilter( final String presetId, final Map<String, Object> parameters )
     {
         Boolean managed = (Boolean) parameters.get( CommonPresetParameters.MANAGED );
         if ( managed == null )

@@ -25,12 +25,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
-import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -38,7 +34,6 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
@@ -55,9 +50,6 @@ public class DefaultGraphAggregator
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private CartoDataManager dataManager;
-
-    @Inject
     private ProjectRelationshipDiscoverer discoverer;
 
     @Inject
@@ -68,9 +60,8 @@ public class DefaultGraphAggregator
     {
     }
 
-    public DefaultGraphAggregator( final CartoDataManager dataManager, final ProjectRelationshipDiscoverer discoverer, final ExecutorService executor )
+    public DefaultGraphAggregator( final ProjectRelationshipDiscoverer discoverer, final ExecutorService executor )
     {
-        this.dataManager = dataManager;
         this.discoverer = discoverer;
         this.executor = executor;
     }

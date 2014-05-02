@@ -18,18 +18,12 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 
 @ApplicationScoped
 public class WorkspaceOps
 {
-
-    @Inject
-    private CartoDataManager data;
 
     @Inject
     private DiscoverySourceManager sourceFactory;
@@ -38,9 +32,8 @@ public class WorkspaceOps
     {
     }
 
-    public WorkspaceOps( final CartoDataManager data, final DiscoverySourceManager sourceFactory )
+    public WorkspaceOps( final DiscoverySourceManager sourceFactory )
     {
-        this.data = data;
         this.sourceFactory = sourceFactory;
     }
 
