@@ -22,6 +22,7 @@ import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
+import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
@@ -37,7 +38,7 @@ public final class CartoGraphUtils
     {
         final AncestryTraversal ancestryTraversal = new AncestryTraversal();
 
-        graph.traverse( ancestryTraversal );
+        graph.traverse( source, ancestryTraversal, TraversalType.depth_first );
 
         return ancestryTraversal.getAncestry();
     }

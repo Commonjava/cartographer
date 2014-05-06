@@ -21,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -38,7 +39,6 @@ import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
 import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
-import org.commonjava.maven.cartographer.ops.WorkspaceOps;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
@@ -161,13 +161,17 @@ public class CartographerBuilder
 
     private PatcherSupport patcherSupport;
 
-    public CartographerBuilder( final String workspaceId, final File resolverCacheDir, final int resolverThreads,
-                                final RelationshipGraphFactory graphFactory )
+    private final RelationshipGraphConnectionFactory connectionFactory;
+
+    private GraphAggregator aggregator;
+
+    public CartographerBuilder( final File resolverCacheDir, final int resolverThreads,
+                                final RelationshipGraphConnectionFactory connectionFactory )
         throws CartoDataException
     {
         this.resolverCacheDir = resolverCacheDir;
         this.resolverThreads = resolverThreads;
-        this.graphFactory = graphFactory;
+        this.connectionFactory = connectionFactory;
     }
 
     public CartographerBuilder initHttpComponents()
@@ -187,6 +191,12 @@ public class CartographerBuilder
             globalHttpConfig = new GlobalHttpConfiguration();
         }
 
+        return this;
+    }
+
+    public CartographerBuilder withGraphAggregator( final GraphAggregator aggregator )
+    {
+        this.aggregator = aggregator;
         return this;
     }
 
@@ -377,19 +387,25 @@ public class CartographerBuilder
             this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, patcherSupport, scannerSupport );
         }
 
-        final GraphAggregator aggregator = new DefaultGraphAggregator( discoverer, aggregatorExecutor );
+        if ( aggregator == null )
+        {
+            aggregator = new DefaultGraphAggregator( discoverer, aggregatorExecutor );
+        }
 
-        final WorkspaceOps workspaceOps = new WorkspaceOps( sourceManager );
-        final CalculationOps calculationOps = new CalculationOps();
+        final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
+
+        final CalculationOps calculationOps = new CalculationOps( graphFactory );
         final GraphOps graphOps = new GraphOps();
-        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( calculationOps );
+        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( calculationOps, graphFactory );
         final ResolveOps resolveOps =
-            new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
+            new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor,
+                            graphFactory );
 
         final MetadataOps metadataOps =
-            new MetadataOps( artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
+            new MetadataOps( artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps,
+                             graphFactory );
 
-        return new Cartographer( calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
+        return new Cartographer( calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, graphFactory );
     }
 
     public RelationshipGraphFactory getGraphFactory()
@@ -819,5 +835,10 @@ public class CartographerBuilder
     public PatcherSupport getPatcherSupport()
     {
         return patcherSupport;
+    }
+
+    public GraphAggregator getGraphAggregator()
+    {
+        return aggregator;
     }
 }

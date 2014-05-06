@@ -32,6 +32,9 @@ public interface DiscoverySourceManager
     boolean activateWorkspaceSources( ViewParams params, String... sources )
         throws CartoDataException;
 
+    boolean activateWorkspaceSources( ViewParams params, Collection<? extends Location> locations )
+        throws CartoDataException;
+
     String getFormatHint();
 
 }

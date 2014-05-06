@@ -18,14 +18,11 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
@@ -69,13 +66,12 @@ public class DefaultGraphAggregatorTest
         final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
         final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
-        final GraphWorkspace workspace = fixture.getData()
-                                                .createWorkspace( new GraphWorkspaceConfiguration() );
-
-        workspace.addActiveSource( src );
+        final RelationshipGraph rootless =
+            fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
+        rootless.addActiveSource( src );
 
         /* @formatter:off */
-        fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList(
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
             new DependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
@@ -97,37 +93,39 @@ public class DefaultGraphAggregatorTest
                                                                                .setProcessVariableSubgraphs( true )
                                                                                .setDiscoveryTimeoutMillis( 10 );
 
-        final EProjectWeb web = fixture.getData()
-                                       .getProjectWeb( options.getFilter(), new ManagedDependencyMutator(), root );
-        assertThat( web, notNullValue() );
+        final RelationshipGraph graph =
+            fixture.openGraph( new ViewParams.Builder( rootless.getParams() ).withFilter( new GroupIdFilter( baseG ) )
+                                                                             .withRoots( root )
+                                                                             .build(), false );
+        assertThat( graph, notNullValue() );
 
-        EProjectNet result = fixture.getAggregator()
-                                    .connectIncomplete( web, options );
-        assertThat( result, notNullValue() );
+        fixture.getAggregator()
+               .connectIncomplete( graph, options );
 
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( gc1 ), equalTo( true ) );
+
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( c2 ), equalTo( false ) );
 
         logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
         /* @formatter:off */
-        fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
             new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         /* @formatter:on */
 
-        result = fixture.getAggregator()
-                        .connectIncomplete( web, options );
-
-        assertThat( result, notNullValue() );
+        fixture.getAggregator()
+               .connectIncomplete( graph, options );
 
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( gc1 ), equalTo( true ) );
+
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( c2 ), equalTo( false ) );
+
         assertThat( fixture.getDiscoverer()
                            .sawDiscovery( gc3 ), equalTo( false ) );
     }

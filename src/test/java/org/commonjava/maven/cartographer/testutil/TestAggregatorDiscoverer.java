@@ -15,9 +15,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
@@ -34,13 +35,6 @@ public class TestAggregatorDiscoverer
 
     private final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
-    private final CartoDataManager data;
-
-    public TestAggregatorDiscoverer( final CartoDataManager data )
-    {
-        this.data = data;
-    }
-
     public void mapResult( final ProjectVersionRef ref, final DiscoveryResult result )
     {
         mappedResults.put( ref, result );
@@ -53,20 +47,14 @@ public class TestAggregatorDiscoverer
         return ref;
     }
 
-    /**
-     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
-     */
-    @Deprecated
-    @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
-        throws CartoDataException
+    public boolean sawDiscovery( final ProjectVersionRef ref )
     {
-        discoveryConfig.setStoreRelationships( storeRelationships );
-        return discoverRelationships( ref, discoveryConfig );
+        return seen.contains( ref );
     }
 
     @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final RelationshipGraph graph,
+                                                  final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
         seen.add( ref );
@@ -75,15 +63,18 @@ public class TestAggregatorDiscoverer
         logger.info( "DISCOVER: {}....\n  {}", ref, result );
         if ( result != null && discoveryConfig.isStoreRelationships() )
         {
-            data.storeRelationships( result.getAllDiscoveredRelationships() );
+            try
+            {
+                graph.storeRelationships( result.getAllDiscoveredRelationships() );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException( "Failed to store relationships for: {} in: {}. Reason: {}", e, ref,
+                                              graph, e.getMessage() );
+            }
         }
 
         return result;
-    }
-
-    public boolean sawDiscovery( final ProjectVersionRef ref )
-    {
-        return seen.contains( ref );
     }
 
 }

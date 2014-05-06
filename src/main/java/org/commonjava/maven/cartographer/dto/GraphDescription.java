@@ -120,7 +120,7 @@ public class GraphDescription
         return presetParams;
     }
 
-    public void setView( final ViewParams view )
+    public void setGraphParams( final ViewParams view )
     {
         this.view = view;
         this.roots = new TreeSet<>( view.getRoots() );

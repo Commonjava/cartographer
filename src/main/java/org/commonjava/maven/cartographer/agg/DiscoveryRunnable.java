@@ -68,7 +68,7 @@ public class DiscoveryRunnable
 
             if ( discoverer != null && !roMissing.contains( ref ) )
             {
-                result = discoverer.discoverRelationships( ref, discoveryConfig );
+                result = discoverer.discoverRelationships( ref, todo.getGraph(), discoveryConfig );
             }
             else if ( roMissing.contains( ref ) )
             {

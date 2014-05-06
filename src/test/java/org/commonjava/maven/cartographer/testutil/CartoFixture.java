@@ -10,17 +10,18 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.testutil;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
 
-import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
+import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.cartographer.Cartographer;
+import org.commonjava.maven.cartographer.CartographerBuilder;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
-import org.commonjava.maven.cartographer.data.CartoGraphUtils;
-import org.commonjava.maven.cartographer.data.GraphWorkspaceHolder;
-import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
-import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
-import org.commonjava.maven.cartographer.ops.CalculationOps;
+import org.commonjava.maven.cartographer.agg.GraphAggregator;
+import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
@@ -30,135 +31,92 @@ public class CartoFixture
     extends GalleyMavenFixture
 {
 
-    private EGraphManager graphs;
+    private CartographerBuilder builder;
 
-    private CartoGraphUtils data;
+    private Cartographer cartographer;
 
-    private TestAggregatorDiscoverer discoverer;
-
-    private DefaultGraphAggregator aggregator;
-
-    private CalculationOps calculationOps;
-
-    private ResolveOps resolveOps;
-
-    private NoOpCartoEventManager cartoEvents;
-
-    private GraphWorkspaceHolder wsHolder;
-
-    private SourceManagerImpl sourceManager;
-
-    private MavenModelProcessor modelProcessor;
+    private boolean graphAggregatorSet;
 
     public CartoFixture( final CoreFixture core )
     {
         super( core );
     }
 
+    protected void initCartographer()
+        throws Exception
+    {
+        if ( builder == null )
+        {
+            final RelationshipGraphConnectionFactory connectionFactory =
+                new FileNeo4jConnectionFactory( getTemp().newFolder( "graph.", ".db" ), false );
+
+            builder = new CartographerBuilder( getTemp().newFolder( "resolver.", ".dir" ), 1, connectionFactory );
+
+            builder.withTransport( getTransport() );
+            builder.withDiscoverer( new TestAggregatorDiscoverer() );
+            if ( !graphAggregatorSet )
+            {
+                builder.withGraphAggregator( newGraphAggregator( builder.getDiscoverer() ) );
+            }
+        }
+
+        cartographer = builder.build();
+    }
+
+    private GraphAggregator newGraphAggregator( final ProjectRelationshipDiscoverer discoverer )
+    {
+        return new DefaultGraphAggregator( discoverer, Executors.newFixedThreadPool( 1 ) );
+    }
+
     @Override
     public void initMissingComponents()
+        throws Exception
     {
         super.initMissingComponents();
+        initCartographer();
 
-        if ( graphs == null )
-        {
-            graphs = new EGraphManager( new FileNeo4jWorkspaceFactory( getTemp().newFolder( "graph.db" ), false ) );
-        }
-
-        if ( cartoEvents == null )
-        {
-            cartoEvents = new NoOpCartoEventManager();
-        }
-
-        if ( wsHolder == null )
-        {
-            wsHolder = new GraphWorkspaceHolder();
-        }
-
-        if ( data == null )
-        {
-            data = new CartoGraphUtils( graphs, wsHolder, cartoEvents );
-        }
-        if ( discoverer == null )
-        {
-            discoverer = new TestAggregatorDiscoverer( data );
-        }
-
-        if ( aggregator == null )
-        {
-            aggregator = new DefaultGraphAggregator( data, discoverer, Executors.newFixedThreadPool( 2 ) );
-        }
-
-        if ( sourceManager == null )
-        {
-            sourceManager = new SourceManagerImpl();
-        }
-
-        if ( calculationOps == null )
-        {
-            calculationOps = new CalculationOps( data );
-        }
-
-        if ( resolveOps == null )
-        {
-            resolveOps =
-                new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, getArtifacts(), Executors.newFixedThreadPool( 10 ) );
-        }
-
-        if ( modelProcessor == null )
-        {
-            modelProcessor = new MavenModelProcessor( getData() );
-        }
-    }
-
-    public EGraphManager getGraphs()
-    {
-        return graphs;
-    }
-
-    public CartoGraphUtils getData()
-    {
-        return data;
+        cartographer = builder.build();
     }
 
     public TestAggregatorDiscoverer getDiscoverer()
     {
-        return discoverer;
+        return (TestAggregatorDiscoverer) builder.getDiscoverer();
     }
 
-    public DefaultGraphAggregator getAggregator()
+    public GraphAggregator getAggregator()
     {
-        return aggregator;
+        return builder.getGraphAggregator();
     }
 
     public ResolveOps getResolveOps()
     {
-        return resolveOps;
-    }
-
-    public void setGraphs( final EGraphManager graphs )
-    {
-        this.graphs = graphs;
-    }
-
-    public void setData( final CartoGraphUtils data )
-    {
-        this.data = data;
+        return cartographer == null ? null : cartographer.getResolver();
     }
 
     public void setDiscoverer( final TestAggregatorDiscoverer discoverer )
+        throws Exception
     {
-        this.discoverer = discoverer;
+        builder.withDiscoverer( discoverer );
+        if ( !graphAggregatorSet )
+        {
+            builder.withGraphAggregator( newGraphAggregator( builder.getDiscoverer() ) );
+        }
+
+        if ( cartographer != null )
+        {
+            cartographer = builder.build();
+        }
     }
 
-    public void setAggregator( final DefaultGraphAggregator aggregator )
+    public void setAggregator( final GraphAggregator aggregator )
+        throws CartoDataException
     {
-        this.aggregator = aggregator;
-    }
-
-    public void setResolveOps( final ResolveOps resolveOps )
-    {
-        this.resolveOps = resolveOps;
+        builder.withGraphAggregator( aggregator );
+        graphAggregatorSet = true;
+        if ( cartographer != null )
+        {
+            cartographer = builder.build();
+        }
     }
 
     @Override
@@ -166,12 +124,12 @@ public class CartoFixture
     {
         try
         {
-            if ( graphs != null )
+            if ( cartographer != null )
             {
-                graphs.close();
+                cartographer.close();
             }
         }
-        catch ( final IOException e )
+        catch ( final CartoDataException e )
         {
             e.printStackTrace();
         }
@@ -179,54 +137,28 @@ public class CartoFixture
         super.after();
     }
 
-    public NoOpCartoEventManager getCartoEvents()
+    public Cartographer cartographer()
+        throws Exception
     {
-        return cartoEvents;
+        if ( cartographer == null )
+        {
+            initMissingComponents();
+            initCartographer();
+        }
+
+        return cartographer;
     }
 
-    public GraphWorkspaceHolder getWsHolder()
+    public RelationshipGraph openGraph( final ViewParams params, final boolean create )
+        throws Exception
     {
-        return wsHolder;
-    }
-
-    public SourceManagerImpl getSourceManager()
-    {
-        return sourceManager;
-    }
-
-    public void setCartoEvents( final NoOpCartoEventManager cartoEvents )
-    {
-        this.cartoEvents = cartoEvents;
-    }
-
-    public void setWsHolder( final GraphWorkspaceHolder wsHolder )
-    {
-        this.wsHolder = wsHolder;
-    }
-
-    public void setSourceManager( final SourceManagerImpl sourceManager )
-    {
-        this.sourceManager = sourceManager;
-    }
-
-    public CalculationOps getCalculationOps()
-    {
-        return calculationOps;
-    }
-
-    public void setCalculationOps( final CalculationOps calculationOps )
-    {
-        this.calculationOps = calculationOps;
+        return cartographer().getGraphFactory()
+                             .open( params, create );
     }
 
     public MavenModelProcessor getModelProcessor()
     {
-        return modelProcessor;
-    }
-
-    public void setModelProcessor( final MavenModelProcessor modelProcessor )
-    {
-        this.modelProcessor = modelProcessor;
+        return new MavenModelProcessor();
     }
 
 }

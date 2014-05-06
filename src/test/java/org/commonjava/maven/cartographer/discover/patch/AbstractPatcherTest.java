@@ -43,6 +43,7 @@ public abstract class AbstractPatcherTest
     public GalleyMavenFixture galleyFixture = new GalleyMavenFixture( new CoreFixture() );
 
     protected void setupGalley()
+        throws Exception
     {
         galleyFixture.initMissingComponents();
     }

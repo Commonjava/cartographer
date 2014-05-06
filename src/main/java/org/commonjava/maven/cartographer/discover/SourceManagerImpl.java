@@ -81,6 +81,31 @@ public class SourceManagerImpl
     }
 
     @Override
+    public boolean activateWorkspaceSources( final ViewParams params, final Collection<? extends Location> sources )
+        throws CartoDataException
+    {
+        boolean result = false;
+        for ( final Location source : sources )
+        {
+            final URI src = createSourceURI( source.getUri() );
+            if ( src != null )
+            {
+                if ( params.getActiveSources()
+                           .contains( src ) )
+                {
+                    continue;
+                }
+
+                params.addActiveSource( src );
+                result = result || params.getActiveSources()
+                                         .contains( src );
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public String getFormatHint()
     {
         return "Any valid URL supported by a configured galley transport";

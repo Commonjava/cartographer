@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.data;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
@@ -21,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Ignore
-public class CartoDataManagerWeldTest
-    extends AbstractCartoDataManagerTest
+public class CartoGraphUtilsWeldTest
+    extends AbstractCartoGraphUtilsTest
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -31,11 +32,9 @@ public class CartoDataManagerWeldTest
 
     private WeldContainer container;
 
-    private CartoDataManager dataManager;
-
     private GraphAggregator aggregator;
 
-    private GraphWorkspaceHolder sessionManager;
+    private RelationshipGraphFactory graphFactory;
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
@@ -55,13 +54,9 @@ public class CartoDataManagerWeldTest
         container = weld.initialize();
 
         logger.info( "Selecting components from weld..." );
-        sessionManager = container.instance()
-                                  .select( GraphWorkspaceHolder.class )
+        graphFactory = container.instance()
+                                .select( RelationshipGraphFactory.class )
                                   .get();
-
-        dataManager = container.instance()
-                               .select( CartoDataManager.class )
-                               .get();
 
         aggregator = container.instance()
                               .select( GraphAggregator.class )
@@ -69,16 +64,9 @@ public class CartoDataManagerWeldTest
     }
 
     @Override
-    protected GraphWorkspaceHolder getSessionManager()
+    protected RelationshipGraphFactory getGraphFactory()
     {
-        return sessionManager;
-    }
-
-    @Override
-    protected CartoDataManager getDataManager()
-        throws Exception
-    {
-        return dataManager;
+        return graphFactory;
     }
 
     @After

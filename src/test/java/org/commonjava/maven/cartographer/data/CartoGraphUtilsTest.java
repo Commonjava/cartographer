@@ -10,9 +10,11 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.data;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.discover.DiscovererImpl;
@@ -21,7 +23,6 @@ import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSuppo
 import org.commonjava.maven.cartographer.discover.post.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.testutil.TestCartoCoreProvider;
-import org.commonjava.maven.cartographer.testutil.TestCartoEventManager;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferManagerImpl;
@@ -54,11 +55,9 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
-public class CartoDataManagerTest
-    extends AbstractCartoDataManagerTest
+public class CartoGraphUtilsTest
+    extends AbstractCartoGraphUtilsTest
 {
-
-    private CartoDataManager dataManager;
 
     private DefaultGraphAggregator aggregator;
 
@@ -72,8 +71,6 @@ public class CartoDataManagerTest
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
-
-    private GraphWorkspaceHolder sessionManager;
 
     private MemoryNotFoundCache nfc;
 
@@ -89,11 +86,8 @@ public class CartoDataManagerTest
         throws Exception
     {
         provider = new TestCartoCoreProvider( temp );
-        sessionManager = new GraphWorkspaceHolder();
 
-        dataManager = new CartoGraphUtils( provider.getGraphs(), sessionManager, new TestCartoEventManager() );
-
-        final MavenModelProcessor processor = new MavenModelProcessor( dataManager );
+        final MavenModelProcessor processor = new MavenModelProcessor();
 
         // TODO: Do we need to flesh this out??
         final TransportManager transportManager = new TransportManagerImpl();
@@ -133,22 +127,16 @@ public class CartoDataManagerTest
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
 
-        discoverer = new DiscovererImpl( processor, pomReader, artifacts, dataManager, new PatcherSupport(), scannerSupport );
+        discoverer = new DiscovererImpl( processor, pomReader, artifacts, new PatcherSupport(), scannerSupport );
 
-        aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
+        aggregator = new DefaultGraphAggregator( discoverer, Executors.newFixedThreadPool( 2 ) );
     }
 
     @Override
-    protected GraphWorkspaceHolder getSessionManager()
+    protected RelationshipGraphFactory getGraphFactory()
+        throws IOException
     {
-        return sessionManager;
-    }
-
-    @Override
-    protected CartoDataManager getDataManager()
-        throws Exception
-    {
-        return dataManager;
+        return provider.getGraphFactory();
     }
 
     @Override

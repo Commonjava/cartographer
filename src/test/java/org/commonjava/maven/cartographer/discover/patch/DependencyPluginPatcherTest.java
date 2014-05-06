@@ -44,6 +44,7 @@ public class DependencyPluginPatcherTest
 
     @Before
     public void setup()
+        throws Exception
     {
         setupGalley();
         patcher = new DependencyPluginPatcher();

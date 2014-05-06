@@ -13,6 +13,7 @@ package org.commonjava.maven.cartographer.agg;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -23,16 +24,25 @@ final class DiscoveryTodo
 
     private Map<GraphPath<?>, GraphPathInfo> parentPaths;
 
+    private RelationshipGraph graph;
+
     public DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
 
-    public DiscoveryTodo( final ProjectVersionRef ref, final GraphPath<?> path, final GraphPathInfo pathInfo )
+    public DiscoveryTodo( final ProjectVersionRef ref, final GraphPath<?> path, final GraphPathInfo pathInfo,
+                          final RelationshipGraph graph )
     {
         this.ref = ref;
+        this.graph = graph;
         this.parentPaths = new HashMap<GraphPath<?>, GraphPathInfo>();
         parentPaths.put( path, pathInfo );
+    }
+
+    public RelationshipGraph getGraph()
+    {
+        return graph;
     }
 
     public ProjectVersionRef getRef()
