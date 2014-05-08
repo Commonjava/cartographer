@@ -30,12 +30,11 @@ public class CartoEventGraphListenerFactory
                         final Collection<ProjectRelationship<?>> rejected )
         throws RelationshipGraphException
     {
-        funnel.fireStorageEvent( new RelationshipStorageEvent( relationships, rejected ) );
+        funnel.fireStorageEvent( new RelationshipStorageEvent( relationships, rejected, graph ) );
     }
 
     @Override
-    public void projectError( final RelationshipGraph graph, final ProjectVersionRef ref,
-                              final Throwable error )
+    public void projectError( final RelationshipGraph graph, final ProjectVersionRef ref, final Throwable error )
         throws RelationshipGraphException
     {
         funnel.fireErrorEvent( new ProjectRelationshipsErrorEvent( graph, ref, error ) );

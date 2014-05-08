@@ -22,9 +22,12 @@ import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
+import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
+import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.slf4j.LoggerFactory;
 
 public final class CartoGraphUtils
 {
@@ -129,5 +132,40 @@ public final class CartoGraphUtils
         }
 
         return errors;
+    }
+
+    public static void closeGraphQuietly( final RelationshipGraph graph )
+    {
+        if ( graph != null )
+        {
+            try
+            {
+                graph.close();
+            }
+            catch ( final RelationshipGraphException e )
+            {
+
+                LoggerFactory.getLogger( CartoGraphUtils.class )
+                             .error( String.format( "Failed to close workspace: %s. Reason: %s", graph, e.getMessage() ),
+                                     e );
+            }
+        }
+    }
+
+    public static BuildOrder getBuildOrder( final ProjectVersionRef ref, final RelationshipGraph graph )
+        throws CartoDataException
+    {
+        final BuildOrderTraversal traversal = new BuildOrderTraversal();
+        try
+        {
+            graph.traverse( ref, traversal, TraversalType.breadth_first );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Traversal to capture build order failed for: {} in graph: {}. Reason: {}",
+                                          e, ref, graph, e.getMessage() );
+        }
+
+        return traversal.getBuildOrder();
     }
 }

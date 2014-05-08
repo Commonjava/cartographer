@@ -251,7 +251,9 @@ public class CartographerBuilder
 
         if ( cache == null )
         {
-            cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents, transferDecorator );
+            cache =
+                new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents,
+                                       transferDecorator );
         }
 
         if ( nfc == null )
@@ -262,19 +264,22 @@ public class CartographerBuilder
         if ( aggregatorExecutor == null )
         {
             aggregatorExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "carto-aggregator", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "carto-aggregator", true, 8 ) );
         }
 
         if ( transportExecutor == null )
         {
             transportExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-transport", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "galley-transport", true, 8 ) );
         }
 
         if ( batchExecutor == null )
         {
             batchExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-batch", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "galley-batch", true, 8 ) );
         }
 
         if ( resolveExecutor == null )
@@ -302,8 +307,8 @@ public class CartographerBuilder
         if ( this.transferMgr == null )
         {
             this.transferMgr =
-                new TransferManagerImpl( transportManager, cache, nfc, fileEvents, downloadHandler, uploadHandler, listingHandler, existenceHandler,
-                                         batchExecutor );
+                new TransferManagerImpl( transportManager, cache, nfc, fileEvents, downloadHandler, uploadHandler,
+                                         listingHandler, existenceHandler, batchExecutor );
         }
 
         if ( this.locationExpander == null )
@@ -356,7 +361,8 @@ public class CartographerBuilder
 
         if ( pomReader == null )
         {
-            pomReader = new MavenPomReader( xml, locationExpander, artifactManager, xpath, pluginDefaults, pluginImplications );
+            pomReader =
+                new MavenPomReader( xml, locationExpander, artifactManager, xpath, pluginDefaults, pluginImplications );
         }
 
         if ( this.metadataScanners == null )
@@ -377,7 +383,8 @@ public class CartographerBuilder
 
         if ( patcherSupport == null )
         {
-            this.patcherSupport = new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
+            this.patcherSupport =
+                new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
         }
 
         final MavenModelProcessor mmp = new MavenModelProcessor();
@@ -395,7 +402,7 @@ public class CartographerBuilder
         final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
 
         final CalculationOps calculationOps = new CalculationOps( graphFactory );
-        final GraphOps graphOps = new GraphOps();
+        final GraphOps graphOps = new GraphOps( graphFactory );
         final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( calculationOps, graphFactory );
         final ResolveOps resolveOps =
             new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor,

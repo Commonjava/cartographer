@@ -134,8 +134,9 @@ public class ResolveOpsTest
         recipe.setSourceLocation( location );
         recipe.setWorkspaceId( rootlessGraph.getWorkspaceId() );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents = fixture.getResolveOps()
-                                                                                           .resolveRepositoryContents( recipe );
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents =
+            fixture.getResolveOps()
+                   .resolveRepositoryContents( recipe );
         for ( final ProjectVersionRef ref : lineage )
         {
             assertThat( ref + " not present in repository contents!", contents.containsKey( ref ), equalTo( true ) );
@@ -183,10 +184,10 @@ public class ResolveOpsTest
                                                                                .setProcessVariableSubgraphs( true )
                                                                                .setDiscoveryTimeoutMillis( 10 );
 
-        final RelationshipGraph graph = fixture.getResolveOps()
-                                               .resolve( rootlessGraph.getWorkspaceId(), options, root );
+        final ViewParams params = fixture.getResolveOps()
+                                         .resolve( rootlessGraph.getWorkspaceId(), options, root );
 
-        Set<ProjectVersionRef> resolved = graph.getRoots();
+        Set<ProjectVersionRef> resolved = params.getRoots();
         assertThat( resolved.contains( root ), equalTo( true ) );
 
         assertThat( fixture.getDiscoverer()
@@ -195,6 +196,8 @@ public class ResolveOpsTest
                            .sawDiscovery( c2 ), equalTo( false ) );
 
         logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
+
+        final RelationshipGraph graph = fixture.openGraph( params, false );
 
         /* @formatter:off */
         graph.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 

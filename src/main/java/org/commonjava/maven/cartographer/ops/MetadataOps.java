@@ -32,6 +32,7 @@ import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
@@ -81,8 +82,8 @@ public class MetadataOps
     }
 
     public MetadataOps( final ArtifactManager artifacts, final MavenPomReader pomReader,
-                        final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager, final ResolveOps resolver,
- final CalculationOps calculations,
+                        final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager,
+                        final ResolveOps resolver, final CalculationOps calculations,
                         final RelationshipGraphFactory graphFactory )
     {
         this.artifacts = artifacts;
@@ -94,79 +95,120 @@ public class MetadataOps
         this.graphFactory = graphFactory;
     }
 
-    public Map<String, String> getMetadata( final String workspaceId, final ProjectVersionRef ref )
+    public Map<String, String> getMetadata( final ProjectVersionRef ref, final ViewParams params )
         throws CartoDataException
     {
-        RelationshipGraph graph;
+        RelationshipGraph graph = null;
         try
         {
-            graph = graphFactory.open( new ViewParams( workspaceId, ref ), false );
+            try
+            {
+                graph = graphFactory.open( params, false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref, params,
+                                              e.getMessage() );
+            }
+            return graph.getMetadata( ref );
         }
-        catch ( final RelationshipGraphException e )
+        finally
         {
-            throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref,
-                                          workspaceId, e.getMessage() );
+            CartoGraphUtils.closeGraphQuietly( graph );
         }
-
-        return graph.getMetadata( ref );
     }
 
-    public String getMetadataValue( final String workspaceId, final ProjectVersionRef ref, final String key )
+    public String getMetadataValue( final ProjectVersionRef ref, final String key, final ViewParams params )
         throws CartoDataException
     {
-        RelationshipGraph graph;
+        RelationshipGraph graph = null;
         try
         {
-            graph = graphFactory.open( new ViewParams( workspaceId, ref ), false );
+            try
+            {
+                graph = graphFactory.open( params, false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref, params,
+                                              e.getMessage() );
+            }
+
+            final Map<String, String> metadata = graph.getMetadata( ref, Collections.singleton( key ) );
+
+            if ( metadata != null )
+            {
+                return metadata.get( key );
+            }
+
+            return null;
         }
-        catch ( final RelationshipGraphException e )
+        finally
         {
-            throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref,
-                                          workspaceId, e.getMessage() );
+            CartoGraphUtils.closeGraphQuietly( graph );
         }
-
-        final Map<String, String> metadata = graph.getMetadata( ref, Collections.singleton( key ) );
-
-        if ( metadata != null )
-        {
-            return metadata.get( key );
-        }
-
-        return null;
     }
 
-    public void updateMetadata( final String workspaceId, final ProjectVersionRef ref,
-                                final Map<String, String> metadata )
+    public void updateMetadata( final ProjectVersionRef ref, final Map<String, String> metadata, final ViewParams params )
         throws CartoDataException
     {
         if ( metadata != null && !metadata.isEmpty() )
         {
-            RelationshipGraph graph;
+            RelationshipGraph graph = null;
             try
             {
-                graph = graphFactory.open( new ViewParams( workspaceId, ref ), false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref,
-                                              workspaceId, e.getMessage() );
-            }
+                try
+                {
+                    graph = graphFactory.open( params, false );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    throw new CartoDataException( "Cannot open graph for workspace: {}. Reason: {}", e, params,
+                                                  e.getMessage() );
+                }
 
-            logger.info( "Adding metadata for: {}\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
+                logger.info( "Adding metadata for: {}\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
 
-            try
-            {
-                graph.addMetadata( ref, metadata );
+                try
+                {
+                    graph.addMetadata( ref, metadata );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    throw new CartoDataException( "Failed to update metadata on: {} in workspace: {}. Reason: {}", e,
+                                                  ref, params, e.getMessage() );
+                }
             }
-            catch ( final RelationshipGraphException e )
+            finally
             {
-                throw new CartoDataException( "Failed to update metadata on: {} in workspace: {}. Reason: {}", e, ref,
-                                              workspaceId, e.getMessage() );
+                CartoGraphUtils.closeGraphQuietly( graph );
             }
         }
     }
 
-    // TODO: Is it important to allow a specific mutator here??
+    public void rescanMetadata( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            try
+            {
+                graph = graphFactory.open( params, false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException( "Failed to open graph: {}. Reason: {}", e, params, e.getMessage() );
+            }
+
+            rescanMetadata( graph );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
     public void rescanMetadata( final RelationshipGraph graph )
     {
         final Set<URI> sources = graph.getSources();
@@ -181,19 +223,22 @@ public class MetadataOps
                 transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
                 if ( transfer == null )
                 {
-                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...", ref.asPomArtifact(), locations );
+                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...",
+                                  ref.asPomArtifact(), locations );
                 }
 
                 pomView = pomReader.read( ref, transfer, locations );
             }
             catch ( final TransferException e )
             {
-                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(), locations, e.getMessage() ), e );
+                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(),
+                                             locations, e.getMessage() ), e );
                 continue;
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(), e.getMessage() ), e );
+                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(),
+                                             e.getMessage() ), e );
                 continue;
             }
 
@@ -237,7 +282,7 @@ public class MetadataOps
                                               recipe.getWorkspaceId(), e.getMessage() );
             }
 
-            final GraphCalculation result = calculations.calculate( recipe.getWorkspaceId(), graphs );
+            final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
             gavs = gavs( result.getResult() );
         }
         else
@@ -265,7 +310,8 @@ public class MetadataOps
 
         for ( final Map<String, String> metadata : new HashSet<Map<String, String>>( map.keySet() ) )
         {
-            final Map<String, String> changed = metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
+            final Map<String, String> changed =
+                metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
             for ( final String key : recipe.getKeys() )
             {
                 if ( !changed.containsKey( key ) )

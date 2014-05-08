@@ -48,6 +48,7 @@ import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 
@@ -71,9 +72,8 @@ public class GraphRenderingOps
         this.graphFactory = graphFactory;
     }
 
-    public void depTree( final RelationshipGraph graph,
-                         final boolean collapseTransitives, final Map<String, Set<ProjectVersionRef>> labels,
-                         final PrintWriter writer )
+    public void depTree( final RelationshipGraph graph, final boolean collapseTransitives,
+                         final Map<String, Set<ProjectVersionRef>> labels, final PrintWriter writer )
     {
         depTree( graph, collapseTransitives, null, writer );
     }
@@ -118,7 +118,7 @@ public class GraphRenderingOps
                          StructureRelationshipPrinter relPrinter, final PrintWriter writer )
         throws CartoDataException
     {
-        final GraphCalculation calculated = calcOps.calculate( workspaceId, comp );
+        final GraphCalculation calculated = calcOps.calculate( comp, workspaceId );
         if ( calculated != null )
         {
             final Set<ProjectRelationship<?>> rels = calculated.getResult();
@@ -148,7 +148,7 @@ public class GraphRenderingOps
     private Map<String, Set<ProjectVersionRef>> getLabels( final String workspaceId, final Set<ProjectVersionRef> roots )
         throws CartoDataException
     {
-        RelationshipGraph allWs;
+        RelationshipGraph allWs = null;
         try
         {
             allWs = graphFactory.open( new ViewParams( workspaceId ), false );
@@ -158,6 +158,10 @@ public class GraphRenderingOps
             throw new CartoDataException(
                                           "Cannot open root-less graph in workspace: '{}' for tree labeling. Reason: {}",
                                           e, workspaceId, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( allWs );
         }
 
         return getLabels( allWs, roots, null );

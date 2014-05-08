@@ -42,6 +42,7 @@ import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
@@ -91,8 +92,8 @@ public class ResolveOps
     }
 
     public ResolveOps( final CalculationOps calculations, final DiscoverySourceManager sourceManager,
-                       final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator, final ArtifactManager artifacts,
- final ExecutorService executor,
+                       final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator,
+                       final ArtifactManager artifacts, final ExecutorService executor,
                        final RelationshipGraphFactory graphFactory )
     {
         this.sourceManager = sourceManager;
@@ -103,8 +104,15 @@ public class ResolveOps
         this.graphFactory = graphFactory;
     }
 
-    public RelationshipGraph resolve( final String workspaceId, final AggregationOptions options,
-                              final ProjectVersionRef... roots )
+    public ViewParams resolve( final String workspaceId, final AggregationOptions options,
+                               final ProjectVersionRef... roots )
+        throws CartoDataException
+    {
+        return resolve( workspaceId, options, true, roots );
+    }
+
+    public ViewParams resolve( final String workspaceId, final AggregationOptions options, final boolean autoClose,
+                               final ProjectVersionRef... roots )
         throws CartoDataException
     {
         //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
@@ -130,50 +138,59 @@ public class ResolveOps
         params = new ViewParams.Builder( params ).withRoots( specifics )
                                                  .build();
 
-        RelationshipGraph graph;
+        RelationshipGraph graph = null;
+
+        //            else if ( !specific.equals( root ) )
+        //            {
+        //                view.selectVersion( root, specific );
+        //            }
+
         try
         {
-            graph = graphFactory.open( params, true );
-        }
-        catch ( final RelationshipGraphException e )
-        {
-            throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
-        }
-
-            //            else if ( !specific.equals( root ) )
-            //            {
-            //                view.selectVersion( root, specific );
-            //            }
-
-        for ( final ProjectVersionRef root : specifics )
-        {
-            if ( !graph.containsGraph( root ) || graph.hasProjectError( root ) )
+            try
             {
-                try
+                graph = graphFactory.open( params, true );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
+            }
+            for ( final ProjectVersionRef root : specifics )
+            {
+                if ( !graph.containsGraph( root ) || graph.hasProjectError( root ) )
                 {
-                    graph.clearProjectError( root );
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    logger.error( String.format( "Cannot clear project error for: %s in graph: %s. Reason: %s", root,
-                                                 graph, e.getMessage() ), e );
-                    continue;
-                }
+                    try
+                    {
+                        graph.clearProjectError( root );
+                    }
+                    catch ( final RelationshipGraphException e )
+                    {
+                        logger.error( String.format( "Cannot clear project error for: %s in graph: %s. Reason: %s",
+                                                     root, graph, e.getMessage() ), e );
+                        continue;
+                    }
 
-                logger.info( "Resolving direct relationships for root: {}", root );
-                final DiscoveryResult result = discoverer.discoverRelationships( root, graph, config );
-                logger.info( "Result: {} relationships", ( result == null ? 0 : result.getAcceptedRelationships()
-                                                                                      .size() ) );
+                    logger.info( "Resolving direct relationships for root: {}", root );
+                    final DiscoveryResult result = discoverer.discoverRelationships( root, graph, config );
+                    logger.info( "Result: {} relationships", ( result == null ? 0 : result.getAcceptedRelationships()
+                                                                                          .size() ) );
+                }
+            }
+            if ( options.isDiscoveryEnabled() )
+            {
+                logger.info( "Performing graph discovery for: {}", specifics );
+                aggregator.connectIncomplete( graph, options );
+            }
+        }
+        finally
+        {
+            if ( autoClose )
+            {
+                CartoGraphUtils.closeGraphQuietly( graph );
             }
         }
 
-        if ( options.isDiscoveryEnabled() )
-        {
-            logger.info( "Performing graph discovery for: {}", specifics );
-            aggregator.connectIncomplete( graph, options );
-        }
-
-        return graph;
+        return params;
     }
 
     private ViewParams activateSourceLocations( final String workspaceId, final ProjectRelationshipFilter filter,
@@ -206,8 +223,8 @@ public class ResolveOps
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
-                                          sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.",
+                                          recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
@@ -221,7 +238,8 @@ public class ResolveOps
 
             if ( items != null && !items.isEmpty() )
             {
-                logger.debug( "{} Returning for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", items.entrySet() ) );
+                logger.debug( "{} Returning for: {}\n\n  {}", collector, collector.getRef(),
+                              new JoinString( "\n  ", items.entrySet() ) );
                 Map<ArtifactRef, ConcreteResource> existingItems = itemMap.get( collector.getRef() );
                 if ( existingItems == null )
                 {
@@ -233,7 +251,8 @@ public class ResolveOps
                     existingItems.putAll( items );
                 }
 
-                logger.debug( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", existingItems.entrySet() ) );
+                logger.debug( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(),
+                              new JoinString( "\n  ", existingItems.entrySet() ) );
             }
             else
             {
@@ -269,7 +288,8 @@ public class ResolveOps
             final ProjectRefCollection refs = entry.getValue();
 
             final RepoContentCollector collector =
-                new RepoContentCollector( ref, refs, recipe, location, dconf, artifacts, discoverer, excluded, projectCounter, projectSz );
+                new RepoContentCollector( ref, refs, recipe, location, dconf, artifacts, discoverer, excluded,
+                                          projectCounter, projectSz );
 
             collectors.add( collector );
 
@@ -296,7 +316,8 @@ public class ResolveOps
         return collectors;
     }
 
-    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe, final URI sourceUri )
+    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
+                                                                              final URI sourceUri )
         throws CartoDataException
     {
         logger.info( "Building repository for: {}", recipe );
@@ -331,7 +352,7 @@ public class ResolveOps
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
         {
 
-            final GraphCalculation result = calculations.calculate( recipe.getWorkspaceId(), graphs );
+            final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
             refMap = collectProjectVersionReferences( result.getResult() );
 
             final ViewParams params =
@@ -400,8 +421,8 @@ public class ResolveOps
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
-                                          sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.",
+                                          recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
         final List<GraphDescription> outDescs = new ArrayList<GraphDescription>( recipe.getGraphComposition()
@@ -412,20 +433,38 @@ public class ResolveOps
 
             final ProjectVersionRef[] rootsArray = desc.getRootsArray();
 
-            final RelationshipGraph graph = resolve( sourceUri.toString(), options, rootsArray );
+            final ViewParams params = resolve( sourceUri.toString(), options, false, rootsArray );
 
-            if ( graph.getRoots()
-                     .isEmpty() )
+            RelationshipGraph graph = null;
+            try
             {
-                // best guess if the roots came back empty...
-                outDescs.add( desc );
+                try
+                {
+                    graph = graphFactory.open( params, false );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    throw new CartoDataException(
+                                                  "Cannot re-open graph that was created during resolve step! Params: {}\nError: {}\nRecipe: {}",
+                                                  e, params, e.getMessage(), recipe );
+                }
+                if ( graph.getRoots()
+                          .isEmpty() )
+                {
+                    // best guess if the roots came back empty...
+                    outDescs.add( desc );
+                }
+                else
+                {
+                    final GraphDescription outGraph = new GraphDescription( graph.getFilter(), rootsArray );
+                    outGraph.setGraphParams( graph.getParams() );
+
+                    outDescs.add( outGraph );
+                }
             }
-            else
+            finally
             {
-                final GraphDescription outGraph = new GraphDescription( graph.getFilter(), rootsArray );
-                outGraph.setGraphParams( graph.getParams() );
-
-                outDescs.add( outGraph );
+                CartoGraphUtils.closeGraphQuietly( graph );
             }
         }
 
@@ -433,7 +472,8 @@ public class ResolveOps
                                            .getCalculation(), outDescs );
     }
 
-    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final ProjectRelationshipFilter filter, final URI sourceUri )
+    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe,
+                                                         final ProjectRelationshipFilter filter, final URI sourceUri )
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
         options.setFilter( filter );

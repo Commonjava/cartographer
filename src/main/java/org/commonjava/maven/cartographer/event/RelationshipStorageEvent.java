@@ -12,6 +12,7 @@ package org.commonjava.maven.cartographer.event;
 
 import java.util.Collection;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 
 public class RelationshipStorageEvent
@@ -21,11 +22,19 @@ public class RelationshipStorageEvent
 
     private final Collection<ProjectRelationship<?>> rejected;
 
+    private final RelationshipGraph graph;
+
     public RelationshipStorageEvent( final Collection<? extends ProjectRelationship<?>> relationships,
-                                     final Collection<ProjectRelationship<?>> rejected2 )
+                                     final Collection<ProjectRelationship<?>> rejected, final RelationshipGraph graph )
     {
         this.stored = relationships;
-        this.rejected = rejected2;
+        this.rejected = rejected;
+        this.graph = graph;
+    }
+
+    public final RelationshipGraph getGraph()
+    {
+        return graph;
     }
 
     public final Collection<? extends ProjectRelationship<?>> getStored()
