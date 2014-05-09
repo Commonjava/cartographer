@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
@@ -100,8 +101,7 @@ public class DefaultGraphAggregator
                 done.addAll( current );
 
                 logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ", current ) );
-                final Set<DiscoveryTodo> newTodos =
-                    discover( current, config, /*cycleParticipants,*/missing, seen, pass );
+                final Set<DiscoveryTodo> newTodos = discover( current, config, /*cycleParticipants,*/missing, seen, pass );
                 if ( newTodos != null )
                 {
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
@@ -123,9 +123,8 @@ public class DefaultGraphAggregator
         }
     }
 
-    private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
-                                         final int pass )
+    private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config, final Set<ProjectVersionRef> missing,
+                                         final Set<ProjectVersionRef> seen, final int pass )
         throws CartoDataException
     {
         logger.info( "Starting pass: {}", pass );
@@ -253,8 +252,7 @@ public class DefaultGraphAggregator
      * GAV should be marked missing.
      * @throws CartoDataException 
      */
-    private boolean processDiscoveryOutput( final DiscoveryRunnable r,
-                                            final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
+    private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
                                             final DiscoveryConfig config, final Set<ProjectVersionRef> seen, final int pass )
         throws CartoDataException
     {
@@ -262,7 +260,17 @@ public class DefaultGraphAggregator
         final Throwable error = r.getError();
         if ( error != null )
         {
-            dataManager.addError( todo.getRef(), error );
+            try
+            {
+                todo.getGraph()
+                    .storeProjectError( todo.getRef(), error );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                logger.error( String.format( "Failed to store error for project: %s (%s). Error was:\n\n%s.\n\nStorage error:\n", todo.getRef(),
+                                             e.getMessage(), ExceptionUtils.getFullStackTrace( error ) ), e );
+            }
+
             return false;
         }
 
@@ -270,7 +278,6 @@ public class DefaultGraphAggregator
 
         if ( result != null )
         {
-            final DiscoveryTodo todo = r.getTodo();
             final RelationshipGraph graph = todo.getGraph();
 
             final Map<String, String> metadata = result.getMetadata();
@@ -283,8 +290,8 @@ public class DefaultGraphAggregator
                 }
                 catch ( final RelationshipGraphException e )
                 {
-                    logger.error( String.format( "Failed to store metadata for: %s in: %s. Reason: %s",
-                                                 result.getSelectedRef(), graph, e.getMessage() ), e );
+                    logger.error( String.format( "Failed to store metadata for: %s in: %s. Reason: %s", result.getSelectedRef(), graph,
+                                                 e.getMessage() ), e );
                 }
             }
 
@@ -386,13 +393,12 @@ public class DefaultGraphAggregator
 
                     try
                     {
-                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(),
-                                                                          result.getSelectedRef() ) );
+                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
                     }
                     catch ( final RelationshipGraphException e )
                     {
-                        logger.error( String.format( "Failed to store relationships for: %s in: %s. Reason: %s",
-                                                     result.getSelectedRef(), graph, e.getMessage() ), e );
+                        logger.error( String.format( "Failed to store relationships for: %s in: %s. Reason: %s", result.getSelectedRef(), graph,
+                                                     e.getMessage() ), e );
                     }
                 }
             }
@@ -455,8 +461,7 @@ public class DefaultGraphAggregator
     //        return participants;
     //    }
 
-    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen,
-                                                    final GraphMutator rootMutator )
+    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
     {
         logger.info( "Using root-level mutator: {}", graph.getMutator() );
 
