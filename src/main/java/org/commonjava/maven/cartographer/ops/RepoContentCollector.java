@@ -146,44 +146,73 @@ public class RepoContentCollector
     {
         logger.info( "{}/{} {}/{}. Including: {}", projectCounter, projectSz, artifactCounter, artifactSz, ar );
 
+        boolean unresolvedVariable = false;
         if ( ar.isVariableVersion() )
         {
             final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
             if ( specific == null )
             {
-                logger.error( "No version available for variable reference: {}. Skipping.", ar.asProjectVersionRef() );
-                return;
+                unresolvedVariable = true;
             }
 
             ar = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(), ar.isOptional() );
         }
 
-        logger.debug( "{}/{} {}/{} 1. Resolving referenced artifact: {}", projectCounter, projectSz, artifactCounter, artifactSz, ar );
-        final ConcreteResource mainArtifact = addToContent( ar, items, location, excluded, seen );
-        if ( mainArtifact == null )
+        if ( unresolvedVariable )
         {
-            logger.debug( "Referenced artifact {} was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
-            return;
+            throw new CartoDataException( "No version available for variable reference: {}. Skipping all but POM.", ar.asProjectVersionRef() );
         }
 
-        // if multi-source GAVs are enabled, use the main location still
-        // otherwise, restrict results for this GAV to the place where the main artifact came from.
-        final Location artifactLocation = recipe.isMultiSourceGAVs() ? location : mainArtifact.getLocation();
-
+        ArtifactRef pomAR;
         if ( !"pom".equals( ar.getType() ) )
         {
-            final ArtifactRef pomAR = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), "pom", null, false );
+            pomAR = ar.asPomArtifact();
 
-            logger.debug( "{}/{} {}/{} 2. Resolving POM: {}", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
-            addToContent( pomAR, items, artifactLocation, excluded, seen );
+            logger.debug( "{}/{} {}/{} 1. Resolving POM: {}", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
         }
         else
         {
-            logger.debug( "Referenced artifact: {} WAS a POM. Skipping special POM resolution.", ar );
+            logger.debug( "{}/{} {}/{} 1. Referenced artifact: {} WAS a POM. Skipping special POM resolution.", projectCounter, projectSz,
+                          artifactCounter, artifactSz, ar );
+            pomAR = ar;
+        }
+
+        ConcreteResource pomArtifact = addToContent( pomAR, items, location, excluded, seen );
+        if ( pomArtifact == null )
+        {
+            // if the POM was resolved because of a reference to another jar, war, etc. then it'll be in the items map...look here before giving up.
+            pomArtifact = items.get( pomAR );
+            if ( pomArtifact == null )
+            {
+                throw new CartoDataException( "Failed to resolve POM content: {}. Skipping associated artifacts.", pomAR );
+            }
+        }
+
+        // *********************************
+        // From here on, we use the resolved location of the POM, unless we're using multi-sourced GAV resolution.
+        // *********************************
+
+        // if multi-source GAVs are enabled, use the main location still
+        // otherwise, restrict results for this GAV to the place where the main artifact came from.
+        final Location resolvedLocation = recipe.isMultiSourceGAVs() ? location : pomArtifact.getLocation();
+
+        if ( ar.equals( pomAR ) )
+        {
+            logger.debug( "{}/{} {}/{} 2. Given artifact is a POM, which was already resolved. Skipping this second reference." );
+        }
+        else
+        {
+            logger.debug( "{}/{} {}/{} 2. Resolving referenced artifact: {}", projectCounter, projectSz, artifactCounter, artifactSz, ar );
+            final ConcreteResource mainArtifact = addToContent( ar, items, resolvedLocation, excluded, seen );
+            if ( mainArtifact == null )
+            {
+                throw new CartoDataException( "Referenced artifact {} was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+            }
         }
 
         final Set<ExtraCT> extras = recipe.getExtras();
-        int extCounter = 3;
+        final int extOffset = 3;
+        int extCounter = extOffset;
         if ( extras != null )
         {
             if ( recipe.hasWildcardExtras() )
@@ -192,12 +221,12 @@ public class RepoContentCollector
                 Map<TypeAndClassifier, ConcreteResource> tcs;
                 try
                 {
-                    tcs = artifacts.listAvailableArtifacts( location, ar.asProjectVersionRef() );
+                    tcs = artifacts.listAvailableArtifacts( resolvedLocation, ar.asProjectVersionRef() );
                 }
                 catch ( final TransferException e )
                 {
                     throw new CartoDataException( "Failed to list available type-classifier combinations for: {} from: {}. Reason: {}", e, ar,
-                                                  location, e.getMessage() );
+                                                  resolvedLocation, e.getMessage() );
                 }
 
                 // 2. match up the resulting list against the extras we have
@@ -224,7 +253,7 @@ public class RepoContentCollector
                         {
                             final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
                             logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve classifier/type artifact from listing: {}", projectCounter,
-                                          projectSz, artifactCounter, artifactSz, extCounter, tcs.size(), extAR );
+                                          projectSz, artifactCounter, artifactSz, extCounter, tcs.size() + extOffset, extAR );
 
                             // if we're using a listing for wildcards, we've already established that these exist...
                             // so don't waste the time on individual calls!
@@ -260,8 +289,8 @@ public class RepoContentCollector
                         new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(), extraCT.getClassifier(), false );
 
                     logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve specifically listed classifier/type artifact: {}", projectCounter,
-                                  projectSz, artifactCounter, artifactSz, extCounter, extras.size(), extAR );
-                    addToContent( extAR, items, artifactLocation, excluded, seen );
+                                  projectSz, artifactCounter, artifactSz, extCounter, extras.size() + extOffset, extAR );
+                    addToContent( extAR, items, resolvedLocation, excluded, seen );
                     extCounter++;
                 }
             }
@@ -307,7 +336,7 @@ public class RepoContentCollector
 
                     logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve 'meta' artifact: {}", projectCounter, projectSz, artifactCounter,
                                   artifactSz, metaCounter, metaSz, metaAR );
-                    addToContent( metaAR, items, artifactLocation, excluded, seen );
+                    addToContent( metaAR, items, resolvedLocation, excluded, seen );
                     metaCounter++;
                 }
             }
