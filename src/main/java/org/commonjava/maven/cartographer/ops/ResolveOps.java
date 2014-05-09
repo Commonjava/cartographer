@@ -322,6 +322,7 @@ public class ResolveOps
     {
         logger.info( "Building repository for: {}", recipe );
 
+<<<<<<< HEAD
         recipe.normalize();
         if ( !recipe.isValid() )
         {
@@ -350,8 +351,16 @@ public class ResolveOps
         final Map<ProjectVersionRef, ProjectRefCollection> refMap;
         RelationshipGraph graph;
         if ( graphs.getCalculation() != null && graphs.size() > 1 )
-        {
+=======
+        EProjectNet web = null;
 
+        data.setCurrentWorkspace( recipe.getWorkspaceId() );
+        try
+>>>>>>> e9b2faf... log more of the errors during discovery, including when a GAV is not found. Be sure to close the graph workspace after resolving repository contents. Don't require source URI and GAV in order to log an error (which might be a mistake down the road...though this means making the same assumption about GAV immutability as maven itself).
+        {
+            sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
+
+<<<<<<< HEAD
             final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
             refMap = collectProjectVersionReferences( result.getResult() );
 
@@ -394,24 +403,72 @@ public class ResolveOps
         for ( final GraphDescription desc : graphs )
         {
             for ( final ProjectVersionRef root : desc.getRoots() )
+=======
+            recipe.normalize();
+            if ( !recipe.isValid() )
             {
-                ProjectRefCollection refCollection = refMap.get( root );
-                if ( refCollection == null )
-                {
-                    refCollection = new ProjectRefCollection();
-                    refCollection.addVersionRef( root );
+                throw new CartoDataException( "Invalid repository recipe: {}", recipe );
+            }
 
-                    refMap.put( root, refCollection );
+            GraphComposition graphs = recipe.getGraphComposition();
+
+            if ( recipe.isResolve() )
+            {
+                graphs = resolve( recipe );
+            }
+
+            final Map<ProjectVersionRef, ProjectRefCollection> refMap;
+            if ( graphs.getCalculation() != null && graphs.size() > 1 )
+            {
+
+                final GraphCalculation result = calculations.calculate( graphs );
+                refMap = collectProjectVersionReferences( result.getResult() );
+            }
+            else
+>>>>>>> e9b2faf... log more of the errors during discovery, including when a GAV is not found. Be sure to close the graph workspace after resolving repository contents. Don't require source URI and GAV in order to log an error (which might be a mistake down the road...though this means making the same assumption about GAV immutability as maven itself).
+            {
+                final GraphDescription graphDesc = graphs.getGraphs()
+                                                         .get( 0 );
+
+                final ProjectVersionRef[] roots = graphDesc.getRootsArray();
+                web =
+                    graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(), new ManagedDependencyMutator(), roots )
+                                    : data.getProjectWeb( graphDesc.getView() );
+
+                if ( web == null )
+                {
+                    throw new CartoDataException( "Failed to retrieve web for roots: {}", new JoinString( ", ", roots ) );
                 }
 
-                if ( root instanceof ArtifactRef )
+                refMap = collectProjectVersionReferences( web );
+            }
+
+            for ( final GraphDescription graph : graphs )
+            {
+                for ( final ProjectVersionRef root : graph.getRoots() )
                 {
-                    refCollection.addArtifactRef( (ArtifactRef) root );
+                    ProjectRefCollection refCollection = refMap.get( root );
+                    if ( refCollection == null )
+                    {
+                        refCollection = new ProjectRefCollection();
+                        refCollection.addVersionRef( root );
+
+                        refMap.put( root, refCollection );
+                    }
+
+                    if ( root instanceof ArtifactRef )
+                    {
+                        refCollection.addArtifactRef( (ArtifactRef) root );
+                    }
                 }
             }
-        }
 
-        return refMap;
+            return refMap;
+        }
+        finally
+        {
+            data.clearCurrentWorkspace();
+        }
     }
 
     public GraphComposition resolve( final ResolverRecipe recipe )
