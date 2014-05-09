@@ -149,6 +149,7 @@ public class RepoContentCollector
         boolean unresolvedVariable = false;
         if ( ar.isVariableVersion() )
         {
+            // FIXME: If the version is resolved using metadata from an excluded location, we've got a problem!
             final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
             if ( specific == null )
             {
@@ -184,7 +185,8 @@ public class RepoContentCollector
             pomArtifact = items.get( pomAR );
             if ( pomArtifact == null )
             {
-                throw new CartoDataException( "Failed to resolve POM content: {}. Skipping associated artifacts.", pomAR );
+                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.", ar );
+                return;
             }
         }
 
@@ -206,7 +208,8 @@ public class RepoContentCollector
             final ConcreteResource mainArtifact = addToContent( ar, items, resolvedLocation, excluded, seen );
             if ( mainArtifact == null )
             {
-                throw new CartoDataException( "Referenced artifact {} was excluded or not resolved. Skip trying pom and type/classifier extras.", ar );
+                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.", ar );
+                return;
             }
         }
 
@@ -390,7 +393,7 @@ public class RepoContentCollector
 
         if ( item == null )
         {
-            logger.warn( "NOT FOUND: {}", ar );
+            throw new CartoDataException( "Cannot find: {} in: {}", ar, location );
         }
         else if ( isExcluded( item.getLocation() ) )
         {
