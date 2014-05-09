@@ -285,69 +285,74 @@ public class ResolveOps
         EProjectNet web = null;
 
         data.setCurrentWorkspace( recipe.getWorkspaceId() );
-
-        sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
-
-        recipe.normalize();
-        if ( !recipe.isValid() )
+        try
         {
-            throw new CartoDataException( "Invalid repository recipe: {}", recipe );
-        }
+            sourceManager.activateWorkspaceSources( data.getCurrentWorkspace(), sourceUri.toString() );
 
-        GraphComposition graphs = recipe.getGraphComposition();
-
-        if ( recipe.isResolve() )
-        {
-            graphs = resolve( recipe );
-        }
-
-        final Map<ProjectVersionRef, ProjectRefCollection> refMap;
-        if ( graphs.getCalculation() != null && graphs.size() > 1 )
-        {
-
-            final GraphCalculation result = calculations.calculate( graphs );
-            refMap = collectProjectVersionReferences( result.getResult() );
-        }
-        else
-        {
-            final GraphDescription graphDesc = graphs.getGraphs()
-                                                     .get( 0 );
-
-            final ProjectVersionRef[] roots = graphDesc.getRootsArray();
-            web =
-                graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(),
-                                                                  new ManagedDependencyMutator(), roots )
-                                : data.getProjectWeb( graphDesc.getView() );
-
-            if ( web == null )
+            recipe.normalize();
+            if ( !recipe.isValid() )
             {
-                throw new CartoDataException( "Failed to retrieve web for roots: {}", new JoinString( ", ", roots ) );
+                throw new CartoDataException( "Invalid repository recipe: {}", recipe );
             }
 
-            refMap = collectProjectVersionReferences( web );
-        }
+            GraphComposition graphs = recipe.getGraphComposition();
 
-        for ( final GraphDescription graph : graphs )
-        {
-            for ( final ProjectVersionRef root : graph.getRoots() )
+            if ( recipe.isResolve() )
             {
-                ProjectRefCollection refCollection = refMap.get( root );
-                if ( refCollection == null )
-                {
-                    refCollection = new ProjectRefCollection();
-                    refCollection.addVersionRef( root );
+                graphs = resolve( recipe );
+            }
 
-                    refMap.put( root, refCollection );
+            final Map<ProjectVersionRef, ProjectRefCollection> refMap;
+            if ( graphs.getCalculation() != null && graphs.size() > 1 )
+            {
+
+                final GraphCalculation result = calculations.calculate( graphs );
+                refMap = collectProjectVersionReferences( result.getResult() );
+            }
+            else
+            {
+                final GraphDescription graphDesc = graphs.getGraphs()
+                                                         .get( 0 );
+
+                final ProjectVersionRef[] roots = graphDesc.getRootsArray();
+                web =
+                    graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(), new ManagedDependencyMutator(), roots )
+                                    : data.getProjectWeb( graphDesc.getView() );
+
+                if ( web == null )
+                {
+                    throw new CartoDataException( "Failed to retrieve web for roots: {}", new JoinString( ", ", roots ) );
                 }
 
-                if ( root instanceof ArtifactRef )
+                refMap = collectProjectVersionReferences( web );
+            }
+
+            for ( final GraphDescription graph : graphs )
+            {
+                for ( final ProjectVersionRef root : graph.getRoots() )
                 {
-                    refCollection.addArtifactRef( (ArtifactRef) root );
+                    ProjectRefCollection refCollection = refMap.get( root );
+                    if ( refCollection == null )
+                    {
+                        refCollection = new ProjectRefCollection();
+                        refCollection.addVersionRef( root );
+
+                        refMap.put( root, refCollection );
+                    }
+
+                    if ( root instanceof ArtifactRef )
+                    {
+                        refCollection.addArtifactRef( (ArtifactRef) root );
+                    }
                 }
             }
-        }
 
-        return refMap;
+            return refMap;
+        }
+        finally
+        {
+            data.clearCurrentWorkspace();
+        }
     }
 
     public GraphComposition resolve( final ResolverRecipe recipe )

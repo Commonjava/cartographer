@@ -280,6 +280,14 @@ public class DefaultGraphAggregator
                                             final DiscoveryConfig config, final Set<ProjectVersionRef> seen, final int pass )
         throws CartoDataException
     {
+        final DiscoveryTodo todo = r.getTodo();
+        final Throwable error = r.getError();
+        if ( error != null )
+        {
+            dataManager.addError( todo.getRef(), error );
+            return false;
+        }
+
         final DiscoveryResult result = r.getResult();
 
         if ( result != null )
@@ -294,7 +302,6 @@ public class DefaultGraphAggregator
             final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
             if ( discoveredRels != null )
             {
-                final DiscoveryTodo todo = r.getTodo();
                 final Map<GraphPath<?>, GraphPathInfo> parentPathMap = todo.getParentPathMap();
 
                 seen.add( todo.getRef() );
@@ -487,6 +494,8 @@ public class DefaultGraphAggregator
             {
                 // we have to remove the last ref, since that's what we're about to discover!
                 pathRefs.remove( pathRefs.size() - 1 );
+
+                logger.info( "Already seen += {}", new JoinString( ", ", pathRefs ) );
                 seen.addAll( pathRefs );
             }
 

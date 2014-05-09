@@ -30,7 +30,6 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectNet;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
@@ -140,8 +139,7 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final GraphMutator mutator,
-                                          final ProjectVersionRef discovered )
+    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final GraphMutator mutator, final ProjectVersionRef discovered )
         throws CartoDataException
     {
         return graphs.getGraph( workspaceHolder.getCurrentWorkspace(), filter, mutator, discovered );
@@ -539,10 +537,9 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public synchronized void addError( final EProjectKey key, final Throwable error )
+    public synchronized void addError( final ProjectVersionRef ref, final Throwable error )
         throws CartoDataException
     {
-        final ProjectVersionRef ref = key.getProject();
         Map<String, String> md = getMetadata( ref );
         if ( md == null )
         {
@@ -683,8 +680,7 @@ public class DefaultCartoDataManager
     }
 
     @Override
-    public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final GraphMutator mutator,
-                                      final ProjectVersionRef... refs )
+    public EProjectWeb getProjectWeb( final ProjectRelationshipFilter filter, final GraphMutator mutator, final ProjectVersionRef... refs )
         throws CartoDataException
     {
         return graphs.getWeb( workspaceHolder.getCurrentWorkspace(), filter, mutator, refs );
@@ -782,6 +778,13 @@ public class DefaultCartoDataManager
     {
         try
         {
+            final GraphWorkspace currentWorkspace = getCurrentWorkspace();
+            if ( currentWorkspace != null && currentWorkspace.getId()
+                                                             .equals( id ) )
+            {
+                return currentWorkspace;
+            }
+
             GraphWorkspace ws = graphs.getWorkspace( id );
 
             if ( ws == null )
@@ -837,6 +840,7 @@ public class DefaultCartoDataManager
             workspace = graphs.createWorkspace( config )
                               .addListener( this );
 
+            clearCurrentWorkspace();
             workspaceHolder.setCurrentWorkspace( workspace, true );
         }
         catch ( final GraphDriverException e )
@@ -861,6 +865,7 @@ public class DefaultCartoDataManager
             if ( workspace != null )
             {
                 workspace.addListener( this );
+                clearCurrentWorkspace();
                 workspaceHolder.setCurrentWorkspace( workspace, true );
             }
         }
@@ -925,6 +930,7 @@ public class DefaultCartoDataManager
             workspace = graphs.createTemporaryWorkspace( config )
                               .addListener( this );
 
+            clearCurrentWorkspace();
             workspaceHolder.setCurrentWorkspace( workspace, true );
         }
         catch ( final GraphDriverException e )
@@ -938,6 +944,19 @@ public class DefaultCartoDataManager
     @Override
     public void clearCurrentWorkspace()
     {
+        try
+        {
+            final GraphWorkspace currentWorkspace = getCurrentWorkspace();
+            if ( currentWorkspace != null )
+            {
+                currentWorkspace.close();
+            }
+        }
+        catch ( final IOException e )
+        {
+            logger.error( "Failed to close current workspace. Reason: {}", e, e.getMessage() );
+        }
+
         workspaceHolder.clearCurrentWorkspace();
     }
 

@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import org.commonjava.maven.atlas.graph.EGraphManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectKey;
 import org.commonjava.maven.atlas.graph.model.EProjectWeb;
 import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
@@ -152,7 +151,7 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getAllVariableSubgraphs()
         throws CartoDataException;
 
-    void addError( final EProjectKey key, final Throwable error )
+    void addError( final ProjectVersionRef ref, final Throwable error )
         throws CartoDataException;
 
     void clearErrors( final ProjectVersionRef ref )
