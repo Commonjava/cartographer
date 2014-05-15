@@ -26,11 +26,11 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 public class GraphDescription
 {
 
-    private TreeSet<ProjectVersionRef> roots;
+    private Set<ProjectVersionRef> roots;
 
     private String preset;
 
-    private TreeMap<String, Object> presetParams;
+    private Map<String, Object> presetParams;
 
     private transient ProjectRelationshipFilter filter;
 

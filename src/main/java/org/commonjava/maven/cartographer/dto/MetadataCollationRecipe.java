@@ -17,7 +17,7 @@ public class MetadataCollationRecipe
     extends ResolverRecipe
 {
 
-    private TreeSet<String> keys;
+    private Set<String> keys;
 
     public Set<String> getKeys()
     {
