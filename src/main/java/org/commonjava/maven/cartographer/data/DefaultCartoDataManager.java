@@ -949,6 +949,7 @@ public class DefaultCartoDataManager
             final GraphWorkspace currentWorkspace = getCurrentWorkspace();
             if ( currentWorkspace != null )
             {
+                workspaceHolder.clearCurrentWorkspace();
                 currentWorkspace.close();
             }
         }
@@ -956,8 +957,6 @@ public class DefaultCartoDataManager
         {
             logger.error( "Failed to close current workspace. Reason: {}", e, e.getMessage() );
         }
-
-        workspaceHolder.clearCurrentWorkspace();
     }
 
     @Override

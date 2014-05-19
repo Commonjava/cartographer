@@ -393,7 +393,8 @@ public class RepoContentCollector
 
         if ( item == null )
         {
-            throw new CartoDataException( "Cannot find: {} in: {}", ar, location );
+            return null;
+            //            throw new CartoDataException( "Cannot find: {} in: {}", ar, location );
         }
         else if ( isExcluded( item.getLocation() ) )
         {

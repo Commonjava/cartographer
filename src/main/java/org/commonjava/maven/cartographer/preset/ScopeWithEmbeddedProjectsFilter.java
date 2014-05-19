@@ -26,10 +26,14 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScopeWithEmbeddedProjectsFilter
     implements ProjectRelationshipFilter
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private static final long serialVersionUID = 1L;
 
@@ -56,8 +60,7 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         this.acceptManaged = false;
         this.filter =
-            childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
-                                                                      true, null ),
+            childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true, true, null ),
                                                 new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
                             : childFilter;
     }
@@ -79,8 +82,12 @@ public class ScopeWithEmbeddedProjectsFilter
             result = filter.accept( rel );
         }
 
-        //        logger.info( "{}: accept({})", Boolean.toString( result )
-        //                                              .toUpperCase(), rel );
+        logger.info( "{} {}", ( result ? "+" : "-" ), rel );
+
+        //        if ( !result )
+        //        {
+        //            logger.info( "[FILT-STOP]: {}", rel );
+        //        }
 
         return result;
     }
@@ -99,6 +106,7 @@ public class ScopeWithEmbeddedProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
+                logger.info( "[FILT-OFFx1]: {}", lastRelationship );
                 return NoneFilter.INSTANCE;
                 //                if ( filter == NoneFilter.INSTANCE )
                 //                {
@@ -120,6 +128,7 @@ public class ScopeWithEmbeddedProjectsFilter
                         return this;
                     }
 
+                    logger.info( "[FILT-OFFx2]: {}", lastRelationship );
                     return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
                 }
 
