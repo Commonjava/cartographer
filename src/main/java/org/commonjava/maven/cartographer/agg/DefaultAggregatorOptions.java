@@ -131,10 +131,11 @@ public class DefaultAggregatorOptions
     @Override
     public String toString()
     {
-        return String.format( "DefaultAggregatorOptions [\n\tmutator=%s\n\tprocessIncomplete=%s" + "\n\tprocessVariable=%s"
-                                  + "\n\tdiscoveryEnabled=%s" + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", mutator,
-                              processIncomplete, processVariable,
-                              discoveryEnabled, discoveryTimeoutMillis, filter );
+        return String.format( "DefaultAggregatorOptions [\n\tmutator=%s\n\tprocessIncomplete=%s"
+                                  + "\n\tprocessVariable=%s" + "\n\tdiscoveryEnabled=%s"
+                                  + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", mutator,
+                              processIncomplete, processVariable, discoveryEnabled,
+                              discoveryTimeoutMillis, filter );
     }
 
     public DefaultAggregatorOptions setDiscoveryConfig( final DiscoveryConfig dc )

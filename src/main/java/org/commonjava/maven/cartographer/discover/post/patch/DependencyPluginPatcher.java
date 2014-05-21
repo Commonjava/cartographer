@@ -55,7 +55,8 @@ public class DependencyPluginPatcher
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
-    public void patch( final DiscoveryResult result, final List<? extends Location> locations, final Map<String, Object> context )
+    public void patch( final DiscoveryResult result, final List<? extends Location> locations,
+                       final Map<String, Object> context )
     {
         final ProjectVersionRef ref = result.getSelectedRef();
         try
@@ -73,9 +74,11 @@ public class DependencyPluginPatcher
                 return;
             }
 
-            final Set<ProjectRelationship<?>> accepted = new HashSet<ProjectRelationship<?>>( result.getAcceptedRelationships() );
+            final Set<ProjectRelationship<?>> accepted =
+                new HashSet<ProjectRelationship<?>>( result.getAcceptedRelationships() );
 
-            final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps = new HashMap<VersionlessArtifactRef, DependencyRelationship>();
+            final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps =
+                new HashMap<VersionlessArtifactRef, DependencyRelationship>();
             for ( final ProjectRelationship<?> rel : accepted )
             {
                 if ( rel instanceof DependencyRelationship && !rel.isManaged() )
@@ -90,24 +93,28 @@ public class DependencyPluginPatcher
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
     }
 
     private void calculateDependencyPluginPatch( final List<DependencyView> depArtifactItems,
-                                                 final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps, final ProjectVersionRef ref,
-                                                 final MavenPomView pomView, final DiscoveryResult result )
+                                                 final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps,
+                                                 final ProjectVersionRef ref, final MavenPomView pomView,
+                                                 final DiscoveryResult result )
     {
-        logger.debug( "Detected {} dependency-plugin artifactItems that need to be accounted for in dependencies...", depArtifactItems == null ? 0
-                        : depArtifactItems.size() );
+        logger.debug( "Detected {} dependency-plugin artifactItems that need to be accounted for in dependencies...",
+                      depArtifactItems == null ? 0 : depArtifactItems.size() );
         if ( depArtifactItems != null && !depArtifactItems.isEmpty() )
         {
             final URI source = result.getSource();
@@ -135,11 +142,13 @@ public class DependencyPluginPatcher
 
                             final Set<ProjectRef> excludes = dep.getExcludes();
                             final ProjectRef[] excludedRefs =
-                                excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
+                                excludes == null ? new ProjectRef[0]
+                                                : excludes.toArray( new ProjectRef[excludes.size()] );
 
                             final DependencyRelationship replacement =
-                                new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
-                                                            false, excludedRefs );
+                                new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(),
+                                                            DependencyScope.embedded, dep.getIndex(), false,
+                                                            excludedRefs );
 
                             if ( !result.addDiscoveredRelationship( replacement ) )
                             {
@@ -151,8 +160,10 @@ public class DependencyPluginPatcher
                     {
                         logger.debug( "Injecting new dep: {}", depView.asArtifactRef() );
                         final DependencyRelationship injected =
-                            new DependencyRelationship( source, RelationshipUtils.profileLocation( depView.getProfileId() ), ref,
-                                                        depView.asArtifactRef(), DependencyScope.embedded, concreteDeps.size(), false );
+                            new DependencyRelationship( source,
+                                                        RelationshipUtils.profileLocation( depView.getProfileId() ),
+                                                        ref, depView.asArtifactRef(), DependencyScope.embedded,
+                                                        concreteDeps.size(), false );
 
                         if ( !result.addDiscoveredRelationship( injected ) )
                         {
@@ -162,20 +173,24 @@ public class DependencyPluginPatcher
                     else
                     {
                         logger.error( "Invalid dependency referenced in artifactItems of dependency plugin configuration: {}. "
-                            + "No version was specified, and it does not reference an actual dependency.", depRef );
+                                          + "No version was specified, and it does not reference an actual dependency.",
+                                      depRef );
                     }
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(), e.getMessage() ), e );
+                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(),
+                                                 e.getMessage() ), e );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(), e.getMessage() ), e );
+                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(),
+                                                 e.getMessage() ), e );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(), e.getMessage() ), e );
+                    logger.error( String.format( "Dependency is invalid: %s. Reason: %s. Skipping.", depView.toXML(),
+                                                 e.getMessage() ), e );
                 }
             }
         }

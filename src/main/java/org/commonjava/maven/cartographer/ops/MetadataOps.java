@@ -79,8 +79,8 @@ public class MetadataOps
     }
 
     public MetadataOps( final CartoDataManager data, final ArtifactManager artifacts, final MavenPomReader pomReader,
-                        final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager, final ResolveOps resolver,
-                        final CalculationOps calculations )
+                        final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager,
+                        final ResolveOps resolver, final CalculationOps calculations )
     {
         this.data = data;
         this.artifacts = artifacts;
@@ -138,19 +138,22 @@ public class MetadataOps
                 transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
                 if ( transfer == null )
                 {
-                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...", ref.asPomArtifact(), locations );
+                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...",
+                                  ref.asPomArtifact(), locations );
                 }
 
                 pomView = pomReader.read( ref, transfer, locations );
             }
             catch ( final TransferException e )
             {
-                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(), locations, e.getMessage() ), e );
+                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(),
+                                             locations, e.getMessage() ), e );
                 continue;
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(), e.getMessage() ), e );
+                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(),
+                                             e.getMessage() ), e );
                 continue;
             }
 
@@ -193,11 +196,13 @@ public class MetadataOps
             gavs = web.getAllProjects();
         }
 
-        final Map<Map<String, String>, Set<ProjectVersionRef>> map = data.collateProjectsByMetadata( gavs, recipe.getKeys() );
+        final Map<Map<String, String>, Set<ProjectVersionRef>> map =
+            data.collateProjectsByMetadata( gavs, recipe.getKeys() );
 
         for ( final Map<String, String> metadata : new HashSet<Map<String, String>>( map.keySet() ) )
         {
-            final Map<String, String> changed = metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
+            final Map<String, String> changed =
+                metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
             for ( final String key : recipe.getKeys() )
             {
                 if ( !changed.containsKey( key ) )

@@ -101,8 +101,8 @@ public class CartoDataManagerTest
         nfc = new MemoryNotFoundCache();
 
         final CacheProvider cacheProvider =
-            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(), provider.getFileEventManager(),
-                                   provider.getTransferDecorator() );
+            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
+                                   provider.getFileEventManager(), provider.getTransferDecorator() );
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
         final ExecutorService batchExecutor = Executors.newFixedThreadPool( 2 );
@@ -112,7 +112,8 @@ public class CartoDataManagerTest
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
         final TransferManager transferManager =
-            new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh, eh, batchExecutor );
+            new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh,
+                                     eh, batchExecutor );
 
         xml = new XMLInfrastructure();
         xpath = new XPathManager();
@@ -124,7 +125,8 @@ public class CartoDataManagerTest
 
         final VersionResolver versions = new VersionResolverImpl( mmr );
 
-        final ArtifactManager artifacts = new ArtifactManagerImpl( transferManager, locationExpander, new StandardTypeMapper(), versions );
+        final ArtifactManager artifacts =
+            new ArtifactManagerImpl( transferManager, locationExpander, new StandardTypeMapper(), versions );
 
         final MavenPomReader pomReader =
             new MavenPomReader( xml, locationExpander, artifacts, xpath, new StandardMaven304PluginDefaults(),
@@ -133,7 +135,8 @@ public class CartoDataManagerTest
         // TODO: Add some scanners.
         final MetadataScannerSupport scannerSupport = new MetadataScannerSupport( new ScmUrlScanner( pomReader ) );
 
-        discoverer = new DiscovererImpl( processor, pomReader, artifacts, dataManager, new PatcherSupport(), scannerSupport );
+        discoverer =
+            new DiscovererImpl( processor, pomReader, artifacts, dataManager, new PatcherSupport(), scannerSupport );
 
         aggregator = new DefaultGraphAggregator( dataManager, discoverer, Executors.newFixedThreadPool( 2 ) );
     }

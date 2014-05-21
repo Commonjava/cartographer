@@ -63,8 +63,9 @@ public class DiscovererImpl
     {
     }
 
-    public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader, final ArtifactManager artifactManager,
-                           final CartoDataManager dataManager, final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
+    public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader,
+                           final ArtifactManager artifactManager, final CartoDataManager dataManager,
+                           final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
     {
         this.modelProcessor = modelProcessor;
         this.pomReader = pomReader;
@@ -87,7 +88,8 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to resolve variable version for: {}. Reason: {}", e, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to resolve variable version for: {}. Reason: {}", e, ref,
+                                          e.getMessage() );
         }
     }
 
@@ -96,7 +98,8 @@ public class DiscovererImpl
      */
     @Deprecated
     @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig, final boolean storeRelationships )
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig,
+                                                  final boolean storeRelationships )
         throws CartoDataException
     {
         discoveryConfig.setStoreRelationships( storeRelationships );
@@ -137,11 +140,13 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location,
+                                          e.getMessage() );
         }
         catch ( final GalleyMavenException e )
         {
-            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location,
+                                          e.getMessage() );
         }
 
         DiscoveryResult result = null;
@@ -154,12 +159,14 @@ public class DiscovererImpl
         {
             result = patchers.patch( result, discoveryConfig.getEnabledPatchers(), locations, pomView, transfer );
 
-            final Map<String, String> metadata = metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
+            final Map<String, String> metadata =
+                metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
             result.setMetadata( metadata );
 
             if ( discoveryConfig.isStoreRelationships() )
             {
-                final Set<ProjectRelationship<?>> rejected = dataManager.storeRelationships( result.getAcceptedRelationships() );
+                final Set<ProjectRelationship<?>> rejected =
+                    dataManager.storeRelationships( result.getAcceptedRelationships() );
                 dataManager.addMetadata( result.getSelectedRef(), metadata );
 
                 result = new DiscoveryResult( result.getSource(), result, rejected );

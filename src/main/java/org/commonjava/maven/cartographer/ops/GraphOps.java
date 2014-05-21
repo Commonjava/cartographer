@@ -147,7 +147,8 @@ public class GraphOps
             }
             catch ( final GraphDriverException e )
             {
-                throw new CartoDataException( "Failed to construct build order for: {}. Reason: {}", e, ref, e.getMessage() );
+                throw new CartoDataException( "Failed to construct build order for: {}. Reason: {}", e, ref,
+                                              e.getMessage() );
             }
 
             return traversal.getBuildOrder();
@@ -200,7 +201,8 @@ public class GraphOps
                 final String gip = groupIdPattern == null ? ".*" : groupIdPattern.replaceAll( "\\*", ".*" );
                 final String aip = artifactIdPattern == null ? ".*" : artifactIdPattern.replaceAll( "\\*", ".*" );
 
-                logger.info( "Filtering {} projects using groupId pattern: '{}' and artifactId pattern: '{}'", all.size(), gip, aip );
+                logger.info( "Filtering {} projects using groupId pattern: '{}' and artifactId pattern: '{}'",
+                             all.size(), gip, aip );
 
                 for ( final ProjectVersionRef ref : all )
                 {
@@ -235,13 +237,15 @@ public class GraphOps
         return data.getParent( projectVersionRef );
     }
 
-    public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref,
+                                                                   final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         return data.getAllDirectRelationshipsWithExactSource( ref, filter, null );
     }
 
-    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref,
+                                                                 final ProjectRelationshipFilter filter )
         throws CartoDataException
     {
         return data.getAllDirectRelationshipsWithExactTarget( ref, filter, null );

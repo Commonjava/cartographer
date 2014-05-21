@@ -35,7 +35,8 @@ public class ScopedProjectFilterFactory
     }
 
     @Override
-    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
+    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace,
+                                                final Map<String, Object> parameters )
     {
         return null;
     }

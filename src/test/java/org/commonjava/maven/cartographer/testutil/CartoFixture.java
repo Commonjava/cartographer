@@ -102,7 +102,8 @@ public class CartoFixture
         if ( resolveOps == null )
         {
             resolveOps =
-                new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, getArtifacts(), Executors.newFixedThreadPool( 10 ) );
+                new ResolveOps( calculationOps, data, sourceManager, discoverer, aggregator, getArtifacts(),
+                                Executors.newFixedThreadPool( 10 ) );
         }
 
         if ( modelProcessor == null )

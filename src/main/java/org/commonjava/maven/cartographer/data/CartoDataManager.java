@@ -61,10 +61,12 @@ public interface CartoDataManager
      * @deprecated Use {@link #getAllDirectRelationshipsWithExactSource(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
      */
     @Deprecated
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source,
+                                                                          ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source, ProjectRelationshipFilter filter,
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactSource( ProjectVersionRef source,
+                                                                          ProjectRelationshipFilter filter,
                                                                           GraphMutator mutator )
         throws CartoDataException;
 
@@ -72,17 +74,21 @@ public interface CartoDataManager
      * @deprecated Use {@link #getAllDirectRelationshipsWithExactTarget(ProjectVersionRef,ProjectRelationshipFilter,GraphMutator)} instead
      */
     @Deprecated
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target,
+                                                                          ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target, ProjectRelationshipFilter filter,
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithExactTarget( ProjectVersionRef target,
+                                                                          ProjectRelationshipFilter filter,
                                                                           GraphMutator mutator )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source, ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( ProjectRef source,
+                                                                       ProjectRelationshipFilter filter )
         throws CartoDataException;
 
-    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( ProjectRef target, ProjectRelationshipFilter filter )
+    Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( ProjectRef target,
+                                                                       ProjectRelationshipFilter filter )
         throws CartoDataException;
 
     boolean contains( ProjectVersionRef ref );
@@ -109,7 +115,8 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
         throws CartoDataException;
 
-    Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef ref )
+    Set<ProjectVersionRef> getIncompleteSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator,
+                                                      ProjectVersionRef ref )
         throws CartoDataException;
 
     Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectVersionRef ref )
@@ -122,7 +129,8 @@ public interface CartoDataManager
     Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, ProjectVersionRef ref )
         throws CartoDataException;
 
-    Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator, ProjectVersionRef ref )
+    Set<ProjectVersionRef> getVariableSubgraphsFor( ProjectRelationshipFilter filter, GraphMutator mutator,
+                                                    ProjectVersionRef ref )
         throws CartoDataException;
 
     /**
@@ -181,7 +189,8 @@ public interface CartoDataManager
     EProjectWeb getProjectWeb( ProjectVersionRef... refs )
         throws CartoDataException;
 
-    Set<ProjectVersionRef> pathFilter( ProjectRelationshipFilter filter, Set<ProjectVersionRef> leaves, ProjectVersionRef... roots )
+    Set<ProjectVersionRef> pathFilter( ProjectRelationshipFilter filter, Set<ProjectVersionRef> leaves,
+                                       ProjectVersionRef... roots )
         throws CartoDataException;
 
     GraphWorkspace createWorkspace( String id, URI sourceUri )
@@ -223,7 +232,8 @@ public interface CartoDataManager
     GraphWorkspace getWorkspace( String id )
         throws CartoDataException;
 
-    Map<Map<String, String>, Set<ProjectVersionRef>> collateProjectsByMetadata( Set<ProjectVersionRef> refs, Set<String> keys )
+    Map<Map<String, String>, Set<ProjectVersionRef>> collateProjectsByMetadata( Set<ProjectVersionRef> refs,
+                                                                                Set<String> keys )
         throws CartoDataException;
 
     EProjectWeb getProjectWeb( GraphView view );

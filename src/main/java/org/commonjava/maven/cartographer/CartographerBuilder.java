@@ -260,7 +260,9 @@ public class CartographerBuilder
 
         if ( cache == null )
         {
-            cache = new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents, transferDecorator );
+            cache =
+                new FileCacheProvider( resolverCacheDir, new HashedLocationPathGenerator(), fileEvents,
+                                       transferDecorator );
         }
 
         if ( nfc == null )
@@ -271,19 +273,22 @@ public class CartographerBuilder
         if ( aggregatorExecutor == null )
         {
             aggregatorExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "carto-aggregator", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "carto-aggregator", true, 8 ) );
         }
 
         if ( transportExecutor == null )
         {
             transportExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-transport", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "galley-transport", true, 8 ) );
         }
 
         if ( batchExecutor == null )
         {
             batchExecutor =
-                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads, new NamedThreadFactory( "galley-batch", true, 8 ) );
+                Executors.newScheduledThreadPool( resolverThreads < 2 ? 2 : resolverThreads,
+                                                  new NamedThreadFactory( "galley-batch", true, 8 ) );
         }
 
         if ( resolveExecutor == null )
@@ -311,8 +316,8 @@ public class CartographerBuilder
         if ( this.transferMgr == null )
         {
             this.transferMgr =
-                new TransferManagerImpl( transportManager, cache, nfc, fileEvents, downloadHandler, uploadHandler, listingHandler, existenceHandler,
-                                         batchExecutor );
+                new TransferManagerImpl( transportManager, cache, nfc, fileEvents, downloadHandler, uploadHandler,
+                                         listingHandler, existenceHandler, batchExecutor );
         }
 
         if ( this.locationExpander == null )
@@ -365,7 +370,8 @@ public class CartographerBuilder
 
         if ( pomReader == null )
         {
-            pomReader = new MavenPomReader( xml, locationExpander, artifactManager, xpath, pluginDefaults, pluginImplications );
+            pomReader =
+                new MavenPomReader( xml, locationExpander, artifactManager, xpath, pluginDefaults, pluginImplications );
         }
 
         if ( this.metadataScanners == null )
@@ -386,7 +392,8 @@ public class CartographerBuilder
 
         if ( patcherSupport == null )
         {
-            this.patcherSupport = new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
+            this.patcherSupport =
+                new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
         }
 
         if ( database == null )
@@ -398,7 +405,8 @@ public class CartographerBuilder
 
         if ( this.discoverer == null )
         {
-            this.discoverer = new DiscovererImpl( mmp, pomReader, artifactManager, database, patcherSupport, scannerSupport );
+            this.discoverer =
+                new DiscovererImpl( mmp, pomReader, artifactManager, database, patcherSupport, scannerSupport );
         }
 
         final GraphAggregator aggregator = new DefaultGraphAggregator( database, discoverer, aggregatorExecutor );
@@ -408,12 +416,15 @@ public class CartographerBuilder
         final GraphOps graphOps = new GraphOps( database );
         final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( database );
         final ResolveOps resolveOps =
-            new ResolveOps( calculationOps, database, sourceManager, discoverer, aggregator, artifactManager, resolveExecutor );
+            new ResolveOps( calculationOps, database, sourceManager, discoverer, aggregator, artifactManager,
+                            resolveExecutor );
 
         final MetadataOps metadataOps =
-            new MetadataOps( database, artifactManager, pomReader, scannerSupport, sourceManager, resolveOps, calculationOps );
+            new MetadataOps( database, artifactManager, pomReader, scannerSupport, sourceManager, resolveOps,
+                             calculationOps );
 
-        return new Cartographer( database, calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps, workspaceOps );
+        return new Cartographer( database, calculationOps, graphOps, graphRenderingOps, metadataOps, resolveOps,
+                                 workspaceOps );
     }
 
     public GraphWorkspaceFactory getWsFactory()

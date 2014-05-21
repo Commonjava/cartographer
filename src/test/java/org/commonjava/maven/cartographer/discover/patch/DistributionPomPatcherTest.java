@@ -61,13 +61,15 @@ public class DistributionPomPatcherTest
         final TestDownload download = new TestDownload( pom );
 
         final ConcreteResource resource =
-            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(),
+                                                                                  galleyFixture.getMapper() ) );
 
         galleyFixture.getTransport()
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final DiscoveryResult result =
+            new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
@@ -81,8 +83,10 @@ public class DistributionPomPatcherTest
         for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
         {
             assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
-            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(), equalTo( DependencyScope.embedded ) );
-            assertThat( rel + " is not declared in pom root!", rel.getPomLocation(), equalTo( RelationshipUtils.POM_ROOT_URI ) );
+            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
+                        equalTo( DependencyScope.embedded ) );
+            assertThat( rel + " is not declared in pom root!", rel.getPomLocation(),
+                        equalTo( RelationshipUtils.POM_ROOT_URI ) );
         }
     }
 
@@ -97,13 +101,15 @@ public class DistributionPomPatcherTest
         final TestDownload download = new TestDownload( pom );
 
         final ConcreteResource resource =
-            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(),
+                                                                                  galleyFixture.getMapper() ) );
 
         galleyFixture.getTransport()
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final DiscoveryResult result =
+            new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
@@ -117,7 +123,8 @@ public class DistributionPomPatcherTest
         for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
         {
             assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
-            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(), equalTo( DependencyScope.embedded ) );
+            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
+                        equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the profile!", rel.getPomLocation(), equalTo( profileLoc ) );
         }
     }
@@ -133,13 +140,15 @@ public class DistributionPomPatcherTest
         final TestDownload download = new TestDownload( pom );
 
         final ConcreteResource resource =
-            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(), galleyFixture.getMapper() ) );
+            new ConcreteResource( location, ArtifactPathUtils.formatArtifactPath( pvr.asPomArtifact(),
+                                                                                  galleyFixture.getMapper() ) );
 
         galleyFixture.getTransport()
                      .registerDownload( resource, download );
 
         final URI src = new URI( "test:uri" );
-        final DiscoveryResult result = new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
+        final DiscoveryResult result =
+            new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
@@ -153,8 +162,10 @@ public class DistributionPomPatcherTest
         for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
         {
             assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
-            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(), equalTo( DependencyScope.embedded ) );
-            assertThat( rel + " is not declared in the pom root!", rel.getPomLocation(), equalTo( RelationshipUtils.POM_ROOT_URI ) );
+            assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
+                        equalTo( DependencyScope.embedded ) );
+            assertThat( rel + " is not declared in the pom root!", rel.getPomLocation(),
+                        equalTo( RelationshipUtils.POM_ROOT_URI ) );
         }
     }
 }

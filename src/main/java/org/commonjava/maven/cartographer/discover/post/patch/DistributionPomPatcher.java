@@ -49,7 +49,8 @@ public class DistributionPomPatcher
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
-    public void patch( final DiscoveryResult orig, final List<? extends Location> locations, final Map<String, Object> context )
+    public void patch( final DiscoveryResult orig, final List<? extends Location> locations,
+                       final Map<String, Object> context )
     {
         final DiscoveryResult result = orig;
         final ProjectVersionRef ref = result.getSelectedRef();
@@ -83,11 +84,13 @@ public class DistributionPomPatcher
 
                     result.removeDiscoveredRelationship( dep );
                     final Set<ProjectRef> excludes = dep.getExcludes();
-                    final ProjectRef[] excludedRefs = excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
+                    final ProjectRef[] excludedRefs =
+                        excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
 
                     final DependencyRelationship replacement =
-                        new DependencyRelationship( dep.getSources(), dep.getPomLocation(), ref, dep.getTargetArtifact(), DependencyScope.embedded,
-                                                    dep.getIndex(), false, excludedRefs );
+                        new DependencyRelationship( dep.getSources(), dep.getPomLocation(), ref,
+                                                    dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
+                                                    false, excludedRefs );
 
                     result.addDiscoveredRelationship( replacement );
                 }
@@ -95,15 +98,18 @@ public class DistributionPomPatcher
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref, locations, e.getMessage() ), e );
+            logger.error( String.format( "Failed to build/query MavenPomView for: %s from: %s. Reason: %s", ref,
+                                         locations, e.getMessage() ), e );
         }
     }
 

@@ -99,7 +99,8 @@ public final class AggregationUtils
 
     public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?>> rels )
     {
-        final Map<ProjectVersionRef, ProjectRefCollection> projects = new HashMap<ProjectVersionRef, ProjectRefCollection>();
+        final Map<ProjectVersionRef, ProjectRefCollection> projects =
+            new HashMap<ProjectVersionRef, ProjectRefCollection>();
 
         for ( final ProjectRelationship<?> rel : rels )
         {
@@ -144,7 +145,8 @@ public final class AggregationUtils
         return collectArtifactReferences( rels, includePomArtifacts );
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels, final boolean includePomArtifacts )
+    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels,
+                                                              final boolean includePomArtifacts )
     {
         final Set<ArtifactRef> artifacts = new HashSet<ArtifactRef>();
 

@@ -27,7 +27,8 @@ public class GraphDifference<T>
     {
     }
 
-    public GraphDifference( final GraphDescription fromGraph, final GraphDescription toGraph, final Set<T> added, final Set<T> removed )
+    public GraphDifference( final GraphDescription fromGraph, final GraphDescription toGraph, final Set<T> added,
+                            final Set<T> removed )
     {
         this.fromGraph = fromGraph;
         this.toGraph = toGraph;

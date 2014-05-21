@@ -75,10 +75,11 @@ public class RepoContentCollector
 
     private final ProjectVersionRef ref;
 
-    public RepoContentCollector( final ProjectVersionRef ref, final ProjectRefCollection refs, final RepositoryContentRecipe recipe,
-                                 final Location location, final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
-                                 final ProjectRelationshipDiscoverer discoverer, final Set<Location> excluded, final int projectCounter,
-                                 final int projectSz )
+    public RepoContentCollector( final ProjectVersionRef ref, final ProjectRefCollection refs,
+                                 final RepositoryContentRecipe recipe, final Location location,
+                                 final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
+                                 final ProjectRelationshipDiscoverer discoverer, final Set<Location> excluded,
+                                 final int projectCounter, final int projectSz )
     {
         this.ref = ref;
         this.refs = refs.getArtifactRefs();
@@ -156,12 +157,15 @@ public class RepoContentCollector
                 unresolvedVariable = true;
             }
 
-            ar = new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(), ar.getClassifier(), ar.isOptional() );
+            ar =
+                new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
+                                 ar.getClassifier(), ar.isOptional() );
         }
 
         if ( unresolvedVariable )
         {
-            throw new CartoDataException( "No version available for variable reference: {}. Skipping all but POM.", ar.asProjectVersionRef() );
+            throw new CartoDataException( "No version available for variable reference: {}. Skipping all but POM.",
+                                          ar.asProjectVersionRef() );
         }
 
         ArtifactRef pomAR;
@@ -169,12 +173,13 @@ public class RepoContentCollector
         {
             pomAR = ar.asPomArtifact();
 
-            logger.debug( "{}/{} {}/{} 1. Resolving POM: {}", projectCounter, projectSz, artifactCounter, artifactSz, pomAR );
+            logger.debug( "{}/{} {}/{} 1. Resolving POM: {}", projectCounter, projectSz, artifactCounter, artifactSz,
+                          pomAR );
         }
         else
         {
-            logger.debug( "{}/{} {}/{} 1. Referenced artifact: {} WAS a POM. Skipping special POM resolution.", projectCounter, projectSz,
-                          artifactCounter, artifactSz, ar );
+            logger.debug( "{}/{} {}/{} 1. Referenced artifact: {} WAS a POM. Skipping special POM resolution.",
+                          projectCounter, projectSz, artifactCounter, artifactSz, ar );
             pomAR = ar;
         }
 
@@ -185,7 +190,8 @@ public class RepoContentCollector
             pomArtifact = items.get( pomAR );
             if ( pomArtifact == null )
             {
-                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.", ar );
+                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.",
+                              ar );
                 return;
             }
         }
@@ -204,11 +210,13 @@ public class RepoContentCollector
         }
         else
         {
-            logger.debug( "{}/{} {}/{} 2. Resolving referenced artifact: {}", projectCounter, projectSz, artifactCounter, artifactSz, ar );
+            logger.debug( "{}/{} {}/{} 2. Resolving referenced artifact: {}", projectCounter, projectSz,
+                          artifactCounter, artifactSz, ar );
             final ConcreteResource mainArtifact = addToContent( ar, items, resolvedLocation, excluded, seen );
             if ( mainArtifact == null )
             {
-                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.", ar );
+                logger.debug( "{} has already been processed, or was resolved from an excluded location. Skipping the rest of this run.",
+                              ar );
                 return;
             }
         }
@@ -228,8 +236,9 @@ public class RepoContentCollector
                 }
                 catch ( final TransferException e )
                 {
-                    throw new CartoDataException( "Failed to list available type-classifier combinations for: {} from: {}. Reason: {}", e, ar,
-                                                  resolvedLocation, e.getMessage() );
+                    throw new CartoDataException(
+                                                  "Failed to list available type-classifier combinations for: {} from: {}. Reason: {}",
+                                                  e, ar, resolvedLocation, e.getMessage() );
                 }
 
                 // 2. match up the resulting list against the extras we have
@@ -255,8 +264,9 @@ public class RepoContentCollector
                         if ( extra.matches( tc ) )
                         {
                             final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
-                            logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve classifier/type artifact from listing: {}", projectCounter,
-                                          projectSz, artifactCounter, artifactSz, extCounter, tcs.size() + extOffset, extAR );
+                            logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve classifier/type artifact from listing: {}",
+                                          projectCounter, projectSz, artifactCounter, artifactSz, extCounter,
+                                          tcs.size() + extOffset, extAR );
 
                             // if we're using a listing for wildcards, we've already established that these exist...
                             // so don't waste the time on individual calls!
@@ -289,10 +299,12 @@ public class RepoContentCollector
                     }
 
                     final ArtifactRef extAR =
-                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(), extraCT.getClassifier(), false );
+                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
+                                         extraCT.getClassifier(), false );
 
-                    logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve specifically listed classifier/type artifact: {}", projectCounter,
-                                  projectSz, artifactCounter, artifactSz, extCounter, extras.size() + extOffset, extAR );
+                    logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve specifically listed classifier/type artifact: {}",
+                                  projectCounter, projectSz, artifactCounter, artifactSz, extCounter, extras.size()
+                                      + extOffset, extAR );
                     addToContent( extAR, items, resolvedLocation, excluded, seen );
                     extCounter++;
                 }
@@ -337,8 +349,8 @@ public class RepoContentCollector
 
                     final ArtifactRef metaAR = ref.asArtifactRef( ref.getType() + "." + meta, ref.getClassifier() );
 
-                    logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve 'meta' artifact: {}", projectCounter, projectSz, artifactCounter,
-                                  artifactSz, metaCounter, metaSz, metaAR );
+                    logger.debug( "{}/{} {}/{} {}/{}. Attempting to resolve 'meta' artifact: {}", projectCounter,
+                                  projectSz, artifactCounter, artifactSz, metaCounter, metaSz, metaAR );
                     addToContent( metaAR, items, resolvedLocation, excluded, seen );
                     metaCounter++;
                 }
@@ -346,8 +358,9 @@ public class RepoContentCollector
         }
     }
 
-    private ConcreteResource addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items, final Location location,
-                                           final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private ConcreteResource addToContent( final ArtifactRef ar, final Map<ArtifactRef, ConcreteResource> items,
+                                           final Location location, final Set<Location> excluded,
+                                           final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         if ( !seen.contains( ar ) )
@@ -375,7 +388,8 @@ public class RepoContentCollector
         return null;
     }
 
-    private ConcreteResource resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded, final Set<ArtifactRef> seen )
+    private ConcreteResource resolve( final ArtifactRef ar, final Location location, final Set<Location> excluded,
+                                      final Set<ArtifactRef> seen )
         throws CartoDataException
     {
         logger.debug( "Attempting to resolve: {} from: {}", ar, location );

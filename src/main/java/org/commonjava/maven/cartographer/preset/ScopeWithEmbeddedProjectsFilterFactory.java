@@ -26,11 +26,12 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 public class ScopeWithEmbeddedProjectsFilterFactory
     implements PresetFactory
 {
-    public static final String[] IDS = { "sob-build", "scope-with-embedded", "requires", "managed-sob-build", "managed-scope-with-embedded",
-        "managed-requires" };
+    public static final String[] IDS = { "sob-build", "scope-with-embedded", "requires", "managed-sob-build",
+        "managed-scope-with-embedded", "managed-requires" };
 
     @Override
-    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace, final Map<String, Object> parameters )
+    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace,
+                                                final Map<String, Object> parameters )
     {
         DependencyScope scope = (DependencyScope) parameters.get( CommonPresetParameters.SCOPE );
         if ( scope == null )

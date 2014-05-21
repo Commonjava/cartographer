@@ -61,8 +61,8 @@ public class MetadataScannerSupport
         this.scanners = this.scannerInstances;
     }
 
-    public Map<String, String> scan( final ProjectVersionRef ref, final List<? extends Location> locations, final MavenPomView pomView,
-                                     final Transfer transfer )
+    public Map<String, String> scan( final ProjectVersionRef ref, final List<? extends Location> locations,
+                                     final MavenPomView pomView, final Transfer transfer )
     {
         if ( scanners == null || !scanners.iterator()
                                           .hasNext() )
@@ -94,8 +94,9 @@ public class MetadataScannerSupport
             }
             catch ( final Exception e )
             {
-                logger.error( "Failed to execute metadata scanner: {} against: {}. Reason: {}", e, scanner.getClass()
-                                                                                                          .getSimpleName(), ref, e.getMessage() );
+                logger.error( "Failed to execute metadata scanner: {} against: {}. Reason: {}", e,
+                              scanner.getClass()
+                                     .getSimpleName(), ref, e.getMessage() );
             }
         }
 

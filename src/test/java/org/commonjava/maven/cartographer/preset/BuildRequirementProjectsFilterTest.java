@@ -65,9 +65,12 @@ public class BuildRequirementProjectsFilterTest
     public void initialInstanceAcceptsAllConcreteRelationships()
         throws Exception
     {
-        assertConcreteAcceptance( filter, from, src, tgt,
-                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
-                                  RelationshipType.values() );
+        assertConcreteAcceptance( filter,
+                                  from,
+                                  src,
+                                  tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided,
+                                                                               test ) ), RelationshipType.values() );
     }
 
     @Test
@@ -83,8 +86,9 @@ public class BuildRequirementProjectsFilterTest
         final PluginRelationship plugin = new PluginRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT, BOM );
+        assertConcreteAcceptance( child, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -96,8 +100,9 @@ public class BuildRequirementProjectsFilterTest
         final ExtensionRelationship plugin = new ExtensionRelationship( from, root, src, 0 );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT, BOM );
+        assertConcreteAcceptance( child, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -106,12 +111,14 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTestDependency()
         throws Exception
     {
-        final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), test, 0, false );
+        final DependencyRelationship dep =
+            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), test, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT, BOM );
+        assertConcreteAcceptance( child, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -120,12 +127,14 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterProvidedDependency()
         throws Exception
     {
-        final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), provided, 0, false );
+        final DependencyRelationship dep =
+            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), provided, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ), DEPENDENCY,
-                                  PARENT, BOM );
+        assertConcreteAcceptance( child, from, src, tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -134,13 +143,17 @@ public class BuildRequirementProjectsFilterTest
     public void acceptAllConcreteRelationshipsAfterTraversingRuntimeDependency()
         throws Exception
     {
-        final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), runtime, 0, false );
+        final DependencyRelationship dep =
+            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), runtime, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt,
-                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
-                                  RelationshipType.values() );
+        assertConcreteAcceptance( filter,
+                                  from,
+                                  src,
+                                  tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided,
+                                                                               test ) ), RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -149,13 +162,17 @@ public class BuildRequirementProjectsFilterTest
     public void acceptAllConcreteRelationshipsAfterTraversingCompileDependency()
         throws Exception
     {
-        final DependencyRelationship dep = new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), compile, 0, false );
+        final DependencyRelationship dep =
+            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), compile, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( filter, from, src, tgt,
-                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
-                                  RelationshipType.values() );
+        assertConcreteAcceptance( filter,
+                                  from,
+                                  src,
+                                  tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided,
+                                                                               test ) ), RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -168,9 +185,12 @@ public class BuildRequirementProjectsFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
-        assertConcreteAcceptance( filter, from, src, tgt,
-                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided, test ) ),
-                                  RelationshipType.values() );
+        assertConcreteAcceptance( filter,
+                                  from,
+                                  src,
+                                  tgt,
+                                  new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile, provided,
+                                                                               test ) ), RelationshipType.values() );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }

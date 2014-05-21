@@ -62,8 +62,8 @@ public abstract class AbstractPatcherTest
         return ctx;
     }
 
-    protected Set<ProjectRelationship<?>> parseDependencyRelationships( final String pom, final ProjectVersionRef pvr, final Location location,
-                                                                        final URI src )
+    protected Set<ProjectRelationship<?>> parseDependencyRelationships( final String pom, final ProjectVersionRef pvr,
+                                                                        final Location location, final URI src )
         throws GalleyMavenException
     {
         final Set<ProjectRelationship<?>> discovered = new HashSet<ProjectRelationship<?>>();
@@ -91,7 +91,8 @@ public abstract class AbstractPatcherTest
 
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
-            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++, false, depEx ) );
+            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
+                                                        false, depEx ) );
         }
 
         deps = pomView.getAllManagedDependencies();
@@ -116,7 +117,8 @@ public abstract class AbstractPatcherTest
 
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
-            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++, true, depEx ) );
+            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
+                                                        true, depEx ) );
         }
 
         return discovered;

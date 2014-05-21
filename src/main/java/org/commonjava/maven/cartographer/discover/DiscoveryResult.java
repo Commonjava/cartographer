@@ -35,13 +35,14 @@ public class DiscoveryResult
 
     private Map<String, String> metadata;
 
-    public DiscoveryResult( final URI source, final ProjectVersionRef selected, final Set<ProjectRelationship<?>> discovered )
+    public DiscoveryResult( final URI source, final ProjectVersionRef selected,
+                            final Set<ProjectRelationship<?>> discovered )
     {
         this( source, selected, discovered, Collections.<ProjectRelationship<?>> emptySet() );
     }
 
-    public DiscoveryResult( final URI source, final ProjectVersionRef selected, final Set<ProjectRelationship<?>> discovered,
-                            final Set<ProjectRelationship<?>> rejected )
+    public DiscoveryResult( final URI source, final ProjectVersionRef selected,
+                            final Set<ProjectRelationship<?>> discovered, final Set<ProjectRelationship<?>> rejected )
     {
         this.source = source;
         this.selected = selected;
@@ -49,7 +50,8 @@ public class DiscoveryResult
         this.rejected = rejected;
     }
 
-    public DiscoveryResult( final URI source, final DiscoveryResult original, final Set<ProjectRelationship<?>> newlyRejected )
+    public DiscoveryResult( final URI source, final DiscoveryResult original,
+                            final Set<ProjectRelationship<?>> newlyRejected )
     {
         this.source = source;
         this.selected = original.getSelectedRef();
@@ -115,8 +117,8 @@ public class DiscoveryResult
     @Override
     public synchronized String toString()
     {
-        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected,
-                              discovered == null ? "-NONE-" : new JoinString( "\n  ", new HashSet<ProjectRelationship<?>>( discovered ) ) );
+        return String.format( "DiscoveryResult [selected=%s]\n  %s", selected, discovered == null ? "-NONE-"
+                        : new JoinString( "\n  ", new HashSet<ProjectRelationship<?>>( discovered ) ) );
     }
 
     public synchronized boolean removeDiscoveredRelationship( final ProjectRelationship<?> rel )

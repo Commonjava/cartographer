@@ -75,7 +75,8 @@ public class CalculationOps
         return new GraphDifference<ProjectRelationship<?>>( from, to, added, removed );
     }
 
-    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from, final GraphDescription to )
+    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from,
+                                                                       final GraphDescription to )
         throws CartoDataException
     {
         final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
@@ -108,7 +109,8 @@ public class CalculationOps
         return new GraphDifference<ProjectVersionRef>( from, to, added, removed );
     }
 
-    private void reduceToIntersection( final Map<ProjectRef, Set<ProjectVersionRef>> first, final Map<ProjectRef, Set<ProjectVersionRef>> second )
+    private void reduceToIntersection( final Map<ProjectRef, Set<ProjectVersionRef>> first,
+                                       final Map<ProjectRef, Set<ProjectVersionRef>> second )
     {
         for ( final ProjectRef ref : new HashSet<ProjectRef>( first.keySet() ) )
         {

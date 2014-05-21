@@ -40,14 +40,16 @@ public class GraphDescription
     {
     }
 
-    public GraphDescription( final String preset, final Map<String, Object> presetParams, final Collection<ProjectVersionRef> roots )
+    public GraphDescription( final String preset, final Map<String, Object> presetParams,
+                             final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
         this.presetParams = new TreeMap<>( presetParams );
         this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
-    public GraphDescription( final String preset, final Map<String, Object> presetParams, final ProjectVersionRef... roots )
+    public GraphDescription( final String preset, final Map<String, Object> presetParams,
+                             final ProjectVersionRef... roots )
     {
         this( preset, presetParams, Arrays.asList( roots ) );
     }

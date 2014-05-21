@@ -83,7 +83,8 @@ public class PresetSelector
         }
     }
 
-    public ProjectRelationshipFilter getPresetFilter( String preset, final String defaultPreset, final Map<String, Object> params )
+    public ProjectRelationshipFilter getPresetFilter( String preset, final String defaultPreset,
+                                                      final Map<String, Object> params )
     {
         if ( preset == null )
         {

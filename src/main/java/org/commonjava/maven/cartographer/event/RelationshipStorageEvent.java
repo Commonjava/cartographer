@@ -21,7 +21,8 @@ public class RelationshipStorageEvent
 
     private final Set<ProjectRelationship<?>> rejected;
 
-    public RelationshipStorageEvent( final Set<ProjectRelationship<?>> stored, final Set<ProjectRelationship<?>> rejected )
+    public RelationshipStorageEvent( final Set<ProjectRelationship<?>> stored,
+                                     final Set<ProjectRelationship<?>> rejected )
     {
         this.stored = stored;
         this.rejected = rejected;

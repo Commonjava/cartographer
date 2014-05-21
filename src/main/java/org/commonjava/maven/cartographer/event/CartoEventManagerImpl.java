@@ -79,8 +79,8 @@ public class CartoEventManagerImpl
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s", key.toString(),
-                                         e.getMessage() ), e );
+            logger.error( String.format( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s",
+                                         key.toString(), e.getMessage() ), e );
         }
     }
 

@@ -28,7 +28,8 @@ public class Cartographer
     @Inject
     private CartoDataManager database;
 
-    @Inject CalculationOps calculator;
+    @Inject
+    CalculationOps calculator;
 
     @Inject
     private GraphOps grapher;
@@ -39,7 +40,8 @@ public class Cartographer
     @Inject
     private MetadataOps metadata;
 
-    @Inject ResolveOps resolver;
+    @Inject
+    ResolveOps resolver;
 
     @Inject
     private WorkspaceOps workspaces;
@@ -48,8 +50,9 @@ public class Cartographer
     {
     }
 
-    public Cartographer( final CartoDataManager database, final CalculationOps calculator, final GraphOps grapher, final GraphRenderingOps renderer,
-                         final MetadataOps metadata, final ResolveOps resolver, final WorkspaceOps workspace )
+    public Cartographer( final CartoDataManager database, final CalculationOps calculator, final GraphOps grapher,
+                         final GraphRenderingOps renderer, final MetadataOps metadata, final ResolveOps resolver,
+                         final WorkspaceOps workspace )
     {
         this.database = database;
         this.calculator = calculator;

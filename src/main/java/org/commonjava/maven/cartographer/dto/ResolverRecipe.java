@@ -124,7 +124,8 @@ public class ResolverRecipe
 
     public boolean isValid()
     {
-        return getWorkspaceId() != null && getSourceLocation() != null && graphComposition != null && graphComposition.isValid();
+        return getWorkspaceId() != null && getSourceLocation() != null && graphComposition != null
+            && graphComposition.isValid();
     }
 
     public void normalize()

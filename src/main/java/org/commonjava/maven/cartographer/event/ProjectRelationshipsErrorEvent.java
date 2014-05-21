@@ -10,7 +10,6 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.event;
 
-
 public class ProjectRelationshipsErrorEvent
 {
 

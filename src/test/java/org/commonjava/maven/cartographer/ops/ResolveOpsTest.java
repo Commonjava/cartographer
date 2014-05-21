@@ -137,8 +137,9 @@ public class ResolveOpsTest
         recipe.setSourceLocation( location );
         recipe.setWorkspaceId( ws.getId() );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents = fixture.getResolveOps()
-                                                                                           .resolveRepositoryContents( recipe );
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents =
+            fixture.getResolveOps()
+                   .resolveRepositoryContents( recipe );
         for ( final ProjectVersionRef ref : lineage )
         {
             assertThat( ref + " not present in repository contents!", contents.containsKey( ref ), equalTo( true ) );
