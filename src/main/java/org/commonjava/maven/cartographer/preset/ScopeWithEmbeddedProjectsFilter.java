@@ -82,7 +82,7 @@ public class ScopeWithEmbeddedProjectsFilter
             result = filter.accept( rel );
         }
 
-        logger.info( "{} {}", ( result ? "+" : "-" ), rel );
+        logger.info( "{} {}", ( result ? "IN" : "OUT" ), rel );
 
         //        if ( !result )
         //        {

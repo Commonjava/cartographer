@@ -89,9 +89,9 @@ public class ResolveOps
     {
     }
 
-    public ResolveOps( final CalculationOps calculations, final CartoDataManager data, final DiscoverySourceManager sourceManager,
-                       final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator, final ArtifactManager artifacts,
-                       final ExecutorService executor )
+    public ResolveOps( final CalculationOps calculations, final CartoDataManager data,
+                       final DiscoverySourceManager sourceManager, final ProjectRelationshipDiscoverer discoverer,
+                       final GraphAggregator aggregator, final ArtifactManager artifacts, final ExecutorService executor )
     {
         this.data = data;
         this.sourceManager = sourceManager;
@@ -107,7 +107,8 @@ public class ResolveOps
         final URI source = sourceManager.createSourceURI( fromUri );
         if ( source == null )
         {
-            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", fromUri, sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", fromUri,
+                                          sourceManager.getFormatHint() );
         }
 
         GraphWorkspace ws = data.getCurrentWorkspace();
@@ -143,9 +144,11 @@ public class ResolveOps
                 doDiscovery = true;
             }
 
-            if ( doDiscovery )
+            // only do the direct relationship discovery if we won't be doing it via the graph aggregator later.
+            if ( doDiscovery && !options.isDiscoveryEnabled() )
             {
                 logger.info( "Resolving direct relationships for root: {}", specific );
+
                 final DiscoveryResult result = discoverer.discoverRelationships( specific, config );
                 logger.info( "Result: {} relationships", ( result == null ? 0 : result.getAcceptedRelationships()
                                                                                       .size() ) );
@@ -166,6 +169,7 @@ public class ResolveOps
         final GraphView view = new GraphView( ws, options.getFilter(), options.getMutator(), results );
         final EProjectWeb web = data.graphs()
                                     .getWeb( view );
+
         if ( options.isDiscoveryEnabled() )
         {
             logger.info( "Performing graph discovery for: {}", results );
@@ -187,8 +191,8 @@ public class ResolveOps
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
-                                          sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.",
+                                          recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
@@ -202,7 +206,8 @@ public class ResolveOps
 
             if ( items != null && !items.isEmpty() )
             {
-                logger.debug( "{} Returning for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", items.entrySet() ) );
+                logger.debug( "{} Returning for: {}\n\n  {}", collector, collector.getRef(),
+                              new JoinString( "\n  ", items.entrySet() ) );
                 Map<ArtifactRef, ConcreteResource> existingItems = itemMap.get( collector.getRef() );
                 if ( existingItems == null )
                 {
@@ -214,7 +219,8 @@ public class ResolveOps
                     existingItems.putAll( items );
                 }
 
-                logger.debug( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(), new JoinString( "\n  ", existingItems.entrySet() ) );
+                logger.debug( "{} Accumulated for: {}\n\n  {}", collector, collector.getRef(),
+                              new JoinString( "\n  ", existingItems.entrySet() ) );
             }
             else
             {
@@ -250,7 +256,8 @@ public class ResolveOps
             final ProjectRefCollection refs = entry.getValue();
 
             final RepoContentCollector collector =
-                new RepoContentCollector( ref, refs, recipe, location, dconf, artifacts, discoverer, excluded, projectCounter, projectSz );
+                new RepoContentCollector( ref, refs, recipe, location, dconf, artifacts, discoverer, excluded,
+                                          projectCounter, projectSz );
 
             collectors.add( collector );
 
@@ -277,7 +284,8 @@ public class ResolveOps
         return collectors;
     }
 
-    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe, final URI sourceUri )
+    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
+                                                                              final URI sourceUri )
         throws CartoDataException
     {
         logger.info( "Building repository for: {}", recipe );
@@ -316,7 +324,8 @@ public class ResolveOps
 
                 final ProjectVersionRef[] roots = graphDesc.getRootsArray();
                 web =
-                    graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(), new ManagedDependencyMutator(), roots )
+                    graphDesc.getView() == null ? data.getProjectWeb( graphDesc.getFilter(),
+                                                                      new ManagedDependencyMutator(), roots )
                                     : data.getProjectWeb( graphDesc.getView() );
 
                 if ( web == null )
@@ -362,8 +371,8 @@ public class ResolveOps
                                                                    .getUri() );
         if ( sourceUri == null )
         {
-            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.", recipe.getSourceLocation(),
-                                          sourceManager.getFormatHint() );
+            throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.",
+                                          recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
         GraphWorkspace ws = data.getCurrentWorkspace();
@@ -401,7 +410,8 @@ public class ResolveOps
                                            .getCalculation(), outDescs );
     }
 
-    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final ProjectRelationshipFilter filter, final URI sourceUri )
+    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe,
+                                                         final ProjectRelationshipFilter filter, final URI sourceUri )
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
         options.setFilter( filter );
