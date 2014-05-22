@@ -85,7 +85,7 @@ public class ScopeWithEmbeddedProjectsFilter
             result = filter.accept( rel );
         }
 
-        logger.info( "{} {}", ( result ? "IN" : "OUT" ), rel );
+        logger.debug( "{} {}", ( result ? "IN" : "OUT" ), rel );
 
         //        if ( !result )
         //        {
@@ -109,7 +109,7 @@ public class ScopeWithEmbeddedProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                logger.info( "[FILT-OFFx1]: {}", lastRelationship );
+                logger.debug( "[FILT-OFFx1]: {}", lastRelationship );
                 return NoneFilter.INSTANCE;
                 //                if ( filter == NoneFilter.INSTANCE )
                 //                {
@@ -131,7 +131,7 @@ public class ScopeWithEmbeddedProjectsFilter
                         return this;
                     }
 
-                    logger.info( "[FILT-OFFx2]: {}", lastRelationship );
+                    logger.debug( "[FILT-OFFx2]: {}", lastRelationship );
                     return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
                 }
 
