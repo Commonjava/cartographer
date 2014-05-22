@@ -49,7 +49,8 @@ public class ScopeWithEmbeddedProjectsFilter
         this.acceptManaged = acceptManaged;
         this.filter =
             new OrFilter( new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
-                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) );
+                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true,
+                                                null ) );
     }
 
     private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
@@ -58,7 +59,8 @@ public class ScopeWithEmbeddedProjectsFilter
         this.filter =
             childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
                                                                       true, null ),
-                                                new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true, null ) )
+                                                new DependencyFilter( DependencyScope.embedded,
+                                                                      ScopeTransitivity.maven, false, true, true, null ) )
                             : childFilter;
     }
 

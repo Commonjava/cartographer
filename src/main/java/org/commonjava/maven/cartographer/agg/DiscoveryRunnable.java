@@ -46,8 +46,9 @@ public class DiscoveryRunnable
 
     private Throwable error;
 
-    public DiscoveryRunnable( final DiscoveryTodo todo, final AggregationOptions config, final Set<ProjectVersionRef> missing,
-                              final ProjectRelationshipDiscoverer discoverer, final int pass, final int idx )
+    public DiscoveryRunnable( final DiscoveryTodo todo, final AggregationOptions config,
+                              final Set<ProjectVersionRef> missing, final ProjectRelationshipDiscoverer discoverer,
+                              final int pass, final int idx )
     {
         this.todo = todo;
         this.config = config;
@@ -83,12 +84,14 @@ public class DiscoveryRunnable
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "{}.%s. Cannot discover subgraph for: %s. Reason: %s.", pass, idx, ref, e.getMessage() ), e );
+            logger.error( String.format( "{}.%s. Cannot discover subgraph for: %s. Reason: %s.", pass, idx, ref,
+                                         e.getMessage() ), e );
             error = e;
         }
         catch ( final CartoDataException e )
         {
-            logger.error( String.format( "{}.%s. Failed to discover subgraph for: %s. Reason: %s.", pass, idx, ref, e.getMessage() ), e );
+            logger.error( String.format( "{}.%s. Failed to discover subgraph for: %s. Reason: %s.", pass, idx, ref,
+                                         e.getMessage() ), e );
             error = e;
         }
         finally

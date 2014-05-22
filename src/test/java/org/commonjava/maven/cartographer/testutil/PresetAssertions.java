@@ -49,37 +49,43 @@ public final class PresetAssertions
     {
     }
 
-    public static void assertConcreteAcceptance( final ProjectRelationshipFilter filter, final URI from, final ProjectVersionRef src,
-                                                 final ArtifactRef tgt, final Set<DependencyScope> acceptedScopes,
+    public static void assertConcreteAcceptance( final ProjectRelationshipFilter filter, final URI from,
+                                                 final ProjectVersionRef src, final ArtifactRef tgt,
+                                                 final Set<DependencyScope> acceptedScopes,
                                                  final RelationshipType... acceptances )
     {
         final Set<RelationshipType> accepted = new HashSet<RelationshipType>( Arrays.asList( acceptances ) );
 
         // Initially, it should accept any relationship (because they should all be necessary to build the current project)
         final ParentRelationship parent = new ParentRelationship( from, src, tgt.asProjectVersionRef() );
-        assertThat( "Parent acceptance does not match expectations", filter.accept( parent ), equalTo( accepted.contains( PARENT ) ) );
+        assertThat( "Parent acceptance does not match expectations", filter.accept( parent ),
+                    equalTo( accepted.contains( PARENT ) ) );
 
         final PluginRelationship plugin = new PluginRelationship( from, src, tgt.asProjectVersionRef(), 0, false );
-        assertThat( "Plugin acceptance does not match expectations", filter.accept( plugin ), equalTo( accepted.contains( PLUGIN ) ) );
+        assertThat( "Plugin acceptance does not match expectations", filter.accept( plugin ),
+                    equalTo( accepted.contains( PLUGIN ) ) );
 
         final PluginDependencyRelationship pdep =
-            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0, false );
-        assertThat( "Plugin-dependency acceptance does not match expectations", filter.accept( pdep ), equalTo( accepted.contains( PLUGIN_DEP ) ) );
+            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
+                                              false );
+        assertThat( "Plugin-dependency acceptance does not match expectations", filter.accept( pdep ),
+                    equalTo( accepted.contains( PLUGIN_DEP ) ) );
 
         final ExtensionRelationship ext = new ExtensionRelationship( from, src, tgt.asProjectVersionRef(), 0 );
-        assertThat( "Extension acceptance does not match expectations", filter.accept( ext ), equalTo( accepted.contains( EXTENSION ) ) );
+        assertThat( "Extension acceptance does not match expectations", filter.accept( ext ),
+                    equalTo( accepted.contains( EXTENSION ) ) );
 
         final DependencyRelationship runtimeDep = new DependencyRelationship( from, src, tgt, runtime, 0, false );
-        assertThat( "Runtime dependency acceptance does not match expectations", filter.accept( runtimeDep ), equalTo( accepted.contains( DEPENDENCY )
-            && acceptedScopes.contains( runtime ) ) );
+        assertThat( "Runtime dependency acceptance does not match expectations", filter.accept( runtimeDep ),
+                    equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( runtime ) ) );
 
         final DependencyRelationship testDep = new DependencyRelationship( from, src, tgt, test, 0, false );
-        assertThat( "Test dependency acceptance does not match expectations", filter.accept( testDep ), equalTo( accepted.contains( DEPENDENCY )
-            && acceptedScopes.contains( test ) ) );
+        assertThat( "Test dependency acceptance does not match expectations", filter.accept( testDep ),
+                    equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( test ) ) );
 
         final DependencyRelationship compileDep = new DependencyRelationship( from, src, tgt, compile, 0, false );
-        assertThat( "Compile dependency acceptance does not match expectations", filter.accept( compileDep ), equalTo( accepted.contains( DEPENDENCY )
-            && acceptedScopes.contains( compile ) ) );
+        assertThat( "Compile dependency acceptance does not match expectations", filter.accept( compileDep ),
+                    equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( compile ) ) );
 
         final DependencyRelationship providedDep = new DependencyRelationship( from, src, tgt, provided, 0, false );
         assertThat( "Provided dependency acceptance does not match expectations", filter.accept( providedDep ),
@@ -95,18 +101,20 @@ public final class PresetAssertions
         assertThat( "BOM Dependency rejected!", filter.accept( bom ), equalTo( accepted.contains( BOM ) ) );
     }
 
-    public static void assertRejectsAllManaged( final ProjectRelationshipFilter filter, final URI from, final ProjectVersionRef src,
-                                                final ArtifactRef tgt )
+    public static void assertRejectsAllManaged( final ProjectRelationshipFilter filter, final URI from,
+                                                final ProjectVersionRef src, final ArtifactRef tgt )
     {
         // It won't accept managed relationships, though.
         final PluginRelationship managedPlugin = new PluginRelationship( from, src, tgt.asProjectVersionRef(), 0, true );
         assertThat( "Managed Plugin not rejected", filter.accept( managedPlugin ), equalTo( false ) );
 
         final PluginDependencyRelationship managedPdep =
-            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0, true );
+            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
+                                              true );
         assertThat( "Managed Plugin-dependency not rejected", filter.accept( managedPdep ), equalTo( false ) );
 
-        final DependencyRelationship runtimeManagedDep = new DependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true );
+        final DependencyRelationship runtimeManagedDep =
+            new DependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true );
         assertThat( "Managed Dependency not rejected", filter.accept( runtimeManagedDep ), equalTo( false ) );
     }
 }

@@ -56,7 +56,7 @@ public class CartoGraphUtilsWeldTest
         logger.info( "Selecting components from weld..." );
         graphFactory = container.instance()
                                 .select( RelationshipGraphFactory.class )
-                                  .get();
+                                .get();
 
         aggregator = container.instance()
                               .select( GraphAggregator.class )

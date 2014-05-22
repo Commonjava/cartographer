@@ -62,7 +62,8 @@ public class GraphComposition
         {
             if ( graph.getFilter() == null )
             {
-                final ProjectRelationshipFilter filter = presets.getPresetFilter( graph.getPreset(), defaultPreset, graph.getPresetParams() );
+                final ProjectRelationshipFilter filter =
+                    presets.getPresetFilter( graph.getPreset(), defaultPreset, graph.getPresetParams() );
                 graph.setFilter( filter );
             }
         }

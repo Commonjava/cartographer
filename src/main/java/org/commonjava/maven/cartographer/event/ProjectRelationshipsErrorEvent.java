@@ -13,7 +13,6 @@ package org.commonjava.maven.cartographer.event;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
-
 public class ProjectRelationshipsErrorEvent
 {
 

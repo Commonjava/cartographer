@@ -61,8 +61,8 @@ public class DiscovererImpl
     {
     }
 
-    public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader, final ArtifactManager artifactManager,
- final PatcherSupport patchers,
+    public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader,
+                           final ArtifactManager artifactManager, final PatcherSupport patchers,
                            final MetadataScannerSupport metadataScanners )
     {
         this.modelProcessor = modelProcessor;
@@ -85,7 +85,8 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to resolve variable version for: {}. Reason: {}", e, ref, e.getMessage() );
+            throw new CartoDataException( "Failed to resolve variable version for: {}. Reason: {}", e, ref,
+                                          e.getMessage() );
         }
     }
 
@@ -124,11 +125,13 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location,
+                                          e.getMessage() );
         }
         catch ( final GalleyMavenException e )
         {
-            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location, e.getMessage() );
+            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location,
+                                          e.getMessage() );
         }
 
         DiscoveryResult result = null;
@@ -141,7 +144,8 @@ public class DiscovererImpl
         {
             result = patchers.patch( result, discoveryConfig.getEnabledPatchers(), locations, pomView, transfer );
 
-            final Map<String, String> metadata = metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
+            final Map<String, String> metadata =
+                metadataScanners.scan( result.getSelectedRef(), locations, pomView, transfer );
             result.setMetadata( metadata );
 
             if ( discoveryConfig.isStoreRelationships() )

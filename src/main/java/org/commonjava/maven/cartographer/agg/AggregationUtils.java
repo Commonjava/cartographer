@@ -82,7 +82,7 @@ public final class AggregationUtils
         final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
         final Map<ProjectVersionRef, ProjectRefCollection> result = collectProjectVersionReferences( rels );
         for ( final ProjectVersionRef root : graph.getParams()
-                                                .getRoots() )
+                                                  .getRoots() )
         {
             ProjectRefCollection collection = result.get( root );
             if ( collection == null )
@@ -99,7 +99,8 @@ public final class AggregationUtils
 
     public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?>> rels )
     {
-        final Map<ProjectVersionRef, ProjectRefCollection> projects = new HashMap<ProjectVersionRef, ProjectRefCollection>();
+        final Map<ProjectVersionRef, ProjectRefCollection> projects =
+            new HashMap<ProjectVersionRef, ProjectRefCollection>();
 
         for ( final ProjectRelationship<?> rel : rels )
         {
@@ -145,7 +146,8 @@ public final class AggregationUtils
         return collectArtifactReferences( rels, includePomArtifacts );
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels, final boolean includePomArtifacts )
+    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels,
+                                                              final boolean includePomArtifacts )
     {
         final Set<ArtifactRef> artifacts = new HashSet<ArtifactRef>();
 

@@ -80,8 +80,7 @@ public class CartoEventManagerImpl
         catch ( final InvalidVersionSpecificationException e )
         {
             logger.error( String.format( "Cannot parse version for: '%s'. Failed to unlock waiting threads. Reason: %s",
-                                         ref,
-                                         e.getMessage() ), e );
+                                         ref, e.getMessage() ), e );
         }
     }
 

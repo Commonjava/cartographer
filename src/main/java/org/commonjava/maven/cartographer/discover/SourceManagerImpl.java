@@ -66,14 +66,14 @@ public class SourceManagerImpl
             if ( src != null )
             {
                 if ( params.getActiveSources()
-                       .contains( src ) )
+                           .contains( src ) )
                 {
                     continue;
                 }
 
                 params.addActiveSource( src );
                 result = result || params.getActiveSources()
-                                     .contains( src );
+                                         .contains( src );
             }
         }
 

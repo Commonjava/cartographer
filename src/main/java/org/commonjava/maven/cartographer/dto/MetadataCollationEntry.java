@@ -17,12 +17,14 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 public final class MetadataCollationEntry
 {
-    
+
     private Map<String, String> metadata;
-    
+
     private Set<ProjectVersionRef> projects;
-    
-    public MetadataCollationEntry(){}
+
+    public MetadataCollationEntry()
+    {
+    }
 
     public MetadataCollationEntry( Map<String, String> metadata, Set<ProjectVersionRef> projects )
     {

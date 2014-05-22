@@ -24,8 +24,8 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 public class BuildRequirementProjectsFilterFactory
     implements PresetFactory
 {
-    public static final String[] IDS = { "sob", "build-env", "build-requires", "br", "managed-sob", "managed-build-env", "managed-build-requires",
-        "managed-br" };
+    public static final String[] IDS = { "sob", "build-env", "build-requires", "br", "managed-sob",
+        "managed-build-env", "managed-build-requires", "managed-br" };
 
     @Override
     public ProjectRelationshipFilter newFilter( final String presetId, final Map<String, Object> parameters )

@@ -152,7 +152,8 @@ public class DefaultDiscoveryConfig
     @Override
     public void setLocations( final Collection<? extends Location> locations )
     {
-        this.discoveryLocations = ( locations instanceof List ) ? (List<? extends Location>) locations : new ArrayList<Location>( locations );
+        this.discoveryLocations =
+            ( locations instanceof List ) ? (List<? extends Location>) locations : new ArrayList<Location>( locations );
     }
 
     @Override

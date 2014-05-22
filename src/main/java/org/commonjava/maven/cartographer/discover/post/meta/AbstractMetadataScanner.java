@@ -48,7 +48,8 @@ public abstract class AbstractMetadataScanner
     }
 
     @Override
-    public Map<String, String> scan( final ProjectVersionRef ref, final List<? extends Location> locations, final Map<String, Object> context )
+    public Map<String, String> scan( final ProjectVersionRef ref, final List<? extends Location> locations,
+                                     final Map<String, Object> context )
     {
         MavenPomView pomView = (MavenPomView) context.get( POM_VIEW_CTX_KEY );
         if ( pomView == null )
@@ -96,7 +97,8 @@ public abstract class AbstractMetadataScanner
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "Failed to resolve SCM element via XPath '%s' in: %s. Reason: %s", xpath, ref, e.getMessage() ), e );
+                logger.error( String.format( "Failed to resolve SCM element via XPath '%s' in: %s. Reason: %s", xpath,
+                                             ref, e.getMessage() ), e );
             }
         }
 

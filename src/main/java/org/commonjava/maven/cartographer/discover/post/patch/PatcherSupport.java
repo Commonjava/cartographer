@@ -73,16 +73,16 @@ public class PatcherSupport
     }
 
     public DiscoveryResult patch( final DiscoveryResult orig, final Collection<String> patcherIds,
-                                  final List<? extends Location> locations,
-                                  final MavenPomView pomView, final Transfer transfer )
+                                  final List<? extends Location> locations, final MavenPomView pomView,
+                                  final Transfer transfer )
     {
         if ( patcherIds == null || patcherIds.isEmpty() )
         {
             return orig;
         }
 
-        logger.debug( "Running enabled patchers: {} (available patchers: {})", new JoinString( ", ", patchers.keySet() ),
- new JoinString( ", ", patcherIds ) );
+        logger.debug( "Running enabled patchers: {} (available patchers: {})",
+                      new JoinString( ", ", patchers.keySet() ), new JoinString( ", ", patcherIds ) );
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
@@ -110,7 +110,8 @@ public class PatcherSupport
             }
             catch ( final Exception e )
             {
-                logger.error( String.format( "Failed to execute patcher: %s against: %s. Reason: %s", patcherId, result, e.getMessage() ), e );
+                logger.error( String.format( "Failed to execute patcher: %s against: %s. Reason: %s", patcherId,
+                                             result, e.getMessage() ), e );
             }
 
             logger.debug( "After patching with {}, result is: {}", patcherId, result );

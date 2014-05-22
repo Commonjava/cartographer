@@ -66,7 +66,8 @@ public class BuildRequirementProjectsFilter
         this.excludes = null;
     }
 
-    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged, final Set<ProjectRef> excludes )
+    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged,
+                                            final Set<ProjectRef> excludes )
     {
         //        logger.info( "Creating filter {}",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
@@ -96,7 +97,8 @@ public class BuildRequirementProjectsFilter
         }
         else
         {
-            result = ( excludes == null || !excludes.contains( rel.getTarget()
+            result =
+                ( excludes == null || !excludes.contains( rel.getTarget()
                                                              .asProjectRef() ) )
                     && ( filter == null || filter.accept( rel ) );
         }

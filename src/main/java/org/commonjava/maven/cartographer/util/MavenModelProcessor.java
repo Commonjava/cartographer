@@ -50,7 +50,8 @@ public class MavenModelProcessor
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source, final DiscoveryConfig discoveryConfig )
+    public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source,
+                                              final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
         final boolean includeManagedDependencies = discoveryConfig.isIncludeManagedDependencies();
@@ -63,7 +64,8 @@ public class MavenModelProcessor
         {
             final ProjectVersionRef projectRef = pomView.getRef();
 
-            final EProjectDirectRelationships.Builder builder = new EProjectDirectRelationships.Builder( source, projectRef );
+            final EProjectDirectRelationships.Builder builder =
+                new EProjectDirectRelationships.Builder( source, projectRef );
 
             addParentRelationship( source, builder, pomView, projectRef );
 
@@ -80,15 +82,18 @@ public class MavenModelProcessor
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            throw new CartoDataException( "Failed to parse version for model: {}. Reason: {}", e, pomView, e.getMessage() );
+            throw new CartoDataException( "Failed to parse version for model: {}. Reason: {}", e, pomView,
+                                          e.getMessage() );
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new CartoDataException( "Failed to parse relationships for model: {}. Reason: {}", e, pomView, e.getMessage() );
+            throw new CartoDataException( "Failed to parse relationships for model: {}. Reason: {}", e, pomView,
+                                          e.getMessage() );
         }
     }
 
-    private void addExtensionUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    private void addExtensionUsages( final URI source, final Builder builder, final MavenPomView pomView,
+                                     final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         List<ExtensionView> extensions = null;
@@ -123,25 +128,29 @@ public class MavenModelProcessor
                 // force the InvalidVersionSpecificationException.
                 ref.getVersionSpec();
 
-                builder.withExtensions( new ExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex() ) );
+                builder.withExtensions( new ExtensionRelationship( source, projectRef, ref,
+                                                                   builder.getNextExtensionIndex() ) );
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), ext.toXML() ), e );
+                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                             e.getMessage(), ext.toXML() ), e );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), ext.toXML() ), e );
+                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                             e.getMessage(), ext.toXML() ), e );
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), ext.toXML() ), e );
+                logger.error( String.format( "Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                             e.getMessage(), ext.toXML() ), e );
             }
         }
     }
 
-    private void addPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef,
-                                  final boolean includeManagedPlugins )
+    private void addPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
+                                  final ProjectVersionRef projectRef, final boolean includeManagedPlugins )
         throws CartoDataException
     {
         addBuildPluginUsages( source, builder, pomView, projectRef, includeManagedPlugins );
@@ -149,7 +158,8 @@ public class MavenModelProcessor
         addSiteReportPluginUsages( source, builder, pomView, projectRef );
     }
 
-    private void addSiteReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    private void addSiteReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
+                                            final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         //        final List<ProjectVersionRefView> refs = pomView.getProjectVersionRefs( "//plugin[artifactId/text()=\"maven-site-plugin\"]//reportPlugin" );
@@ -161,21 +171,25 @@ public class MavenModelProcessor
         }
         catch ( final InvalidRefException e )
         {
-            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ), e );
+            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ),
+                          e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ), e );
+            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ),
+                          e );
         }
         catch ( final GalleyMavenException e )
         {
-            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ), e );
+            logger.error( String.format( "Cannot retrieve site-plugin nested reporting plugins: %s", e.getMessage() ),
+                          e );
         }
 
         addPlugins( plugins, projectRef, builder, source, false );
     }
 
-    public void addReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    public void addReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
+                                       final ProjectVersionRef projectRef )
         throws CartoDataException
     {
         List<PluginView> plugins = null;
@@ -199,8 +213,8 @@ public class MavenModelProcessor
         addPlugins( plugins, projectRef, builder, source, false );
     }
 
-    public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef,
-                                      final boolean includeManagedPlugins )
+    public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
+                                      final ProjectVersionRef projectRef, final boolean includeManagedPlugins )
         throws CartoDataException
     {
         if ( includeManagedPlugins )
@@ -247,8 +261,8 @@ public class MavenModelProcessor
         addPlugins( plugins, projectRef, builder, source, false );
     }
 
-    private void addPlugins( final List<PluginView> plugins, final ProjectVersionRef projectRef, final Builder builder, final URI source,
-                             final boolean managed )
+    private void addPlugins( final List<PluginView> plugins, final ProjectVersionRef projectRef, final Builder builder,
+                             final URI source, final boolean managed )
     {
         if ( plugins != null )
         {
@@ -272,21 +286,26 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef,
-                                                                 builder.getNextPluginDependencyIndex( projectRef, managed ), managed ) );
+                                                                 builder.getNextPluginDependencyIndex( projectRef,
+                                                                                                       managed ),
+                                                                 managed ) );
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), plugin.toXML() ), e );
+                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                                 plugin.toXML() ), e );
                     continue;
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), plugin.toXML() ), e );
+                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                                 plugin.toXML() ), e );
                     continue;
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), plugin.toXML() ), e );
+                    logger.error( String.format( "plugin is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                                 plugin.toXML() ), e );
                     continue;
                 }
 
@@ -299,29 +318,35 @@ public class MavenModelProcessor
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef, e.getMessage() ), e );
+                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef,
+                                                 e.getMessage() ), e );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef, e.getMessage() ), e );
+                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef,
+                                                 e.getMessage() ), e );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef, e.getMessage() ), e );
+                    logger.error( String.format( "Cannot retrieve plugin dependencies for: %s. Reason: %s", pluginRef,
+                                                 e.getMessage() ), e );
                 }
 
                 addPluginDependencies( pluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
 
-                logger.debug( "Adding implied dependencies for: {}\n\n  {}", pluginRef, impliedPluginDependencies == null ? "-NONE-"
-                                : new JoinString( "\n  ", impliedPluginDependencies ) );
-                addPluginDependencies( impliedPluginDependencies, plugin, pluginRef, projectRef, builder, source, managed );
+                logger.debug( "Adding implied dependencies for: {}\n\n  {}", pluginRef,
+                              impliedPluginDependencies == null ? "-NONE-" : new JoinString( "\n  ",
+                                                                                             impliedPluginDependencies ) );
+                addPluginDependencies( impliedPluginDependencies, plugin, pluginRef, projectRef, builder, source,
+                                       managed );
             }
         }
     }
 
-    private void addPluginDependencies( final Collection<PluginDependencyView> pluginDependencies, final PluginView plugin,
-                                        final ProjectVersionRef pluginRef, final ProjectVersionRef projectRef, final Builder builder,
-                                        final URI source, final boolean managed )
+    private void addPluginDependencies( final Collection<PluginDependencyView> pluginDependencies,
+                                        final PluginView plugin, final ProjectVersionRef pluginRef,
+                                        final ProjectVersionRef projectRef, final Builder builder, final URI source,
+                                        final boolean managed )
     {
         if ( pluginDependencies != null )
         {
@@ -334,36 +359,44 @@ public class MavenModelProcessor
                     final String profileId = dep.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                    final ArtifactRef artifactRef =
+                        new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
 
-                    builder.withPluginDependencies( new PluginDependencyRelationship( source, location, projectRef, pluginRef, artifactRef,
-                                                                                      builder.getNextPluginDependencyIndex( pluginRef, managed ),
+                    builder.withPluginDependencies( new PluginDependencyRelationship(
+                                                                                      source,
+                                                                                      location,
+                                                                                      projectRef,
+                                                                                      pluginRef,
+                                                                                      artifactRef,
+                                                                                      builder.getNextPluginDependencyIndex( pluginRef,
+                                                                                                                            managed ),
                                                                                       managed ) );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", pluginRef, e.getMessage(),
-                                                 dep.toXML() ), e );
+                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 pluginRef, e.getMessage(), dep.toXML() ), e );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", pluginRef, e.getMessage(),
-                                                 dep.toXML() ), e );
+                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 pluginRef, e.getMessage(), dep.toXML() ), e );
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n", pluginRef, e.getMessage(),
-                                                 dep.toXML() ), e );
+                    logger.error( String.format( "plugin dependency is invalid in: %s! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 pluginRef, e.getMessage(), dep.toXML() ), e );
                 }
             }
         }
     }
 
     protected void addDependencyRelationships( final URI source, final Builder builder, final MavenPomView pomView,
-                                               final ProjectVersionRef projectRef, final boolean includeManagedDependencies )
+                                               final ProjectVersionRef projectRef,
+                                               final boolean includeManagedDependencies )
     {
         // regardless of whether we're processing managed info, this is STRUCTURAL, so always grab it!
         List<DependencyView> boms = null;
@@ -393,15 +426,18 @@ public class MavenModelProcessor
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                             bomView.toXML() ), e );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                             bomView.toXML() ), e );
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), bomView.toXML() ), e );
+                logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(),
+                                             bomView.toXML() ), e );
             }
         }
 
@@ -414,15 +450,18 @@ public class MavenModelProcessor
             }
             catch ( final GalleyMavenException e )
             {
-                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ), e );
+                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ),
+                              e );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
-                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ), e );
+                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ),
+                              e );
             }
             catch ( final InvalidRefException e )
             {
-                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ), e );
+                logger.error( String.format( "Failed to retrieve managed dependencies: %s. Skipping", e.getMessage() ),
+                              e );
             }
 
             addDependencies( deps, projectRef, builder, source, true );
@@ -449,8 +488,8 @@ public class MavenModelProcessor
         addDependencies( deps, projectRef, builder, source, false );
     }
 
-    private void addDependencies( final List<DependencyView> deps, final ProjectVersionRef projectRef, final Builder builder, final URI source,
-                                  final boolean managed )
+    private void addDependencies( final List<DependencyView> deps, final ProjectVersionRef projectRef,
+                                  final Builder builder, final URI source, final boolean managed )
     {
         if ( deps != null )
         {
@@ -463,31 +502,38 @@ public class MavenModelProcessor
                     final String profileId = dep.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    final ArtifactRef artifactRef = new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                    final ArtifactRef artifactRef =
+                        new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
 
-                    builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef, dep.getScope(),
-                                                                          builder.getNextDependencyIndex( managed ), managed ) );
+                    builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef,
+                                                                          dep.getScope(),
+                                                                          builder.getNextDependencyIndex( managed ),
+                                                                          managed ) );
                 }
                 catch ( final InvalidRefException e )
                 {
-                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), dep.toXML() ), e );
+                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 e.getMessage(), dep.toXML() ), e );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), dep.toXML() ), e );
+                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 e.getMessage(), dep.toXML() ), e );
                 }
                 catch ( final GalleyMavenException e )
                 {
-                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", e.getMessage(), dep.toXML() ), e );
+                    logger.error( String.format( "dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 e.getMessage(), dep.toXML() ), e );
                 }
             }
         }
     }
 
-    protected void addParentRelationship( final URI source, final Builder builder, final MavenPomView pomView, final ProjectVersionRef projectRef )
+    protected void addParentRelationship( final URI source, final Builder builder, final MavenPomView pomView,
+                                          final ProjectVersionRef projectRef )
     {
         try
         {

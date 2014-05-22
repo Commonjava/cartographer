@@ -100,8 +100,10 @@ public class DefaultGraphAggregator
 
                 done.addAll( current );
 
-                logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ", current ) );
-                final Set<DiscoveryTodo> newTodos = discover( current, config, /*cycleParticipants,*/missing, seen, pass );
+                logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ",
+                                                                                                            current ) );
+                final Set<DiscoveryTodo> newTodos =
+                    discover( current, config, /*cycleParticipants,*/missing, seen, pass );
                 if ( newTodos != null )
                 {
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
@@ -123,18 +125,20 @@ public class DefaultGraphAggregator
         }
     }
 
-    private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config, final Set<ProjectVersionRef> missing,
-                                         final Set<ProjectVersionRef> seen, final int pass )
+    private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
+                                         final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                         final int pass )
         throws CartoDataException
     {
         logger.info( "Starting pass: {}", pass );
-        logger.debug( "{}. Performing discovery and cycle-detection on {} missing subgraphs:\n  {}", pass, todos.size(), new JoinString( "\n  ",
-                                                                                                                                         todos ) );
+        logger.debug( "{}. Performing discovery and cycle-detection on {} missing subgraphs:\n  {}", pass,
+                      todos.size(), new JoinString( "\n  ", todos ) );
 
-        final Set<DiscoveryRunnable> runnables = executeTodoBatch( todos, config, missing, seen, /*cycleParticipants,*/pass );
+        final Set<DiscoveryRunnable> runnables =
+            executeTodoBatch( todos, config, missing, seen, /*cycleParticipants,*/pass );
 
-        logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass, new JoinString( "\n  ",
-                                                                                                                                       missing ) );
+        logger.debug( "{}. Accounting for discovery results. Before discovery, these were missing:\n\n  {}\n\n", pass,
+                      new JoinString( "\n  ", missing ) );
 
         final Map<ProjectVersionRef, DiscoveryTodo> nextTodos = new HashMap<ProjectVersionRef, DiscoveryTodo>();
 
@@ -175,7 +179,8 @@ public class DefaultGraphAggregator
      * output to be processed and incorporated in the graph.
      */
     private Set<DiscoveryRunnable> executeTodoBatch( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                                     final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                                     final Set<ProjectVersionRef> missing,
+                                                     final Set<ProjectVersionRef> seen,
                                                      /*final Set<ProjectVersionRef> cycleParticipants,*/final int pass )
     {
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
@@ -252,8 +257,10 @@ public class DefaultGraphAggregator
      * GAV should be marked missing.
      * @throws CartoDataException 
      */
-    private boolean processDiscoveryOutput( final DiscoveryRunnable r, final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
-                                            final DiscoveryConfig config, final Set<ProjectVersionRef> seen, final int pass )
+    private boolean processDiscoveryOutput( final DiscoveryRunnable r,
+                                            final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
+                                            final DiscoveryConfig config, final Set<ProjectVersionRef> seen,
+                                            final int pass )
         throws CartoDataException
     {
         final DiscoveryTodo todo = r.getTodo();
@@ -267,8 +274,9 @@ public class DefaultGraphAggregator
             }
             catch ( final RelationshipGraphException e )
             {
-                logger.error( String.format( "Failed to store error for project: %s (%s). Error was:\n\n%s.\n\nStorage error:\n", todo.getRef(),
-                                             e.getMessage(), ExceptionUtils.getFullStackTrace( error ) ), e );
+                logger.error( String.format( "Failed to store error for project: %s (%s). Error was:\n\n%s.\n\nStorage error:\n",
+                                             todo.getRef(), e.getMessage(), ExceptionUtils.getFullStackTrace( error ) ),
+                              e );
             }
 
             return false;
@@ -290,8 +298,8 @@ public class DefaultGraphAggregator
                 }
                 catch ( final RelationshipGraphException e )
                 {
-                    logger.error( String.format( "Failed to store metadata for: %s in: %s. Reason: %s", result.getSelectedRef(), graph,
-                                                 e.getMessage() ), e );
+                    logger.error( String.format( "Failed to store metadata for: %s in: %s. Reason: %s",
+                                                 result.getSelectedRef(), graph, e.getMessage() ), e );
                 }
             }
 
@@ -306,7 +314,8 @@ public class DefaultGraphAggregator
 
                 // De-selected relationships (not mutated) should be stored but NOT followed for discovery purposes.
                 // Likewise, mutated (selected) relationships should be followed but NOT stored.
-                logger.info( "{}.{}. Processing {} new relationships for: {}", pass, index, discoveredRels.size(), result.getSelectedRef() );
+                logger.info( "{}.{}. Processing {} new relationships for: {}", pass, index, discoveredRels.size(),
+                             result.getSelectedRef() );
                 logger.debug( "Relationships:\n  {}", new JoinString( "\n  ", discoveredRels ) );
 
                 boolean contributedRels = false;
@@ -363,13 +372,14 @@ public class DefaultGraphAggregator
 
                         if ( rel.isManaged() )
                         {
-                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): {}", pass, index, idx,
-                                          rel );
+                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding managed relationship (for mutator use later): {}",
+                                          pass, index, idx, rel );
                             contributedRels = true;
                         }
                         else if ( rel.getType() == RelationshipType.PARENT )
                         {
-                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding parent relationship: {}", pass, index, idx, rel );
+                            logger.debug( "{}.{}.{}. FORCE; NON-TRAVERSE: Adding parent relationship: {}", pass, index,
+                                          idx, rel );
                             contributedRels = true;
                         }
                         else
@@ -388,23 +398,25 @@ public class DefaultGraphAggregator
                 // if all relationships have been discarded by filter...
                 if ( !contributedRels && !discoveredRels.isEmpty() )
                 {
-                    logger.debug( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.", pass, index,
-                                  result.getSelectedRef() );
+                    logger.debug( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.",
+                                  pass, index, result.getSelectedRef() );
 
                     try
                     {
-                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(), result.getSelectedRef() ) );
+                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(),
+                                                                          result.getSelectedRef() ) );
                     }
                     catch ( final RelationshipGraphException e )
                     {
-                        logger.error( String.format( "Failed to store relationships for: %s in: %s. Reason: %s", result.getSelectedRef(), graph,
-                                                     e.getMessage() ), e );
+                        logger.error( String.format( "Failed to store relationships for: %s in: %s. Reason: %s",
+                                                     result.getSelectedRef(), graph, e.getMessage() ), e );
                     }
                 }
             }
             else
             {
-                logger.debug( "{}.{}. discovered relationships were NULL for: {}", pass, r.getIndex(), result.getSelectedRef() );
+                logger.debug( "{}.{}. discovered relationships were NULL for: {}", pass, r.getIndex(),
+                              result.getSelectedRef() );
             }
 
             return true;
@@ -461,7 +473,8 @@ public class DefaultGraphAggregator
     //        return participants;
     //    }
 
-    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen, final GraphMutator rootMutator )
+    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen,
+                                                    final GraphMutator rootMutator )
     {
         logger.info( "Using root-level mutator: {}", graph.getMutator() );
 

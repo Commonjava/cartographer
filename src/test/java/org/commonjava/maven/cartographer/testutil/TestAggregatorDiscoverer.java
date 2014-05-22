@@ -31,7 +31,8 @@ public class TestAggregatorDiscoverer
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<ProjectVersionRef, DiscoveryResult> mappedResults = new HashMap<ProjectVersionRef, DiscoveryResult>();
+    private final Map<ProjectVersionRef, DiscoveryResult> mappedResults =
+        new HashMap<ProjectVersionRef, DiscoveryResult>();
 
     private final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 

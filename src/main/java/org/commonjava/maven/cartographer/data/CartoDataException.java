@@ -22,8 +22,7 @@ public class CartoDataException
 
     private List<Throwable> nested;
 
-    public CartoDataException( final String message, final Throwable error,
-                                 final Object... params )
+    public CartoDataException( final String message, final Throwable error, final Object... params )
     {
         super( message, error, params );
     }
@@ -33,8 +32,7 @@ public class CartoDataException
         super( message, params );
     }
 
-    public CartoDataException( final String message, final List<Throwable> nested,
-                                 final Object... params )
+    public CartoDataException( final String message, final List<Throwable> nested, final Object... params )
     {
         super( message, params );
         this.nested = nested;
@@ -51,7 +49,10 @@ public class CartoDataException
             int idx = 1;
             for ( Throwable error : nested )
             {
-                msg.append( "\n" ).append( idx ).append( ".  " ).append( error.getMessage() );
+                msg.append( "\n" )
+                   .append( idx )
+                   .append( ".  " )
+                   .append( error.getMessage() );
                 idx++;
             }
         }

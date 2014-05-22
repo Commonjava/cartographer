@@ -132,7 +132,7 @@ public class ScopedProjectFilter
             final StringBuilder sb = new StringBuilder();
             sb.append( "Scoped-Projects(sub-filter:" );
 
-                sb.append( filter.getLongId() );
+            sb.append( filter.getLongId() );
 
             sb.append( ",acceptManaged:" )
               .append( acceptManaged )
