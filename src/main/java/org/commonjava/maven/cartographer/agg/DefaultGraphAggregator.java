@@ -104,6 +104,7 @@ public class DefaultGraphAggregator
                                                                                                             current ) );
                 final Set<DiscoveryTodo> newTodos =
                     discover( current, config, /*cycleParticipants,*/missing, seen, pass );
+
                 if ( newTodos != null )
                 {
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
@@ -503,16 +504,13 @@ public class DefaultGraphAggregator
             final GraphPathInfo pathInfo = entry.getValue();
 
             final List<ProjectVersionRef> pathRefs = graph.getPathRefs( path );
-            if ( pathRefs.size() > 1 )
-            {
-                // we have to remove the last ref, since that's what we're about to discover!
-                pathRefs.remove( pathRefs.size() - 1 );
 
+            final ProjectVersionRef ref = pathRefs.remove( pathRefs.size() - 1 );
+            if ( !pathRefs.isEmpty() )
+            {
                 logger.info( "Already seen += {}", new JoinString( ", ", pathRefs ) );
                 seen.addAll( pathRefs );
             }
-
-            final ProjectVersionRef ref = graph.getPathTargetRef( path );
 
             DiscoveryTodo todo = initialPending.get( ref );
             if ( todo == null )

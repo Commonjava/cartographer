@@ -155,6 +155,7 @@ public class ResolveOps
             {
                 throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
             }
+
             for ( final ProjectVersionRef root : specifics )
             {
                 if ( !graph.containsGraph( root ) || graph.hasProjectError( root ) )
@@ -170,12 +171,17 @@ public class ResolveOps
                         continue;
                     }
 
-                    logger.info( "Resolving direct relationships for root: {}", root );
-                    final DiscoveryResult result = discoverer.discoverRelationships( root, graph, config );
-                    logger.info( "Result: {} relationships", ( result == null ? 0 : result.getAcceptedRelationships()
-                                                                                          .size() ) );
+                    if ( !options.isDiscoveryEnabled() )
+                    {
+                        logger.info( "Resolving direct relationships for root: {}", root );
+                        final DiscoveryResult result = discoverer.discoverRelationships( root, graph, config );
+                        logger.info( "Result: {} relationships", ( result == null ? 0
+                                        : result.getAcceptedRelationships()
+                                                .size() ) );
+                    }
                 }
             }
+
             if ( options.isDiscoveryEnabled() )
             {
                 logger.info( "Performing graph discovery for: {}", specifics );

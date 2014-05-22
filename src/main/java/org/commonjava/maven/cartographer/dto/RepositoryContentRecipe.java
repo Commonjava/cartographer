@@ -32,9 +32,9 @@ public class RepositoryContentRecipe
 
     private boolean multiSourceGAVs;
 
-    private TreeSet<ExtraCT> extras;
+    private Set<ExtraCT> extras;
 
-    private TreeSet<String> metas;
+    private Set<String> metas;
 
     private transient Set<Location> excludedSourceLocations;
 

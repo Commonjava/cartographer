@@ -150,6 +150,7 @@ public class RepoContentCollector
         boolean unresolvedVariable = false;
         if ( ar.isVariableVersion() )
         {
+            // FIXME: If the version is resolved using metadata from an excluded location, we've got a problem!
             final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
             if ( specific == null )
             {
@@ -405,7 +406,8 @@ public class RepoContentCollector
 
         if ( item == null )
         {
-            logger.warn( "NOT FOUND: {}", ar );
+            return null;
+            //            throw new CartoDataException( "Cannot find: {} in: {}", ar, location );
         }
         else if ( isExcluded( item.getLocation() ) )
         {
