@@ -30,7 +30,6 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
@@ -361,21 +360,10 @@ public class ResolveOps
             if ( graphs.getCalculation() != null && graphs.size() > 1 )
             {
 
+                logger.info( "Collecting project references in: {}", recipe.getWorkspaceId() );
                 final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
+
                 refMap = collectProjectVersionReferences( result.getResult() );
-
-                final ViewParams params =
-                    activateSourceLocations( recipe.getWorkspaceId(), AnyFilter.INSTANCE,
-                                             new ManagedDependencyMutator(), config );
-
-                try
-                {
-                    graph = graphFactory.open( params, true );
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
-                }
             }
             else
             {
@@ -397,8 +385,11 @@ public class ResolveOps
                     throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
                 }
 
+                logger.info( "Collecting project references in: {}", params.getWorkspaceId() );
+
                 refMap = collectProjectVersionReferences( graph );
             }
+
             for ( final GraphDescription desc : graphs )
             {
                 for ( final ProjectVersionRef root : desc.getRoots() )
@@ -452,7 +443,7 @@ public class ResolveOps
 
             final ProjectVersionRef[] rootsArray = desc.getRootsArray();
 
-            final ViewParams params = resolve( sourceUri.toString(), options, false, rootsArray );
+            final ViewParams params = resolve( recipe.getWorkspaceId(), options, false, rootsArray );
 
             RelationshipGraph graph = null;
             try

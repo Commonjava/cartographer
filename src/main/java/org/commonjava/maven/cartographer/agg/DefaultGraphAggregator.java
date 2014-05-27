@@ -481,6 +481,9 @@ public class DefaultGraphAggregator
 
         final Set<ProjectVersionRef> initialIncomplete = graph.getIncompleteSubgraphs();
 
+        logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ),
+                     new JoinString( "\n  ", graph.getRoots() ) );
+
         if ( initialIncomplete == null || initialIncomplete.isEmpty() )
         {
             return new ArrayList<DiscoveryTodo>();
@@ -492,9 +495,6 @@ public class DefaultGraphAggregator
         {
             return new ArrayList<DiscoveryTodo>();
         }
-
-        logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ),
-                     new JoinString( "\n  ", graph.getRoots() ) );
 
         final Map<ProjectVersionRef, DiscoveryTodo> initialPending = new HashMap<ProjectVersionRef, DiscoveryTodo>();
 
