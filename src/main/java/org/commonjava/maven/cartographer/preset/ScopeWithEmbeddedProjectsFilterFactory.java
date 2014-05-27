@@ -17,7 +17,6 @@ import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 
 @Named( "scope-with-embedded" )
@@ -30,8 +29,7 @@ public class ScopeWithEmbeddedProjectsFilterFactory
         "managed-scope-with-embedded", "managed-requires" };
 
     @Override
-    public ProjectRelationshipFilter newFilter( final String presetId, final GraphWorkspace workspace,
-                                                final Map<String, Object> parameters )
+    public ProjectRelationshipFilter newFilter( final String presetId, final Map<String, Object> parameters )
     {
         DependencyScope scope = (DependencyScope) parameters.get( CommonPresetParameters.SCOPE );
         if ( scope == null )

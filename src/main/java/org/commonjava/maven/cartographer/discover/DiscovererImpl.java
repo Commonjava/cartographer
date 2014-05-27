@@ -19,10 +19,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
@@ -48,9 +49,6 @@ public class DiscovererImpl
     private MavenModelProcessor modelProcessor;
 
     @Inject
-    private CartoDataManager dataManager;
-
-    @Inject
     private PatcherSupport patchers;
 
     @Inject
@@ -64,13 +62,12 @@ public class DiscovererImpl
     }
 
     public DiscovererImpl( final MavenModelProcessor modelProcessor, final MavenPomReader pomReader,
-                           final ArtifactManager artifactManager, final CartoDataManager dataManager,
-                           final PatcherSupport patchers, final MetadataScannerSupport metadataScanners )
+                           final ArtifactManager artifactManager, final PatcherSupport patchers,
+                           final MetadataScannerSupport metadataScanners )
     {
         this.modelProcessor = modelProcessor;
         this.pomReader = pomReader;
         this.artifactManager = artifactManager;
-        this.dataManager = dataManager;
         this.patchers = patchers;
         this.metadataScanners = metadataScanners;
     }
@@ -93,21 +90,9 @@ public class DiscovererImpl
         }
     }
 
-    /**
-     * @deprecated Use {@link #discoverRelationships(ProjectVersionRef,DiscoveryConfig)} instead
-     */
-    @Deprecated
     @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig,
-                                                  final boolean storeRelationships )
-        throws CartoDataException
-    {
-        discoveryConfig.setStoreRelationships( storeRelationships );
-        return discoverRelationships( ref, discoveryConfig );
-    }
-
-    @Override
-    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
+    public DiscoveryResult discoverRelationships( final ProjectVersionRef ref, final RelationshipGraph graph,
+                                                  final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
         ProjectVersionRef specific = ref;
@@ -165,9 +150,17 @@ public class DiscovererImpl
 
             if ( discoveryConfig.isStoreRelationships() )
             {
-                final Set<ProjectRelationship<?>> rejected =
-                    dataManager.storeRelationships( result.getAcceptedRelationships() );
-                dataManager.addMetadata( result.getSelectedRef(), metadata );
+                final Set<ProjectRelationship<?>> rejected;
+                try
+                {
+                    rejected = graph.storeRelationships( result.getAcceptedRelationships() );
+                    graph.addMetadata( result.getSelectedRef(), metadata );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    throw new CartoDataException( "Failed to store relationships or metadata for: {}. Reason: {}", e,
+                                                  result.getSelectedRef(), e.getMessage() );
+                }
 
                 result = new DiscoveryResult( result.getSource(), result, rejected );
             }

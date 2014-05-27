@@ -23,12 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspaceConfiguration;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -60,15 +59,11 @@ public class ResolveOpsTest
     @Rule
     public CartoFixture fixture = new CartoFixture( new CoreFixture() );
 
-    private GraphWorkspace ws;
-
     @Before
     public void setup()
         throws Exception
     {
         fixture.initMissingComponents();
-        ws = fixture.getData()
-                    .createTemporaryWorkspace( new GraphWorkspaceConfiguration() );
     }
 
     @Test
@@ -117,8 +112,10 @@ public class ResolveOpsTest
 
         rels.add( new ParentRelationship( src, lineage.getLast() ) );
 
-        final Set<ProjectRelationship<?>> rejects = fixture.getData()
-                                                           .storeRelationships( rels );
+        final RelationshipGraph rootlessGraph =
+            fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
+
+        final Set<ProjectRelationship<?>> rejects = rootlessGraph.storeRelationships( rels );
 
         System.out.println( "Rejected: " + rejects );
         assertThat( rejects.isEmpty(), equalTo( true ) );
@@ -135,7 +132,7 @@ public class ResolveOpsTest
 
         recipe.setResolve( false );
         recipe.setSourceLocation( location );
-        recipe.setWorkspaceId( ws.getId() );
+        recipe.setWorkspaceId( rootlessGraph.getWorkspaceId() );
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> contents =
             fixture.getResolveOps()
@@ -161,10 +158,11 @@ public class ResolveOpsTest
         final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
         final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
-        ws.addActiveSource( src );
+        final RelationshipGraph rootlessGraph =
+            fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
 
         /* @formatter:off */
-        fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList(
+        rootlessGraph.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
             new DependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
@@ -186,9 +184,10 @@ public class ResolveOpsTest
                                                                                .setProcessVariableSubgraphs( true )
                                                                                .setDiscoveryTimeoutMillis( 10 );
 
-        GraphView view = fixture.getResolveOps()
-                                .resolve( src.toString(), options, root );
-        Set<ProjectVersionRef> resolved = view.getRoots();
+        final ViewParams params = fixture.getResolveOps()
+                                         .resolve( rootlessGraph.getWorkspaceId(), options, root );
+
+        Set<ProjectVersionRef> resolved = params.getRoots();
         assertThat( resolved.contains( root ), equalTo( true ) );
 
         assertThat( fixture.getDiscoverer()
@@ -198,17 +197,16 @@ public class ResolveOpsTest
 
         logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
+        final RelationshipGraph graph = fixture.openGraph( params, false );
+
         /* @formatter:off */
-        fixture.getData().storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
+        graph.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
             new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
             new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         /* @formatter:on */
 
-        view = fixture.getResolveOps()
-                      .resolve( src.toString(), options, root );
-
-        resolved = view.getRoots();
+        resolved = graph.getRoots();
 
         assertThat( resolved.contains( root ), equalTo( true ) );
 

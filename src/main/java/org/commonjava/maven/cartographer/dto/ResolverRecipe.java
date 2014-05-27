@@ -59,7 +59,7 @@ public class ResolverRecipe
     public DiscoveryConfig getDiscoveryConfig()
         throws URISyntaxException
     {
-        final DefaultDiscoveryConfig ddc = new DefaultDiscoveryConfig( getSourceLocation().toString() );
+        final DefaultDiscoveryConfig ddc = new DefaultDiscoveryConfig( getSourceLocation().getUri() );
         ddc.setEnabled( true );
 
         return ddc;

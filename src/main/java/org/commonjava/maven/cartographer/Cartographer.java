@@ -13,59 +13,51 @@ package org.commonjava.maven.cartographer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
 import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
-import org.commonjava.maven.cartographer.ops.WorkspaceOps;
 
 @ApplicationScoped
 public class Cartographer
 {
 
     @Inject
-    private CartoDataManager database;
+    protected CalculationOps calculator;
 
     @Inject
-    CalculationOps calculator;
+    protected GraphOps grapher;
 
     @Inject
-    private GraphOps grapher;
+    protected GraphRenderingOps renderer;
 
     @Inject
-    private GraphRenderingOps renderer;
+    protected MetadataOps metadata;
 
     @Inject
-    private MetadataOps metadata;
+    protected ResolveOps resolver;
 
     @Inject
-    ResolveOps resolver;
-
-    @Inject
-    private WorkspaceOps workspaces;
+    protected RelationshipGraphFactory graphFactory;
 
     protected Cartographer()
     {
     }
 
-    public Cartographer( final CartoDataManager database, final CalculationOps calculator, final GraphOps grapher,
-                         final GraphRenderingOps renderer, final MetadataOps metadata, final ResolveOps resolver,
-                         final WorkspaceOps workspace )
+    public Cartographer( final CalculationOps calculator, final GraphOps grapher, final GraphRenderingOps renderer,
+                         final MetadataOps metadata, final ResolveOps resolver,
+                         final RelationshipGraphFactory graphFactory )
     {
-        this.database = database;
         this.calculator = calculator;
         this.grapher = grapher;
         this.renderer = renderer;
         this.metadata = metadata;
         this.resolver = resolver;
-        this.workspaces = workspace;
-    }
-
-    public CartoDataManager getDatabase()
-    {
-        return database;
+        this.graphFactory = graphFactory;
     }
 
     public CalculationOps getCalculator()
@@ -93,9 +85,22 @@ public class Cartographer
         return resolver;
     }
 
-    public WorkspaceOps getWorkspaces()
+    public RelationshipGraphFactory getGraphFactory()
     {
-        return workspaces;
+        return graphFactory;
+    }
+
+    public void close()
+        throws CartoDataException
+    {
+        try
+        {
+            graphFactory.close();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to close graph factory. Reason: {}", e, e.getMessage() );
+        }
     }
 
 }

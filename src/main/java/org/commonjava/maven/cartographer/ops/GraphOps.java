@@ -19,18 +19,19 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.spi.GraphDriverException;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
+import org.commonjava.maven.cartographer.dto.GraphExport;
 import org.commonjava.maven.cartographer.util.ProjectVersionRefComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,112 +43,32 @@ public class GraphOps
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private CartoDataManager data;
+    protected RelationshipGraphFactory graphFactory;
 
     protected GraphOps()
     {
     }
 
-    public GraphOps( final CartoDataManager data )
+    public GraphOps( final RelationshipGraphFactory graphFactory )
     {
-        this.data = data;
+        this.graphFactory = graphFactory;
     }
 
-    public void reindexAll()
+    public BuildOrder getBuildOrder( final RelationshipGraph graph )
         throws CartoDataException
     {
-        data.reindexAll();
-    }
-
-    public void reindex( final ProjectVersionRef ref )
-        throws CartoDataException
-    {
-        if ( ref != null )
-        {
-            data.reindex( ref );
-        }
-    }
-
-    public Map<ProjectVersionRef, Set<String>> getAllErrors()
-        throws CartoDataException
-    {
-        logger.info( "Retrieving ALL project errors" );
-        return data.getAllProjectErrors();
-    }
-
-    public Map<ProjectVersionRef, Set<String>> getErrors( final ProjectVersionRef ref )
-        throws CartoDataException
-    {
-        Map<ProjectVersionRef, Set<String>> errors = null;
-        if ( ref != null )
-        {
-            logger.info( "Retrieving project errors in graph: {}", ref );
-            errors = data.getProjectErrorsInGraph( ref );
-        }
-
-        return errors;
-    }
-
-    public Set<ProjectVersionRef> getAllIncomplete( final ProjectRelationshipFilter filter )
-        throws CartoDataException
-    {
-        final Set<ProjectVersionRef> incomplete = data.getAllIncompleteSubgraphs( filter, null );
-
-        return incomplete;
-    }
-
-    public Set<ProjectVersionRef> getIncomplete( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
-        throws CartoDataException
-    {
-        Set<ProjectVersionRef> incomplete = null;
-        if ( ref != null )
-        {
-            incomplete = data.getIncompleteSubgraphsFor( filter, null, ref );
-        }
-
-        return incomplete;
-    }
-
-    public Set<ProjectVersionRef> getAllVariable( final ProjectRelationshipFilter filter )
-        throws CartoDataException
-    {
-        return data.getAllVariableSubgraphs( filter, null );
-    }
-
-    public Set<ProjectVersionRef> getVariable( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
-        throws CartoDataException
-    {
-        if ( ref != null )
-        {
-            return data.getVariableSubgraphsFor( filter, null, ref );
-        }
-
-        return null;
-    }
-
-    public List<ProjectVersionRef> getAncestry( final ProjectVersionRef ref )
-        throws CartoDataException
-    {
-        return data.getAncestry( ref );
-    }
-
-    public BuildOrder getBuildOrder( final ProjectVersionRef ref, final ProjectRelationshipFilter filter )
-        throws CartoDataException
-    {
-        final EProjectGraph graph = data.getProjectGraph( ref );
-
         if ( graph != null )
         {
-            final BuildOrderTraversal traversal = new BuildOrderTraversal( filter );
+            final BuildOrderTraversal traversal = new BuildOrderTraversal();
 
-            logger.info( "Performing build-order traversal for graph: {}", ref );
+            logger.info( "Performing build-order traversal for graph: {}", graph );
             try
             {
                 graph.traverse( traversal );
             }
-            catch ( final GraphDriverException e )
+            catch ( final RelationshipGraphException e )
             {
-                throw new CartoDataException( "Failed to construct build order for: {}. Reason: {}", e, ref,
+                throw new CartoDataException( "Failed to construct build order for: {}. Reason: {}", e, graph,
                                               e.getMessage() );
             }
 
@@ -157,42 +78,11 @@ public class GraphOps
         return null;
     }
 
-    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final ProjectVersionRef ref )
+    public List<ProjectVersionRef> listProjects( final String groupIdPattern, final String artifactIdPattern,
+                                                 final RelationshipGraph graph )
         throws CartoDataException
     {
-        return data.getProjectGraph( filter, new ManagedDependencyMutator(), ref );
-    }
-
-    public EProjectGraph getProjectGraph( final ProjectRelationshipFilter filter, final GraphMutator mutator,
-                                          final ProjectVersionRef ref )
-        throws CartoDataException
-    {
-        return data.getProjectGraph( filter, mutator, ref );
-    }
-
-    public EProjectNet getProjectWeb( final ProjectRelationshipFilter filter, final ProjectVersionRef... refs )
-        throws CartoDataException
-    {
-        return data.getProjectWeb( filter, new ManagedDependencyMutator(), refs );
-    }
-
-    public EProjectNet getProjectWeb( final ProjectRelationshipFilter filter, final GraphMutator mutator,
-                                      final ProjectVersionRef... refs )
-        throws CartoDataException
-    {
-        return data.getProjectWeb( filter, mutator, refs );
-    }
-
-    public Set<String> getProjectErrors( final ProjectVersionRef ref )
-        throws CartoDataException
-    {
-        return data.getErrors( ref );
-    }
-
-    public List<ProjectVersionRef> listProjects( final String groupIdPattern, final String artifactIdPattern )
-        throws CartoDataException
-    {
-        final Set<ProjectVersionRef> all = data.getAllStoredProjectRefs();
+        final Set<ProjectVersionRef> all = graph.getAllProjects();
         final List<ProjectVersionRef> matching = new ArrayList<ProjectVersionRef>();
         if ( all != null )
         {
@@ -231,24 +121,298 @@ public class GraphOps
         return matching;
     }
 
-    public ProjectVersionRef getProjectParent( final ProjectVersionRef projectVersionRef )
+    public Throwable getProjectError( final ProjectVersionRef ref, final ViewParams params )
         throws CartoDataException
     {
-        return data.getParent( projectVersionRef );
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return graph.getProjectError( ref );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to query graph: {}. Reason: {}", e, params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public Map<ProjectVersionRef, Throwable> getAllProjectErrors( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return graph.getAllProjectErrors();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to query graph: {}. Reason: {}", e, params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public List<ProjectVersionRef> listProjects( final String groupIdPattern, final String artifactIdPattern,
+                                                 final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return listProjects( groupIdPattern, artifactIdPattern, graph );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to list graph projects: {}. Reason: {}", e, params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public ProjectVersionRef getProjectParent( final ProjectVersionRef ref, final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            if ( !graph.containsGraph( ref ) )
+            {
+                return null;
+            }
+
+            final Set<ProjectRelationship<?>> rels =
+                graph.findDirectRelationshipsFrom( ref, false, RelationshipType.PARENT );
+            if ( rels == null || rels.isEmpty() )
+            {
+                return ref;
+            }
+
+            final ParentRelationship parent = (ParentRelationship) rels.iterator()
+                                                                       .next();
+            return parent.getTarget();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to query graph relationships: {}. Reason: {}", e, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
     }
 
     public Set<ProjectRelationship<?>> getDirectRelationshipsFrom( final ProjectVersionRef ref,
-                                                                   final ProjectRelationshipFilter filter )
+                                                                   final ViewParams params,
+                                                                   final RelationshipType... types )
         throws CartoDataException
     {
-        return data.getAllDirectRelationshipsWithExactSource( ref, filter, null );
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            if ( !graph.containsGraph( ref ) )
+            {
+                return Collections.emptySet();
+            }
+
+            return graph.findDirectRelationshipsFrom( ref, false, types );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to query graph relationships: {}. Reason: {}", e, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
     }
 
-    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref,
-                                                                 final ProjectRelationshipFilter filter )
+    public Set<ProjectRelationship<?>> getDirectRelationshipsTo( final ProjectVersionRef ref, final ViewParams params,
+                                                                 final RelationshipType... types )
         throws CartoDataException
     {
-        return data.getAllDirectRelationshipsWithExactTarget( ref, filter, null );
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            if ( !graph.containsGraph( ref ) )
+            {
+                return Collections.emptySet();
+            }
+
+            return graph.findDirectRelationshipsTo( ref, false, types );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to query graph relationships: {}. Reason: {}", e, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public void reindex( final ProjectVersionRef ref, final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            if ( !graph.containsGraph( ref ) )
+            {
+                return;
+            }
+
+            graph.reindex( ref );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to reindex graph relationships: {}. Reason: {}", e, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public void reindexAll( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            graph.reindex();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to reindex graph relationships: {}. Reason: {}", e, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public Set<ProjectVersionRef> getIncomplete( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return graph.getAllIncompleteSubgraphs();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to get missing project references from graph: {}. Reason: {}", e,
+                                          params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public Set<ProjectVersionRef> getVariable( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return graph.getAllVariableSubgraphs();
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to get variable project references from graph: {}. Reason: {}", e,
+                                          params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public List<ProjectVersionRef> getAncestry( final ProjectVersionRef root, final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return CartoGraphUtils.getAncestry( root, graph );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to get ancestry of: {} from graph: {}. Reason: {}", e, root, params,
+                                          e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public BuildOrder getBuildOrder( final ProjectVersionRef ref, final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+            return CartoGraphUtils.getBuildOrder( ref, graph );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to get build order for: {} from graph: {}. Reason: {}", e, ref,
+                                          params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
+    }
+
+    public GraphExport exportGraph( final ViewParams params )
+        throws CartoDataException
+    {
+        RelationshipGraph graph = null;
+        try
+        {
+            graph = graphFactory.open( params, false );
+
+            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
+            final Set<ProjectVersionRef> missing = graph.getAllIncompleteSubgraphs();
+            final Set<ProjectVersionRef> variable = graph.getAllVariableSubgraphs();
+            final Map<ProjectVersionRef, Throwable> errors = graph.getAllProjectErrors();
+            return new GraphExport( rels, missing, variable, errors );
+        }
+        catch ( final RelationshipGraphException e )
+        {
+            throw new CartoDataException( "Failed to export graph: {}. Reason: {}", e, params, e.getMessage() );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( graph );
+        }
     }
 
 }

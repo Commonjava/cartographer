@@ -22,16 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.filter.DependencyOnlyFilter;
-import org.commonjava.maven.atlas.graph.filter.ExtensionOnlyFilter;
-import org.commonjava.maven.atlas.graph.filter.PluginOnlyFilter;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
+import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
@@ -40,13 +39,10 @@ import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.junit.Before;
 import org.junit.Test;
 
-public abstract class AbstractCartoDataManagerTest
+public abstract class AbstractCartoGraphUtilsTest
 {
 
-    protected abstract GraphWorkspaceHolder getSessionManager()
-        throws Exception;
-
-    protected abstract CartoDataManager getDataManager()
+    protected abstract RelationshipGraphFactory getGraphFactory()
         throws Exception;
 
     protected abstract GraphAggregator getAggregator()
@@ -57,12 +53,14 @@ public abstract class AbstractCartoDataManagerTest
 
     private URI sourceUri;
 
+    private RelationshipGraph graph;
+
     @Before
     public void setupSession()
         throws Exception
     {
         setupComponents();
-        getDataManager().createWorkspace( sourceUri() );
+        graph = getGraphFactory().open( new ViewParams( System.currentTimeMillis() + ".db" ), true );
     }
 
     protected synchronized URI sourceUri()
@@ -86,51 +84,9 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, r ).withDependency( d, null, null, null, false )
                                                                    .build();
 
-        getDataManager().storeRelationships( root.getExactAllRelationships() );
+        graph.storeRelationships( root.getExactAllRelationships() );
 
-        assertThat( getDataManager().contains( r ), equalTo( true ) );
-    }
-
-    @Test
-    public void storeParentChildDescendantProjectsAndRetrieveAncestryViaGraphOfChild()
-        throws Exception
-    {
-        final ProjectVersionRef r = new ProjectVersionRef( "org.test", "root", "1" );
-        final ProjectVersionRef p = new ProjectVersionRef( "org.test", "parent", "1.0" );
-        final ProjectVersionRef c = new ProjectVersionRef( "org.test", "child", "1.0" );
-
-        final EProjectDirectRelationships root = new EProjectDirectRelationships.Builder( sourceUri, r ).build();
-        final EProjectDirectRelationships parent =
-            new EProjectDirectRelationships.Builder( sourceUri, p ).withParent( r )
-                                                                   .build();
-        final EProjectDirectRelationships child =
-            new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
-                                                                   .build();
-
-        getDataManager().storeRelationships( root.getExactAllRelationships() );
-        getDataManager().storeRelationships( parent.getExactAllRelationships() );
-        getDataManager().storeRelationships( child.getExactAllRelationships() );
-
-        final EProjectGraph graph = getDataManager().getProjectGraph( c );
-
-        //        final AggregationOptions aggConf = new DefaultAggregatorOptions();
-        //        graph = getAggregator().connectSubgraphs( graph, aggConf, false );
-        //
-        final Set<ProjectVersionRef> incompleteSubgraphs = graph.getIncompleteSubgraphs();
-        System.out.println( incompleteSubgraphs );
-        assertThat( graph.isComplete(), equalTo( true ) );
-
-        final AncestryTraversal ancestryTraversal = new AncestryTraversal();
-        graph.traverse( ancestryTraversal );
-
-        final List<ProjectVersionRef> ancestry = ancestryTraversal.getAncestry();
-        assertThat( ancestry, notNullValue() );
-        assertThat( ancestry.size(), equalTo( 3 ) );
-
-        final Iterator<ProjectVersionRef> iterator = ancestry.iterator();
-        assertThat( iterator.next(), equalTo( c ) );
-        assertThat( iterator.next(), equalTo( p ) );
-        assertThat( iterator.next(), equalTo( r ) );
+        assertThat( graph.containsGraph( r ), equalTo( true ) );
     }
 
     @Test
@@ -149,11 +105,11 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, c ).withParent( p )
                                                                    .build();
 
-        getDataManager().storeRelationships( root.getExactAllRelationships() );
-        getDataManager().storeRelationships( parent.getExactAllRelationships() );
-        getDataManager().storeRelationships( child.getExactAllRelationships() );
+        graph.storeRelationships( root.getExactAllRelationships() );
+        graph.storeRelationships( parent.getExactAllRelationships() );
+        graph.storeRelationships( child.getExactAllRelationships() );
 
-        final List<ProjectVersionRef> ancestry = getDataManager().getAncestry( c );
+        final List<ProjectVersionRef> ancestry = CartoGraphUtils.getAncestry( c, graph );
         assertThat( ancestry, notNullValue() );
         assertThat( ancestry.size(), equalTo( 3 ) );
 
@@ -204,10 +160,10 @@ public abstract class AbstractCartoDataManagerTest
         assertThat( rels.getAllRelationships()
                         .size(), equalTo( 6 ) );
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> resulting =
-            getDataManager().getAllDirectRelationshipsWithExactSource( rels.getProjectRef(), null, null );
+            graph.findDirectRelationshipsFrom( rels.getProjectRef(), false, RelationshipType.values() );
 
         final Set<ProjectVersionRef> targets = RelationshipUtils.targets( resulting );
 
@@ -224,7 +180,7 @@ public abstract class AbstractCartoDataManagerTest
     public void storeProjectAndRetrieveDependentProjectForEach()
         throws Exception
     {
-        //        getDataManager().reindex();
+        //        graph.reindex();
         //
         final ProjectVersionRef p = new ProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" );
 
@@ -262,8 +218,7 @@ public abstract class AbstractCartoDataManagerTest
 
         final EProjectDirectRelationships rels = prb.build();
 
-        final Set<ProjectRelationship<?>> rejected =
-            getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        final Set<ProjectRelationship<?>> rejected = graph.storeRelationships( rels.getExactAllRelationships() );
         System.out.println( "Rejects: " + rejected );
 
         final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> byTarget =
@@ -272,17 +227,17 @@ public abstract class AbstractCartoDataManagerTest
                 private static final long serialVersionUID = 1L;
 
                 {
-                    put( parent, getDataManager().getAllDirectRelationshipsWithExactTarget( parent, null, null ) );
+                    put( parent, graph.findDirectRelationshipsTo( parent, true, RelationshipType.values() ) );
                     put( papi.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( papi.getTarget(), null, null ) );
+                         graph.findDirectRelationshipsTo( papi.getTarget(), true, RelationshipType.values() ) );
                     put( art.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( art.getTarget(), null, null ) );
+                         graph.findDirectRelationshipsTo( art.getTarget(), true, RelationshipType.values() ) );
                     put( jarp.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( jarp.getTarget(), null, null ) );
+                         graph.findDirectRelationshipsTo( jarp.getTarget(), true, RelationshipType.values() ) );
                     put( comp.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( comp.getTarget(), null, null ) );
+                         graph.findDirectRelationshipsTo( comp.getTarget(), true, RelationshipType.values() ) );
                     put( wag.getTarget(),
-                         getDataManager().getAllDirectRelationshipsWithExactTarget( wag.getTarget(), null, null ) );
+                         graph.findDirectRelationshipsTo( wag.getTarget(), true, RelationshipType.values() ) );
                 }
             };
 
@@ -342,9 +297,9 @@ public abstract class AbstractCartoDataManagerTest
     //                                                                                                                                    false )
     //                                                                                                                   .build();
     //
-    //        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+    //        graph.storeRelationships( rels.getExactAllRelationships() );
     //
-    //        final EProjectRelationships result = getDataManager().getProjectRelationships( rels.getProjectRef() );
+    //        final EProjectRelationships result = graph.getProjectRelationships( rels.getProjectRef() );
     //
     //        assertThat( result.getDependencies()
     //                          .size(), equalTo( 1 ) );
@@ -369,12 +324,12 @@ public abstract class AbstractCartoDataManagerTest
                                                                                                                                  false )
                                                                                                                 .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> dependents =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( rels.getDependencies()
-                                                                           .get( 0 )
-                                                                           .getTarget(), null, null );
+            graph.findDirectRelationshipsTo( rels.getDependencies()
+                                                 .get( 0 )
+                                                 .getTarget(), false, RelationshipType.DEPENDENCY );
 
         assertThat( dependents, notNullValue() );
         assertThat( dependents.size(), equalTo( 1 ) );
@@ -394,10 +349,10 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, p ).withDependency( d, null, null, null, false )
                                                                    .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactSource( p, new DependencyOnlyFilter(), null );
+            graph.findDirectRelationshipsFrom( p, false, RelationshipType.DEPENDENCY );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -420,10 +375,10 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactSource( project, new PluginOnlyFilter(), null );
+            graph.findDirectRelationshipsFrom( project, false, RelationshipType.PLUGIN );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -446,10 +401,10 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> storedRels =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( plugin, new PluginOnlyFilter(), null );
+            graph.findDirectRelationshipsTo( plugin, false, RelationshipType.PLUGIN );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
 
@@ -471,10 +426,10 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> exts =
-            getDataManager().getAllDirectRelationshipsWithExactSource( project, new ExtensionOnlyFilter(), null );
+            graph.findDirectRelationshipsFrom( project, false, RelationshipType.EXTENSION );
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
                         .next()
@@ -492,10 +447,10 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
         final Set<ProjectRelationship<?>> exts =
-            getDataManager().getAllDirectRelationshipsWithExactTarget( ext, new ExtensionOnlyFilter(), null );
+            graph.findDirectRelationshipsTo( ext, false, RelationshipType.EXTENSION );
 
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
@@ -514,9 +469,9 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final ProjectVersionRef parentResult = getDataManager().getParent( project );
+        final ProjectVersionRef parentResult = CartoGraphUtils.getParent( project, graph );
         assertThat( parentResult, equalTo( parent ) );
     }
 
@@ -531,9 +486,9 @@ public abstract class AbstractCartoDataManagerTest
             new EProjectDirectRelationships.Builder( sourceUri, project ).withParent( parent )
                                                                          .build();
 
-        getDataManager().storeRelationships( rels.getExactAllRelationships() );
+        graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectVersionRef> children = getDataManager().getKnownChildren( parent );
+        final Set<ProjectVersionRef> children = CartoGraphUtils.getKnownChildren( parent, graph );
 
         assertThat( children.size(), equalTo( 1 ) );
         assertThat( children.iterator()

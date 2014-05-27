@@ -20,8 +20,6 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,26 +32,17 @@ public class PresetSelector
     @Inject
     private Instance<PresetFactory> presetFactoryInstances;
 
-    @Inject
-    private CartoDataManager carto;
-
     private Map<String, PresetFactory> presetFactories;
 
-    protected PresetSelector()
+    public PresetSelector()
     {
-    }
-
-    public PresetSelector( final CartoDataManager carto, final Iterable<PresetFactory> presetFactoryInstances )
-    {
-        this.carto = carto;
-        mapPresets( presetFactoryInstances );
-    }
-
-    public PresetSelector( final CartoDataManager carto )
-    {
-        this.carto = carto;
         final ServiceLoader<PresetFactory> factories = ServiceLoader.load( PresetFactory.class );
         mapPresets( factories );
+    }
+
+    public PresetSelector( final Iterable<PresetFactory> presetFactoryInstances )
+    {
+        mapPresets( presetFactoryInstances );
     }
 
     @PostConstruct
@@ -106,8 +95,7 @@ public class PresetSelector
             final PresetFactory factory = presetFactories.get( preset );
             if ( factory != null )
             {
-                final GraphWorkspace ws = carto.getCurrentWorkspace();
-                final ProjectRelationshipFilter filter = factory.newFilter( preset, ws, parameters );
+                final ProjectRelationshipFilter filter = factory.newFilter( preset, parameters );
 
                 logger.info( "Returning filter: {} for preset: {}", filter, preset );
                 return filter;

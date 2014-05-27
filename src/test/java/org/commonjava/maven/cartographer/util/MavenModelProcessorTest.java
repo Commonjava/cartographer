@@ -57,6 +57,7 @@ public class MavenModelProcessorTest
 
     @Before
     public void setup()
+        throws Exception
     {
         fixture.initMissingComponents();
     }

@@ -24,13 +24,12 @@ import java.util.concurrent.ExecutorService;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
-import org.commonjava.maven.atlas.graph.model.EProjectGraph;
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.EProjectWeb;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
-import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -38,7 +37,6 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
@@ -55,9 +53,6 @@ public class DefaultGraphAggregator
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    private CartoDataManager dataManager;
-
-    @Inject
     private ProjectRelationshipDiscoverer discoverer;
 
     @Inject
@@ -68,35 +63,18 @@ public class DefaultGraphAggregator
     {
     }
 
-    public DefaultGraphAggregator( final CartoDataManager dataManager, final ProjectRelationshipDiscoverer discoverer,
-                                   final ExecutorService executor )
+    public DefaultGraphAggregator( final ProjectRelationshipDiscoverer discoverer, final ExecutorService executor )
     {
-        this.dataManager = dataManager;
         this.discoverer = discoverer;
         this.executor = executor;
     }
 
     @Override
-    public EProjectGraph connectIncomplete( final EProjectGraph graph, final AggregationOptions config )
+    public void connectIncomplete( final RelationshipGraph graph, final AggregationOptions config )
         throws CartoDataException
     {
-        return connect( graph, config );
-    }
-
-    @Override
-    public EProjectNet connectIncomplete( final EProjectWeb web, final AggregationOptions config )
-        throws CartoDataException
-    {
-        return connect( web, config );
-    }
-
-    private <T extends EProjectNet> T connect( final T net, final AggregationOptions config )
-        throws CartoDataException
-    {
-        if ( net != null && config.isDiscoveryEnabled() )
+        if ( graph != null && config.isDiscoveryEnabled() )
         {
-            final GraphView view = net.getView();
-
             final Set<ProjectVersionRef> missing = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading existing cycle participants..." );
@@ -105,7 +83,7 @@ public class DefaultGraphAggregator
             final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading initial set of GAVs to be resolved..." );
-            final List<DiscoveryTodo> pending = loadInitialPending( view, seen, config.getMutator() );
+            final List<DiscoveryTodo> pending = loadInitialPending( graph, seen, config.getMutator() );
             final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
             int pass = 0;
@@ -125,7 +103,8 @@ public class DefaultGraphAggregator
                 logger.debug( "{}. {} in next batch of TODOs:\n  {}", pass, current.size(), new JoinString( "\n  ",
                                                                                                             current ) );
                 final Set<DiscoveryTodo> newTodos =
-                    discover( current, config, /*cycleParticipants,*/missing, seen, view, pass );
+                    discover( current, config, /*cycleParticipants,*/missing, seen, pass );
+
                 if ( newTodos != null )
                 {
                     logger.debug( "{}. Uncovered new batch of TODOs:\n  {}", pass, new JoinString( "\n  ", newTodos ) );
@@ -145,13 +124,11 @@ public class DefaultGraphAggregator
 
             logger.info( "Discovery complete. {} seen, {} missing in {} passes.", seen.size(), missing.size(), pass - 1 );
         }
-
-        return net;
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-    /*final Set<ProjectVersionRef> cycleParticipants,*/final Set<ProjectVersionRef> missing,
-                                         final Set<ProjectVersionRef> seen, final GraphView view, final int pass )
+                                         final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                         final int pass )
         throws CartoDataException
     {
         logger.info( "Starting pass: {}", pass );
@@ -168,7 +145,7 @@ public class DefaultGraphAggregator
 
         for ( final DiscoveryRunnable r : runnables )
         {
-            if ( !processDiscoveryOutput( r, nextTodos, view, config.getDiscoveryConfig(), seen, pass ) )
+            if ( !processDiscoveryOutput( r, nextTodos, config.getDiscoveryConfig(), seen, pass ) )
             {
                 markMissing( r, missing, pass );
             }
@@ -283,15 +260,26 @@ public class DefaultGraphAggregator
      */
     private boolean processDiscoveryOutput( final DiscoveryRunnable r,
                                             final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
-                                            final GraphView view, final DiscoveryConfig config,
-                                            final Set<ProjectVersionRef> seen, final int pass )
+                                            final DiscoveryConfig config, final Set<ProjectVersionRef> seen,
+                                            final int pass )
         throws CartoDataException
     {
         final DiscoveryTodo todo = r.getTodo();
         final Throwable error = r.getError();
         if ( error != null )
         {
-            dataManager.addError( todo.getRef(), error );
+            try
+            {
+                todo.getGraph()
+                    .storeProjectError( todo.getRef(), error );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                logger.error( String.format( "Failed to store error for project: %s (%s). Error was:\n\n%s.\n\nStorage error:\n",
+                                             todo.getRef(), e.getMessage(), ExceptionUtils.getFullStackTrace( error ) ),
+                              e );
+            }
+
             return false;
         }
 
@@ -299,11 +287,21 @@ public class DefaultGraphAggregator
 
         if ( result != null )
         {
+            final RelationshipGraph graph = todo.getGraph();
+
             final Map<String, String> metadata = result.getMetadata();
 
             if ( metadata != null )
             {
-                dataManager.addMetadata( result.getSelectedRef(), metadata );
+                try
+                {
+                    graph.addMetadata( result.getSelectedRef(), metadata );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    logger.error( String.format( "Failed to store metadata for: %s in: %s. Reason: %s",
+                                                 result.getSelectedRef(), graph, e.getMessage() ), e );
+                }
             }
 
             final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
@@ -350,8 +348,7 @@ public class DefaultGraphAggregator
 
                             contributedRels = true;
 
-                            path = dataManager.graphs()
-                                              .createPath( view, path, selected );
+                            path = graph.createPath( path, selected );
 
                             if ( path == null )
                             {
@@ -363,7 +360,7 @@ public class DefaultGraphAggregator
                             DiscoveryTodo nextTodo = nextTodos.get( selectedTarget );
                             if ( nextTodo == null )
                             {
-                                nextTodo = new DiscoveryTodo( selectedTarget, path, pathInfo );
+                                nextTodo = new DiscoveryTodo( selectedTarget, path, pathInfo, graph );
                                 nextTodos.put( selectedTarget, nextTodo );
 
                                 logger.info( "DISCOVER += {}", selectedTarget );
@@ -405,8 +402,16 @@ public class DefaultGraphAggregator
                     logger.debug( "{}.{}. INJECT: Adding terminal parent relationship to mark {} as resolved in the dependency graph.",
                                   pass, index, result.getSelectedRef() );
 
-                    dataManager.storeRelationships( new ParentRelationship( config.getDiscoverySource(),
-                                                                            result.getSelectedRef() ) );
+                    try
+                    {
+                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(),
+                                                                          result.getSelectedRef() ) );
+                    }
+                    catch ( final RelationshipGraphException e )
+                    {
+                        logger.error( String.format( "Failed to store relationships for: %s in: %s. Reason: %s",
+                                                     result.getSelectedRef(), graph, e.getMessage() ), e );
+                    }
                 }
             }
             else
@@ -469,21 +474,19 @@ public class DefaultGraphAggregator
     //        return participants;
     //    }
 
-    private List<DiscoveryTodo> loadInitialPending( final GraphView view, final Set<ProjectVersionRef> seen,
+    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen,
                                                     final GraphMutator rootMutator )
     {
-        logger.info( "Using root-level mutator: {}", view.getMutator() );
+        logger.info( "Using root-level mutator: {}", graph.getMutator() );
 
-        final Set<ProjectVersionRef> initialIncomplete = dataManager.graphs()
-                                                                    .getAllIncompleteSubgraphs( view );
+        final Set<ProjectVersionRef> initialIncomplete = graph.getIncompleteSubgraphs();
 
         if ( initialIncomplete == null || initialIncomplete.isEmpty() )
         {
             return new ArrayList<DiscoveryTodo>();
         }
 
-        final Map<GraphPath<?>, GraphPathInfo> pathMap = dataManager.graphs()
-                                                                    .getPathMapTargeting( view, initialIncomplete );
+        final Map<GraphPath<?>, GraphPathInfo> pathMap = graph.getPathMapTargeting( initialIncomplete );
 
         if ( pathMap == null || pathMap.isEmpty() )
         {
@@ -491,7 +494,7 @@ public class DefaultGraphAggregator
         }
 
         logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ),
-                     new JoinString( "\n  ", view.getRoots() ) );
+                     new JoinString( "\n  ", graph.getRoots() ) );
 
         final Map<ProjectVersionRef, DiscoveryTodo> initialPending = new HashMap<ProjectVersionRef, DiscoveryTodo>();
 
@@ -500,8 +503,7 @@ public class DefaultGraphAggregator
             final GraphPath<?> path = entry.getKey();
             final GraphPathInfo pathInfo = entry.getValue();
 
-            final List<ProjectVersionRef> pathRefs = dataManager.graphs()
-                                                                .getPathRefs( view, path );
+            final List<ProjectVersionRef> pathRefs = graph.getPathRefs( path );
 
             final ProjectVersionRef ref = pathRefs.remove( pathRefs.size() - 1 );
             if ( !pathRefs.isEmpty() )
@@ -513,7 +515,7 @@ public class DefaultGraphAggregator
             DiscoveryTodo todo = initialPending.get( ref );
             if ( todo == null )
             {
-                todo = new DiscoveryTodo( ref, path, pathInfo );
+                todo = new DiscoveryTodo( ref, path, pathInfo, graph );
                 initialPending.put( ref, todo );
 
                 logger.info( "INIT-DISCOVER += {}", ref );

@@ -22,9 +22,10 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 
 import org.apache.commons.io.FileUtils;
-import org.commonjava.maven.atlas.graph.EGraphManager;
-import org.commonjava.maven.atlas.graph.spi.GraphWorkspaceFactory;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jWorkspaceFactory;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.cartographer.data.CartoEventGraphListenerFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -46,10 +47,6 @@ import org.slf4j.LoggerFactory;
 public class TestCartoCoreProvider
 {
 
-    private GraphWorkspaceFactory wsFactory;
-
-    private EGraphManager graphs;
-
     private final File dbDir;
 
     private final File cacheDir;
@@ -69,6 +66,10 @@ public class TestCartoCoreProvider
     private final Set<File> toDelete = new HashSet<File>();
 
     private FileCacheProviderConfig cacheProviderConfig;
+
+    private FileNeo4jConnectionFactory connectionFactory;
+
+    private RelationshipGraphFactory graphFactory;
 
     public TestCartoCoreProvider()
         throws IOException
@@ -97,8 +98,8 @@ public class TestCartoCoreProvider
         locationExpander = new NoOpLocationExpander();
         nfc = new NoOpNotFoundCache();
 
-        wsFactory = new FileNeo4jWorkspaceFactory( dbDir, false );
-        graphs = new EGraphManager( wsFactory );
+        connectionFactory = new FileNeo4jConnectionFactory( dbDir, false );
+        graphFactory = new RelationshipGraphFactory( connectionFactory, new CartoEventGraphListenerFactory() );
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
     }
@@ -173,17 +174,17 @@ public class TestCartoCoreProvider
     @Produces
     @Default
     @TestData
-    public EGraphManager getGraphs()
+    public RelationshipGraphFactory getGraphFactory()
         throws IOException
     {
-        return graphs;
+        return graphFactory;
     }
 
     @PreDestroy
     public void shutdown()
-        throws IOException
+        throws IOException, RelationshipGraphException
     {
-        graphs.close();
+        graphFactory.close();
         for ( final File dir : toDelete )
         {
             if ( dir.exists() )
@@ -199,15 +200,6 @@ public class TestCartoCoreProvider
                 }
             }
         }
-    }
-
-    @Produces
-    @Default
-    @TestData
-    public GraphWorkspaceFactory getFactory()
-        throws IOException
-    {
-        return wsFactory;
     }
 
 }

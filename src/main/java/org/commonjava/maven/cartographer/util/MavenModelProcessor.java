@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships.Builder;
@@ -26,7 +25,6 @@ import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.PluginDependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
-import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
@@ -34,8 +32,6 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
-import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -53,55 +49,6 @@ public class MavenModelProcessor
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    @Inject
-    private CartoDataManager dataManager;
-
-    protected MavenModelProcessor()
-    {
-    }
-
-    public MavenModelProcessor( final CartoDataManager dataManager )
-    {
-        this.dataManager = dataManager;
-    }
-
-    /**
-     * @deprecated Use {@link #readRelationships(MavenPomView, URI, boolean, boolean, boolean)} instead, and store using external logic.
-     */
-    @Deprecated
-    public DiscoveryResult storeModelRelationships( final MavenPomView pomView, final URI source )
-        throws CartoDataException
-    {
-        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( source );
-        discoveryConfig.setIncludeManagedDependencies( true );
-        discoveryConfig.setIncludeBuildSection( true );
-        discoveryConfig.setIncludeManagedPlugins( false );
-
-        final DiscoveryResult fromRead = readRelationships( pomView, source, discoveryConfig );
-        final ProjectVersionRef projectRef = fromRead.getSelectedRef();
-        dataManager.clearErrors( projectRef );
-        final Set<ProjectRelationship<?>> skipped =
-            dataManager.storeRelationships( fromRead.getAllDiscoveredRelationships() );
-
-        return new DiscoveryResult( source, fromRead, skipped );
-
-    }
-
-    /**
-     * @deprecated Use {@link #readRelationships(MavenPomView,URI,boolean,boolean,boolean)} instead
-     */
-    @Deprecated
-    public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source )
-        throws CartoDataException
-    {
-        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( source );
-        discoveryConfig.setIncludeManagedDependencies( true );
-        discoveryConfig.setIncludeBuildSection( true );
-        discoveryConfig.setIncludeManagedPlugins( false );
-
-        return readRelationships( pomView, source, discoveryConfig );
-    }
 
     public DiscoveryResult readRelationships( final MavenPomView pomView, final URI source,
                                               final DiscoveryConfig discoveryConfig )

@@ -20,51 +20,83 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.model.EProjectNet;
-import org.commonjava.maven.atlas.graph.model.GraphView;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
+import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphDifference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class CalculationOps
 {
 
     @Inject
-    private CartoDataManager data;
-
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
+    protected RelationshipGraphFactory graphFactory;
 
     protected CalculationOps()
     {
     }
 
-    public CalculationOps( final CartoDataManager data )
+    public CalculationOps( final RelationshipGraphFactory graphFactory )
     {
-        this.data = data;
+        this.graphFactory = graphFactory;
     }
 
-    public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to )
+    public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to,
+                                                               final String workspaceId )
         throws CartoDataException
     {
         final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
 
-        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
-
-        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), mutator, to.getRootsArray() );
-
-        final Collection<ProjectRelationship<?>> firstAll = firstWeb.getAllRelationships();
-        final Collection<ProjectRelationship<?>> secondAll = secondWeb.getAllRelationships();
+        RelationshipGraph firstWeb = null;
+        RelationshipGraph secondWeb = null;
+        final Collection<ProjectRelationship<?>> firstAll;
+        final Collection<ProjectRelationship<?>> secondAll;
+        try
+        {
+            try
+            {
+                firstWeb =
+                    graphFactory.open( new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() ),
+                                       false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException(
+                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
+                                              e, workspaceId, from, e.getMessage() );
+            }
+            try
+            {
+                secondWeb =
+                    graphFactory.open( new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() ),
+                                       false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException(
+                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
+                                              e, workspaceId, to, e.getMessage() );
+            }
+            firstAll = firstWeb.getAllRelationships();
+            secondAll = secondWeb.getAllRelationships();
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( firstWeb );
+            CartoGraphUtils.closeGraphQuietly( secondWeb );
+        }
 
         final Set<ProjectRelationship<?>> removed = new HashSet<ProjectRelationship<?>>( firstAll );
         removed.removeAll( secondAll );
@@ -75,16 +107,51 @@ public class CalculationOps
         return new GraphDifference<ProjectRelationship<?>>( from, to, added, removed );
     }
 
-    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from,
+    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final String workspaceId,
+                                                                       final GraphDescription from,
                                                                        final GraphDescription to )
         throws CartoDataException
     {
         final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
-        final EProjectNet firstWeb = data.getProjectWeb( from.getFilter(), mutator, from.getRootsArray() );
-        final EProjectNet secondWeb = data.getProjectWeb( to.getFilter(), mutator, to.getRootsArray() );
+        RelationshipGraph firstWeb = null;
+        RelationshipGraph secondWeb = null;
 
-        final Map<ProjectRef, Set<ProjectVersionRef>> firstAll = mapTargetsToGA( firstWeb );
-        final Map<ProjectRef, Set<ProjectVersionRef>> secondAll = mapTargetsToGA( secondWeb );
+        final Map<ProjectRef, Set<ProjectVersionRef>> firstAll;
+        final Map<ProjectRef, Set<ProjectVersionRef>> secondAll;
+        try
+        {
+            try
+            {
+                firstWeb =
+                    graphFactory.open( new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() ),
+                                       false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException(
+                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
+                                              e, workspaceId, from, e.getMessage() );
+            }
+            try
+            {
+                secondWeb =
+                    graphFactory.open( new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() ),
+                                       false );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                throw new CartoDataException(
+                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
+                                              e, workspaceId, to, e.getMessage() );
+            }
+            firstAll = mapTargetsToGA( firstWeb );
+            secondAll = mapTargetsToGA( secondWeb );
+        }
+        finally
+        {
+            CartoGraphUtils.closeGraphQuietly( firstWeb );
+            CartoGraphUtils.closeGraphQuietly( secondWeb );
+        }
 
         reduceToIntersection( firstAll, secondAll );
 
@@ -129,10 +196,10 @@ public class CalculationOps
         }
     }
 
-    private Map<ProjectRef, Set<ProjectVersionRef>> mapTargetsToGA( final EProjectNet net )
+    private Map<ProjectRef, Set<ProjectVersionRef>> mapTargetsToGA( final RelationshipGraph graph )
     {
         final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<ProjectRef, Set<ProjectVersionRef>>();
-        for ( final ProjectVersionRef ref : net.getAllProjects() )
+        for ( final ProjectVersionRef ref : graph.getAllProjects() )
         {
             final ProjectRef pr = ref.asProjectRef();
 
@@ -149,75 +216,85 @@ public class CalculationOps
         return result;
     }
 
-    public GraphCalculation subtract( final List<GraphDescription> graphs )
+    public GraphCalculation subtract( final String workspaceId, final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( new GraphComposition( Type.SUBTRACT, graphs ) );
+        return calculate( new GraphComposition( Type.SUBTRACT, graphs ), workspaceId );
     }
 
-    public GraphCalculation add( final List<GraphDescription> graphs )
+    public GraphCalculation add( final String workspaceId, final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( new GraphComposition( Type.ADD, graphs ) );
+        return calculate( new GraphComposition( Type.ADD, graphs ), workspaceId );
     }
 
-    public GraphCalculation intersection( final List<GraphDescription> graphs )
+    public GraphCalculation intersection( final String workspaceId, final List<GraphDescription> graphs )
         throws CartoDataException
     {
-        return calculate( new GraphComposition( Type.INTERSECT, graphs ) );
+        return calculate( new GraphComposition( Type.INTERSECT, graphs ), workspaceId );
     }
 
-    public GraphCalculation calculate( final GraphComposition composition )
+    public GraphCalculation calculate( final GraphComposition composition, final String workspaceId )
         throws CartoDataException
     {
         Set<ProjectRelationship<?>> result = null;
         Set<ProjectVersionRef> roots = null;
-        for ( final GraphDescription graph : composition.getGraphs() )
+
+        final GraphMutator mutator = new ManagedDependencyMutator();
+
+        for ( final GraphDescription desc : composition.getGraphs() )
         {
-            GraphView view = graph.getView();
-            if ( view == null )
+            RelationshipGraph graph = null;
+            try
             {
-                view =
-                    new GraphView( data.getCurrentWorkspace(), graph.getFilter(), new ManagedDependencyMutator(),
-                                   graph.getRootsArray() );
-            }
-
-            logger.info( "Retrieving project web for: {}", view );
-
-            final EProjectNet web = data.getProjectWeb( view );
-
-            if ( web == null )
-            {
-                throw new CartoDataException( "Cannot retrieve web for: {}.", graph );
-            }
-
-            if ( result == null )
-            {
-                result = new HashSet<>( web.getAllRelationships() );
-                roots = new HashSet<>( graph.getRoots() );
-            }
-            else
-            {
-                switch ( composition.getCalculation() )
+                try
                 {
-                    case SUBTRACT:
+                    graph =
+                        graphFactory.open( new ViewParams( workspaceId, desc.getFilter(), mutator, desc.getRootsArray() ),
+                                           false );
+                }
+                catch ( final RelationshipGraphException e )
+                {
+                    throw new CartoDataException(
+                                                  "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
+                                                  e, workspaceId, desc, e.getMessage() );
+                }
+                if ( graph == null )
+                {
+                    throw new CartoDataException( "Cannot retrieve web for: {}.", graph );
+                }
+                if ( result == null )
+                {
+                    result = new HashSet<>( graph.getAllRelationships() );
+                    roots = new HashSet<>( graph.getRoots() );
+                }
+                else
+                {
+                    switch ( composition.getCalculation() )
                     {
-                        result.removeAll( web.getAllRelationships() );
-                        break;
-                    }
-                    case ADD:
-                    {
-                        result.addAll( web.getAllRelationships() );
-                        roots.addAll( graph.getRoots() );
-                        break;
-                    }
-                    case INTERSECT:
-                    {
-                        result.retainAll( web.getAllRelationships() );
-                        roots.addAll( graph.getRoots() );
-                        break;
+                        case SUBTRACT:
+                        {
+                            result.removeAll( graph.getAllRelationships() );
+                            break;
+                        }
+                        case ADD:
+                        {
+                            result.addAll( graph.getAllRelationships() );
+                            roots.addAll( graph.getRoots() );
+                            break;
+                        }
+                        case INTERSECT:
+                        {
+                            result.retainAll( graph.getAllRelationships() );
+                            roots.addAll( graph.getRoots() );
+                            break;
+                        }
                     }
                 }
+            }
+            finally
+            {
+                CartoGraphUtils.closeGraphQuietly( graph );
             }
         }
 

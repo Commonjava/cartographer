@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.event;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,11 +19,11 @@ import java.util.WeakHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class CartoEventManagerImpl
     public void fireStorageEvent( final RelationshipStorageEvent evt )
     {
         final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
-        final Set<ProjectRelationship<?>> stored = evt.getStored();
+        final Collection<? extends ProjectRelationship<?>> stored = evt.getStored();
         if ( stored != null )
         {
             for ( final ProjectRelationship<?> rel : stored )
@@ -50,7 +51,7 @@ public class CartoEventManagerImpl
             }
         }
 
-        final Set<ProjectRelationship<?>> rejected = evt.getRejected();
+        final Collection<ProjectRelationship<?>> rejected = evt.getRejected();
         if ( rejected != null )
         {
             for ( final ProjectRelationship<?> rel : rejected )
@@ -70,17 +71,16 @@ public class CartoEventManagerImpl
     @Override
     public void fireErrorEvent( final ProjectRelationshipsErrorEvent evt )
     {
-        final ErrorKey key = evt.getKey();
-        logger.debug( "Unlocking {} due to error in model.", key );
+        final ProjectVersionRef ref = evt.getRef();
+        logger.debug( "Unlocking {} due to error in model.", ref );
         try
         {
-            final ProjectVersionRef ref = key.toProjectVersionRef();
             notifyOfGraph( ref );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
-            logger.error( String.format( "Cannot parse version for error key: '%s'. Failed to unlock waiting threads. Reason: %s",
-                                         key.toString(), e.getMessage() ), e );
+            logger.error( String.format( "Cannot parse version for: '%s'. Failed to unlock waiting threads. Reason: %s",
+                                         ref, e.getMessage() ), e );
         }
     }
 
@@ -148,7 +148,7 @@ public class CartoEventManagerImpl
     }
 
     @Override
-    public void waitForGraph( final ProjectVersionRef ref, final CartoDataManager dataManager, final long timeoutMillis )
+    public void waitForGraph( final ProjectVersionRef ref, final RelationshipGraph graph, final long timeoutMillis )
         throws CartoDataException
     {
         if ( ref == null )
@@ -156,7 +156,7 @@ public class CartoEventManagerImpl
             return;
         }
 
-        if ( dataManager.getProjectGraph( ref ) != null )
+        if ( graph.containsGraph( ref ) )
         {
             return;
         }
@@ -177,7 +177,7 @@ public class CartoEventManagerImpl
         final long poll = 500;
         while ( remaining > 0 )
         {
-            if ( !lock.isLocked() || dataManager.getProjectGraph( ref ) != null )
+            if ( !lock.isLocked() || graph.containsGraph( ref ) )
             {
                 synchronized ( lock )
                 {

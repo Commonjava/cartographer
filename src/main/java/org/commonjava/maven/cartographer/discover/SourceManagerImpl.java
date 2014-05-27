@@ -21,7 +21,7 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
-import org.commonjava.maven.atlas.graph.workspace.GraphWorkspace;
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -56,7 +56,7 @@ public class SourceManagerImpl
     }
 
     @Override
-    public boolean activateWorkspaceSources( final GraphWorkspace ws, final String... sources )
+    public boolean activateWorkspaceSources( final ViewParams params, final String... sources )
         throws CartoDataException
     {
         boolean result = false;
@@ -65,15 +65,40 @@ public class SourceManagerImpl
             final URI src = createSourceURI( source );
             if ( src != null )
             {
-                if ( ws.getActiveSources()
-                       .contains( src ) )
+                if ( params.getActiveSources()
+                           .contains( src ) )
                 {
                     continue;
                 }
 
-                ws.addActiveSource( src );
-                result = result || ws.getActiveSources()
-                                     .contains( src );
+                params.addActiveSource( src );
+                result = result || params.getActiveSources()
+                                         .contains( src );
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean activateWorkspaceSources( final ViewParams params, final Collection<? extends Location> sources )
+        throws CartoDataException
+    {
+        boolean result = false;
+        for ( final Location source : sources )
+        {
+            final URI src = createSourceURI( source.getUri() );
+            if ( src != null )
+            {
+                if ( params.getActiveSources()
+                           .contains( src ) )
+                {
+                    continue;
+                }
+
+                params.addActiveSource( src );
+                result = result || params.getActiveSources()
+                                         .contains( src );
             }
         }
 

@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.model.GraphView;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 // TODO: Allow configuration of mutator too...
@@ -34,7 +34,7 @@ public class GraphDescription
 
     private transient ProjectRelationshipFilter filter;
 
-    private transient GraphView view;
+    private transient ViewParams view;
 
     protected GraphDescription()
     {
@@ -122,13 +122,13 @@ public class GraphDescription
         return presetParams;
     }
 
-    public void setView( final GraphView view )
+    public void setGraphParams( final ViewParams view )
     {
         this.view = view;
         this.roots = new TreeSet<>( view.getRoots() );
     }
 
-    public GraphView getView()
+    public ViewParams getView()
     {
         return view;
     }

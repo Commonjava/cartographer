@@ -10,22 +10,34 @@
  ******************************************************************************/
 package org.commonjava.maven.cartographer.event;
 
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+
 public class ProjectRelationshipsErrorEvent
 {
 
-    private final ErrorKey key;
+    private final ProjectVersionRef ref;
 
     private final Throwable error;
 
-    public ProjectRelationshipsErrorEvent( final ErrorKey key, final Throwable error )
+    private final RelationshipGraph graph;
+
+    public ProjectRelationshipsErrorEvent( final RelationshipGraph graph, final ProjectVersionRef ref,
+                                           final Throwable error )
     {
-        this.key = key;
+        this.ref = ref;
         this.error = error;
+        this.graph = graph;
     }
 
-    public ErrorKey getKey()
+    public RelationshipGraph getGraph()
     {
-        return key;
+        return graph;
+    }
+
+    public ProjectVersionRef getRef()
+    {
+        return ref;
     }
 
     public Throwable getError()

@@ -45,6 +45,7 @@ public class DistributionPomPatcherTest
 
     @Before
     public void setup()
+        throws Exception
     {
         setupGalley();
         patcher = new DistributionPomPatcher();
