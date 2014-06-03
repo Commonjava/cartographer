@@ -360,7 +360,7 @@ public class ResolveOps
             if ( graphs.getCalculation() != null && graphs.size() > 1 )
             {
 
-                logger.info( "Collecting project references in: {}", recipe.getWorkspaceId() );
+                logger.info( "Collecting project references in composition: {}", recipe.getWorkspaceId() );
                 final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
 
                 refMap = collectProjectVersionReferences( result.getResult() );
@@ -385,7 +385,7 @@ public class ResolveOps
                     throw new CartoDataException( "Cannot open graph: {}. Reason: {}", e, params, e.getMessage() );
                 }
 
-                logger.info( "Collecting project references in: {}", params.getWorkspaceId() );
+                logger.info( "Collecting project references in single graph: {}", params.getWorkspaceId() );
 
                 refMap = collectProjectVersionReferences( graph );
             }
