@@ -139,6 +139,7 @@ public class GraphRenderingOps
             final TreePrinter printer = new TreePrinter( relPrinter );
             for ( final ProjectVersionRef root : calculated.getResultingRoots() )
             {
+                writer.printf( "Dependency tree for '%s':\n" );
                 printer.printStructure( root, byDeclaring, labels, writer );
                 writer.println();
             }
@@ -219,6 +220,7 @@ public class GraphRenderingOps
             final ListPrinter listPrinter = new ListPrinter( relPrinter );
             for ( final ProjectVersionRef root : roots )
             {
+                writer.printf( "Dependency list for '%s':\n" );
                 listPrinter.printStructure( root, byDeclaring, labels, writer );
             }
         }

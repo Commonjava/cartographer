@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>3</version>
+    <version>4</version>
   </parent>
 
   <groupId>org.commonjava.maven.cartographer</groupId>
@@ -31,8 +31,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.13.0-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.5.1-SNAPSHOT</galleyVersion>
+    <atlasVersion>0.13.0</atlasVersion>
+    <galleyVersion>0.6.0</galleyVersion>
   </properties>
 
   <dependencyManagement>
