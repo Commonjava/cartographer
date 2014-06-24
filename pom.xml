@@ -33,7 +33,7 @@
   
   <properties>
     <atlasVersion>0.13.0</atlasVersion>
-    <galleyVersion>0.6.0</galleyVersion>
+    <galleyVersion>0.6.2-SNAPSHOT</galleyVersion>
   </properties>
 
   <dependencyManagement>
