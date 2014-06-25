@@ -121,7 +121,7 @@ public class GraphOps
         return matching;
     }
 
-    public Throwable getProjectError( final ProjectVersionRef ref, final ViewParams params )
+    public String getProjectError( final ProjectVersionRef ref, final ViewParams params )
         throws CartoDataException
     {
         RelationshipGraph graph = null;
@@ -140,7 +140,7 @@ public class GraphOps
         }
     }
 
-    public Map<ProjectVersionRef, Throwable> getAllProjectErrors( final ViewParams params )
+    public Map<ProjectVersionRef, String> getAllProjectErrors( final ViewParams params )
         throws CartoDataException
     {
         RelationshipGraph graph = null;
@@ -402,7 +402,7 @@ public class GraphOps
             final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
             final Set<ProjectVersionRef> missing = graph.getAllIncompleteSubgraphs();
             final Set<ProjectVersionRef> variable = graph.getAllVariableSubgraphs();
-            final Map<ProjectVersionRef, Throwable> errors = graph.getAllProjectErrors();
+            final Map<ProjectVersionRef, String> errors = graph.getAllProjectErrors();
             return new GraphExport( rels, missing, variable, errors );
         }
         catch ( final RelationshipGraphException e )

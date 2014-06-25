@@ -15,11 +15,11 @@ public class GraphExport
 
     private Set<ProjectVersionRef> variableProjects;
 
-    private Map<ProjectVersionRef, Throwable> projectErrors;
+    private Map<ProjectVersionRef, String> projectErrors;
 
     public GraphExport( final Set<ProjectRelationship<?>> relationships, final Set<ProjectVersionRef> missingProjects,
                         final Set<ProjectVersionRef> variableProjects,
-                        final Map<ProjectVersionRef, Throwable> projectErrors )
+                        final Map<ProjectVersionRef, String> projectErrors )
     {
         this.relationships = relationships;
         this.missingProjects = missingProjects;
@@ -57,12 +57,12 @@ public class GraphExport
         this.variableProjects = variableProjects;
     }
 
-    public Map<ProjectVersionRef, Throwable> getProjectErrors()
+    public Map<ProjectVersionRef, String> getProjectErrors()
     {
         return projectErrors;
     }
 
-    public void setProjectErrors( final Map<ProjectVersionRef, Throwable> projectErrors )
+    public void setProjectErrors( final Map<ProjectVersionRef, String> projectErrors )
     {
         this.projectErrors = projectErrors;
     }

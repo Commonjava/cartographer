@@ -116,15 +116,15 @@ public final class CartoGraphUtils
         return result;
     }
 
-    public static Map<ProjectVersionRef, Throwable> getAllProjectErrors( final RelationshipGraph graph )
+    public static Map<ProjectVersionRef, String> getAllProjectErrors( final RelationshipGraph graph )
         throws CartoDataException
     {
         final Set<ProjectVersionRef> projects = graph.getAllProjects();
-        final Map<ProjectVersionRef, Throwable> errors = new HashMap<ProjectVersionRef, Throwable>();
+        final Map<ProjectVersionRef, String> errors = new HashMap<ProjectVersionRef, String>();
 
         for ( final ProjectVersionRef project : projects )
         {
-            final Throwable error = graph.getProjectError( project );
+            final String error = graph.getProjectError( project );
             if ( error != null )
             {
                 errors.put( project, error );
