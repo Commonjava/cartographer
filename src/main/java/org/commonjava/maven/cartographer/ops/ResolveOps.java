@@ -30,8 +30,6 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -103,6 +101,11 @@ public class ResolveOps
         this.graphFactory = graphFactory;
     }
 
+    /**
+     * Resolve any variable versions in the specified root GAVs, retrieve, and if configured, discover missing parts of the relationship
+     * graph. Return the {@link ViewParams} instance resulting from configuration via the given {@link AggregationOptions} and the root GAVs with
+     * potential root GAV differences due to resolution of variable versions.
+     */
     public ViewParams resolve( final String workspaceId, final AggregationOptions options,
                                final ProjectVersionRef... roots )
         throws CartoDataException
@@ -110,6 +113,12 @@ public class ResolveOps
         return resolve( workspaceId, options, true, roots );
     }
 
+    /**
+     * Resolve any variable versions in the specified root GAVs, retrieve, and if configured, discover missing parts of the relationship
+     * graph. Return the {@link ViewParams} instance resulting from configuration via the given {@link AggregationOptions} and the root GAVs with
+     * potential root GAV differences due to resolution of variable versions. If autoClose parameter is false, then leave the graph open for 
+     * subsequent reuse.
+     */
     public ViewParams resolve( final String workspaceId, final AggregationOptions options, final boolean autoClose,
                                final ProjectVersionRef... roots )
         throws CartoDataException
@@ -118,9 +127,7 @@ public class ResolveOps
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
 
-        ViewParams params =
-            activateSourceLocations( workspaceId, options.getFilter(), options.getMutator(), config, roots );
-
+        final List<? extends Location> locations = initDiscoveryLocations( config );
         final List<ProjectVersionRef> specifics = new ArrayList<ProjectVersionRef>();
 
         for ( final ProjectVersionRef root : roots )
@@ -134,8 +141,11 @@ public class ResolveOps
             specifics.add( specific );
         }
 
-        params = new ViewParams.Builder( params ).withRoots( specifics )
-                                                 .build();
+        final ViewParams params = new ViewParams.Builder( workspaceId, specifics ).withFilter( options.getFilter() )
+                                                                                  .withMutator( options.getMutator() )
+                                                                                  .build();
+
+        sourceManager.activateWorkspaceSources( params, locations );
 
         RelationshipGraph graph = null;
 
@@ -198,10 +208,11 @@ public class ResolveOps
         return params;
     }
 
-    private ViewParams activateSourceLocations( final String workspaceId, final ProjectRelationshipFilter filter,
-                                                final GraphMutator mutator, final DiscoveryConfig config,
-                                                final ProjectVersionRef... roots )
-        throws CartoDataException
+    /**
+     * Create one or more {@link Location} instances for the configured discovery source, according to the {@link DiscoverySourceManager} 
+     * implementation's specific logic, if it hasn't already been done.
+     */
+    private List<? extends Location> initDiscoveryLocations( final DiscoveryConfig config )
     {
         List<? extends Location> locations = config.getLocations();
         if ( locations == null || locations.isEmpty() )
@@ -210,10 +221,7 @@ public class ResolveOps
             config.setLocations( locations );
         }
 
-        final ViewParams params = new ViewParams( workspaceId, filter, mutator, roots );
-
-        sourceManager.activateWorkspaceSources( params, locations );
-        return params;
+        return locations;
     }
 
     public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
@@ -321,6 +329,11 @@ public class ResolveOps
         return collectors;
     }
 
+    /**
+     * Discover the dependency graphs for the configured graph composition, and then traverse them to construct a mapping of GAV to set of references
+     * that can be used to render various kinds of output. Returns null if {@link RepositoryContentRecipe#setSourceLocation(Location)} hasn't 
+     * been called before this method is called.
+     */
     private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
                                                                               final URI sourceUri )
         throws CartoDataException
@@ -336,11 +349,6 @@ public class ResolveOps
         GraphComposition graphs = recipe.getGraphComposition();
         final boolean hasCalculation = graphs.getCalculation() != null && graphs.size() > 1;
 
-        if ( recipe.isResolve() )
-        {
-            graphs = resolve( recipe, !hasCalculation );
-        }
-
         DiscoveryConfig config;
         try
         {
@@ -351,6 +359,19 @@ public class ResolveOps
             throw new CartoDataException( "Invalid discovery source URI: '{}'. Reason: {}", e,
                                           recipe.getSourceLocation()
                                                 .getUri(), e.getMessage() );
+        }
+
+        // This would only happen if the recipe.setSourceLocation(..) hasn't been called yet.
+        if ( config == null )
+        {
+            return null;
+        }
+
+        final List<? extends Location> locations = initDiscoveryLocations( config );
+
+        if ( recipe.isResolve() )
+        {
+            graphs = resolve( recipe, !hasCalculation );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap;
@@ -372,9 +393,13 @@ public class ResolveOps
 
                 final ProjectVersionRef[] roots = graphDesc.getRootsArray();
 
+                // TODO: Do we need to resolve specific versions for these roots?
                 final ViewParams params =
-                    activateSourceLocations( recipe.getWorkspaceId(), graphDesc.getFilter(),
-                                             new ManagedDependencyMutator(), config, roots );
+                    new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( graphDesc.getFilter() )
+                                                                            .withMutator( new ManagedDependencyMutator() )
+                                                                            .build();
+
+                sourceManager.activateWorkspaceSources( params, locations );
 
                 try
                 {
@@ -424,6 +449,12 @@ public class ResolveOps
         return resolve( recipe, true );
     }
 
+    /**
+     * Resolve any variable versions in the specified root GAVs of the {@link GraphComposition} embeded in the {@link ResolverRecipe}. Then retrieve, 
+     * and if configured, discover missing parts of the relationship
+     * graph. Return the {@link GraphComposition} instance, which might be different than the one in the given {@link ResolverRecipe} due to
+     * potential root GAV differences from resolution of variable versions.
+     */
     public GraphComposition resolve( final ResolverRecipe recipe, final boolean autoClose )
         throws CartoDataException
     {
@@ -437,10 +468,11 @@ public class ResolveOps
 
         final List<GraphDescription> outDescs = new ArrayList<GraphDescription>( recipe.getGraphComposition()
                                                                                        .size() );
+
+        final AggregationOptions options = createAggregationOptions( recipe, sourceUri );
+
         for ( final GraphDescription desc : recipe.getGraphComposition() )
         {
-            final AggregationOptions options = createAggregationOptions( recipe, desc.getFilter(), sourceUri );
-
             final ProjectVersionRef[] rootsArray = desc.getRootsArray();
 
             final ViewParams params = resolve( recipe.getWorkspaceId(), options, false, rootsArray );
@@ -485,11 +517,9 @@ public class ResolveOps
                                            .getCalculation(), outDescs );
     }
 
-    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe,
-                                                         final ProjectRelationshipFilter filter, final URI sourceUri )
+    private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final URI sourceUri )
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
-        options.setFilter( filter );
 
         options.setDiscoveryConfig( createDiscoveryConfig( recipe, sourceUri ) );
 
@@ -506,6 +536,8 @@ public class ResolveOps
 
         dconf.setEnabled( recipe.isResolve() );
         dconf.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );
+
+        initDiscoveryLocations( dconf );
 
         return dconf;
     }

@@ -20,9 +20,13 @@ import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.galley.model.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResolverRecipe
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     protected GraphComposition graphComposition;
 
@@ -56,9 +60,21 @@ public class ResolverRecipe
         this.sourceLocation = source;
     }
 
+    /**
+     * construct a new {@link DiscoveryConfig} with the configured source {@link Location} which should have been set on this instance already.
+     * If the source {@link Location} is missing (because {@link ResolverRecipe#setSourceLocation(Location)} hasn't been called), return null. 
+     * Throw {@link URISyntaxException} if the location URI is invalid.
+     */
     public DiscoveryConfig getDiscoveryConfig()
         throws URISyntaxException
     {
+        if ( sourceLocation == null )
+        {
+            logger.error( "Source Location appears not to have been set on RepositoryContentRecipe: {}. Cannot create DiscoveryConfig.",
+                          this );
+            return null;
+        }
+
         final DefaultDiscoveryConfig ddc = new DefaultDiscoveryConfig( getSourceLocation().getUri() );
         ddc.setEnabled( true );
 
