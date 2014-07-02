@@ -4,7 +4,7 @@
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
+ *
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
@@ -147,25 +147,19 @@ public class RepoContentCollector
     {
         logger.info( "{}/{} {}/{}. Including: {}", projectCounter, projectSz, artifactCounter, artifactSz, ar );
 
-        boolean unresolvedVariable = false;
         if ( ar.isVariableVersion() )
         {
             // FIXME: If the version is resolved using metadata from an excluded location, we've got a problem!
             final ProjectVersionRef specific = discoverer.resolveSpecificVersion( ar, discoveryConfig );
             if ( specific == null )
             {
-                unresolvedVariable = true;
+                throw new CartoDataException( "No version available for variable reference: {}. Skipping all but POM.",
+                        ar.asProjectVersionRef() );
             }
 
             ar =
                 new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
                                  ar.getClassifier(), ar.isOptional() );
-        }
-
-        if ( unresolvedVariable )
-        {
-            throw new CartoDataException( "No version available for variable reference: {}. Skipping all but POM.",
-                                          ar.asProjectVersionRef() );
         }
 
         ArtifactRef pomAR;
