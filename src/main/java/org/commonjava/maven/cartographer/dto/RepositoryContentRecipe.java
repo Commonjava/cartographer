@@ -11,9 +11,11 @@
 package org.commonjava.maven.cartographer.dto;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 
 public class RepositoryContentRecipe
@@ -37,6 +39,8 @@ public class RepositoryContentRecipe
     private Set<String> metas;
 
     private transient Set<Location> excludedSourceLocations;
+    
+    private List<ProjectVersionRef> injectedBOMs;
 
     @Override
     public String toString()
@@ -99,6 +103,16 @@ public class RepositoryContentRecipe
     public void setMultiSourceGAVs( final boolean multiSourceGAVs )
     {
         this.multiSourceGAVs = multiSourceGAVs;
+    }
+
+    public List<ProjectVersionRef> getInjectedBOMs()
+    {
+        return injectedBOMs;
+    }
+
+    public void setInjectedBOMs( final List<ProjectVersionRef> injectedBOMs )
+    {
+        this.injectedBOMs = injectedBOMs;
     }
 
     @Override
