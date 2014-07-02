@@ -4,7 +4,7 @@
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
+ *
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
@@ -33,6 +34,7 @@ import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
@@ -51,6 +53,10 @@ import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.dto.ResolverRecipe;
 import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
@@ -81,8 +87,13 @@ public class ResolveOps
     protected RelationshipGraphFactory graphFactory;
 
     @Inject
+    protected MavenPomReader pomReader;
+
+    @Inject
     @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
+
+    private final Map<ProjectVersionRef, MavenPomView> bomMap = new WeakHashMap<ProjectVersionRef, MavenPomView>();
 
     protected ResolveOps()
     {
@@ -206,6 +217,20 @@ public class ResolveOps
         }
 
         return params;
+    }
+
+    private MavenPomView getBOM( final ProjectVersionRef projectVersionRef, final List<? extends Location> locations )
+        throws GalleyMavenException
+    {
+        MavenPomView result = bomMap.get( projectVersionRef );
+
+        if ( result == null )
+        {
+            result = pomReader.read( projectVersionRef, locations );
+            bomMap.put( projectVersionRef, result );
+        }
+
+        return result;
     }
 
     /**
@@ -369,8 +394,33 @@ public class ResolveOps
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
 
+        final Map<VersionlessArtifactRef, String> injectedDepMgmt = new HashMap<VersionlessArtifactRef, String>();
+        if ( recipe.getInjectedBOMs() != null )
+        {
+            // TODO read depMgmt recursively to include anything imported in the referenced BOMs
+            for ( final ProjectVersionRef bom : recipe.getInjectedBOMs() )
+            {
+                try
+                {
+                    final MavenPomView bomView = getBOM( bom, locations );
+                    final List<DependencyView> managedDependencies = bomView.getAllManagedDependencies();
+                    for ( final DependencyView managedDependency : managedDependencies )
+                    {
+                        final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
+                        final String version = managedDependency.getVersion();
+                        injectedDepMgmt.put( ar, version );
+                    }
+                }
+                catch ( final GalleyMavenException ex )
+                {
+                    logger.error( "BOM " + bom.toString() + " not available." , ex);
+                }
+            }
+        }
+
         if ( recipe.isResolve() )
         {
+            // TODO pass the injected depMgmt
             graphs = resolve( recipe, !hasCalculation );
         }
 
