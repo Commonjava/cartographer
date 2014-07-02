@@ -356,7 +356,10 @@ public class ResolveOps
 
     /**
      * Discover the dependency graphs for the configured graph composition, and then traverse them to construct a mapping of GAV to set of references
-     * that can be used to render various kinds of output. Returns null if {@link RepositoryContentRecipe#setSourceLocation(Location)} hasn't 
+     * that can be used to render various kinds of output. If the recipe contains injectedBOMs, then read the managed dependencies from these into
+     * a mapping of GA -> GAV that we can pass into the {@link ViewParams} we'll eventually use to discover and traverse the graph.
+     * 
+     * Returns null if {@link RepositoryContentRecipe#setSourceLocation(Location)} hasn't 
      * been called before this method is called.
      */
     private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
