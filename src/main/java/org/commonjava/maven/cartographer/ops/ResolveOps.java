@@ -358,9 +358,12 @@ public class ResolveOps
      * Discover the dependency graphs for the configured graph composition, and then traverse them to construct a mapping of GAV to set of references
      * that can be used to render various kinds of output. If the recipe contains injectedBOMs, then read the managed dependencies from these into
      * a mapping of GA -> GAV that we can pass into the {@link ViewParams} we'll eventually use to discover and traverse the graph.
-     * 
+     * <br/>
      * Returns null if {@link RepositoryContentRecipe#setSourceLocation(Location)} hasn't 
      * been called before this method is called.
+     * <br/>
+     * @throws {@link CartoDataException} if one or more of the recipe's injected BOMs cannot be resolved, if the recipe doesn't contain enough basic 
+     * info to be used (See: {@link RepositoryContentRecipe#isValid()}), or if an unexpected problem takes place during graph resolution or traversal.
      */
     private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
                                                                               final URI sourceUri )
