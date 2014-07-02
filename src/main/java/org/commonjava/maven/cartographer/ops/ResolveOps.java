@@ -363,7 +363,8 @@ public class ResolveOps
      * been called before this method is called.
      * <br/>
      * @throws {@link CartoDataException} if one or more of the recipe's injected BOMs cannot be resolved, if the recipe doesn't contain enough basic 
-     * info to be used (See: {@link RepositoryContentRecipe#isValid()}), or if an unexpected problem takes place during graph resolution or traversal.
+     * info to be used (See: {@link RepositoryContentRecipe#isValid()}), if the source {@link Location} hasn't been set on the recipe, or if an 
+     * unexpected problem takes place during graph resolution or traversal.
      */
     private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
                                                                               final URI sourceUri )
@@ -390,12 +391,6 @@ public class ResolveOps
             throw new CartoDataException( "Invalid discovery source URI: '{}'. Reason: {}", e,
                                           recipe.getSourceLocation()
                                                 .getUri(), e.getMessage() );
-        }
-
-        // This would only happen if the recipe.setSourceLocation(..) hasn't been called yet.
-        if ( config == null )
-        {
-            return null;
         }
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
