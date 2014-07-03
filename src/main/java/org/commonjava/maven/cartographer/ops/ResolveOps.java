@@ -410,7 +410,10 @@ public class ResolveOps
                     {
                         final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
                         final String version = managedDependency.getVersion();
-                        injectedDepMgmt.put( ar, version );
+                        if ( !injectedDepMgmt.containsKey( ar ) )
+                        {
+                            injectedDepMgmt.put( ar, version );
+                        }
                     }
                 }
                 catch ( final GalleyMavenException ex )
