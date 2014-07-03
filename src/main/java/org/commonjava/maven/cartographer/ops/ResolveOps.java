@@ -93,8 +93,6 @@ public class ResolveOps
     @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
 
-    private final Map<ProjectVersionRef, MavenPomView> bomMap = new WeakHashMap<ProjectVersionRef, MavenPomView>();
-
     protected ResolveOps()
     {
     }
@@ -218,20 +216,6 @@ public class ResolveOps
         }
 
         return params;
-    }
-
-    private MavenPomView getBOM( final ProjectVersionRef projectVersionRef, final List<? extends Location> locations )
-        throws GalleyMavenException
-    {
-        MavenPomView result = bomMap.get( projectVersionRef );
-
-        if ( result == null )
-        {
-            result = pomReader.read( projectVersionRef, locations );
-            bomMap.put( projectVersionRef, result );
-        }
-
-        return result;
     }
 
     /**
@@ -397,30 +381,10 @@ public class ResolveOps
         final List<? extends Location> locations = initDiscoveryLocations( config );
 
         final Map<VersionlessArtifactRef, String> injectedDepMgmt = new HashMap<VersionlessArtifactRef, String>();
-        if ( recipe.getInjectedBOMs() != null )
+        final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
+        if ( injectedBOMs != null )
         {
-            // TODO read depMgmt recursively to include anything imported in the referenced BOMs
-            for ( final ProjectVersionRef bom : recipe.getInjectedBOMs() )
-            {
-                try
-                {
-                    final MavenPomView bomView = getBOM( bom, locations );
-                    final List<DependencyView> managedDependencies = bomView.getAllManagedDependencies();
-                    for ( final DependencyView managedDependency : managedDependencies )
-                    {
-                        final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
-                        final String version = managedDependency.getVersion();
-                        if ( !injectedDepMgmt.containsKey( ar ) )
-                        {
-                            injectedDepMgmt.put( ar, version );
-                        }
-                    }
-                }
-                catch ( final GalleyMavenException ex )
-                {
-                    logger.error( "BOM " + bom.toString() + " not available." , ex);
-                }
-            }
+            readDepMgmtToVersionMap( injectedBOMs, locations, injectedDepMgmt );
         }
 
         if ( recipe.isResolve() )
@@ -496,6 +460,53 @@ public class ResolveOps
         }
 
         return refMap;
+    }
+
+    /**
+     * Reads dependencyManagement from passed {@code boms} and add mapping for missing artifacts in the {@code versionMap}.
+     * It reads the BOMs recursively each level at a time, it means once all passed BOMs are read, the next level (imported
+     * BOMs into passed ones) is processed. This should be the same way as Maven does it.
+     * 
+     * The method reads all the BOMs from the list of {@code locations} by {@link MavenPomReader}.
+     *
+     * @param boms the BOMs to read
+     * @param locations locations where to look for the BOMs and their dependencies
+     * @param versionMap target version map
+     * @throws CartoDataException if one of the BOMs does not exist or if its pom's dependencyManagement cannot be read correctly
+     */
+    private void readDepMgmtToVersionMap( final List<ProjectVersionRef> boms, final List<? extends Location> locations,
+            final Map<VersionlessArtifactRef, String> versionMap) throws CartoDataException
+    {
+        final List<ProjectVersionRef> nextLevel = new ArrayList<ProjectVersionRef>();
+        for ( final ProjectVersionRef bom : boms )
+        {
+            try
+            {
+                final MavenPomView bomView = pomReader.read( bom, locations );
+                final List<DependencyView> managedDependencies = bomView.getAllManagedDependencies();
+                for ( final DependencyView managedDependency : managedDependencies )
+                {
+                    final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
+                    final String version = managedDependency.getVersion();
+                    if ( !versionMap.containsKey( ar ) )
+                    {
+                        versionMap.put( ar, version );
+                    }
+
+                    List<DependencyView> importedBOMsViews = bomView.getAllBOMs();
+                    for ( DependencyView importedBOMView : importedBOMsViews )
+                    {
+                        nextLevel.add( importedBOMView.asProjectVersionRef() );
+                    }
+                }
+            }
+            catch ( final GalleyMavenException ex )
+            {
+                throw new CartoDataException( "Error when trying to process BOM {}.", ex, bom );
+            }
+        }
+        
+        readDepMgmtToVersionMap( nextLevel, locations, versionMap );
     }
 
     public GraphComposition resolve( final ResolverRecipe recipe )
