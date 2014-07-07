@@ -483,7 +483,7 @@ public class ResolveOps
             try
             {
                 final MavenPomView bomView = pomReader.read( bom, locations );
-                final List<DependencyView> managedDependencies = bomView.getAllManagedDependencies();
+                final List<DependencyView> managedDependencies = bomView.getAllManagedDependenciesNoImports();
                 for ( final DependencyView managedDependency : managedDependencies )
                 {
                     final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
@@ -492,9 +492,12 @@ public class ResolveOps
                     {
                         versionMap.put( ar, version );
                     }
+                }
 
-                    List<DependencyView> importedBOMsViews = bomView.getAllBOMs();
-                    for ( DependencyView importedBOMView : importedBOMsViews )
+                List<DependencyView> importedBOMsViews = bomView.getAllBOMs();
+                for ( DependencyView importedBOMView : importedBOMsViews )
+                {
+                    if ( !nextLevel.contains( importedBOMView.asProjectVersionRef() ) )
                     {
                         nextLevel.add( importedBOMView.asProjectVersionRef() );
                     }
@@ -505,8 +508,11 @@ public class ResolveOps
                 throw new CartoDataException( "Error when trying to process BOM {}.", ex, bom );
             }
         }
-        
-        readDepMgmtToVersionMap( nextLevel, locations, versionMap );
+
+        if ( !nextLevel.isEmpty() )
+        {
+            readDepMgmtToVersionMap( nextLevel, locations, versionMap );
+        }
     }
 
     public GraphComposition resolve( final ResolverRecipe recipe )
