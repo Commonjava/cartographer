@@ -130,13 +130,13 @@ public class ResolveOps
      * potential root GAV differences due to resolution of variable versions. If autoClose parameter is false, then leave the graph open for 
      * subsequent reuse.
      */
-    public ViewParams resolve( final String workspaceId, final AggregationOptions optionsPrototype,
+    public ViewParams resolve( final String workspaceId, final AggregationOptions options,
                                final boolean autoClose,
                                final ProjectVersionRef... roots )
         throws CartoDataException
     {
         //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
-        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( optionsPrototype.getDiscoveryConfig() );
+        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
