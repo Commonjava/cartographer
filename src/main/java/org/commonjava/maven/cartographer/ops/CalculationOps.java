@@ -67,8 +67,14 @@ public class CalculationOps
         {
             try
             {
+                ViewParams params = from.getView();
+                if ( params == null )
+                {
+                    params = new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() );
+                }
+
                 firstWeb =
-                    graphFactory.open( new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() ),
+ graphFactory.open( params,
                                        false );
             }
             catch ( final RelationshipGraphException e )
@@ -79,8 +85,14 @@ public class CalculationOps
             }
             try
             {
+                ViewParams params = to.getView();
+                if ( params == null )
+                {
+                    params = new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() );
+                }
+
                 secondWeb =
-                    graphFactory.open( new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() ),
+ graphFactory.open( params,
                                        false );
             }
             catch ( final RelationshipGraphException e )
@@ -122,8 +134,14 @@ public class CalculationOps
         {
             try
             {
+                ViewParams params = from.getView();
+                if ( params == null )
+                {
+                    params = new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() );
+                }
+
                 firstWeb =
-                    graphFactory.open( new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() ),
+ graphFactory.open( params,
                                        false );
             }
             catch ( final RelationshipGraphException e )
@@ -134,8 +152,14 @@ public class CalculationOps
             }
             try
             {
+                ViewParams params = to.getView();
+                if ( params == null )
+                {
+                    params = new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() );
+                }
+
                 secondWeb =
-                    graphFactory.open( new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() ),
+ graphFactory.open( params,
                                        false );
             }
             catch ( final RelationshipGraphException e )
@@ -249,9 +273,13 @@ public class CalculationOps
             {
                 try
                 {
-                    graph =
-                        graphFactory.open( new ViewParams( workspaceId, desc.getFilter(), mutator, desc.getRootsArray() ),
-                                           false );
+                    ViewParams params = desc.getView();
+                    if ( params == null )
+                    {
+                        params = new ViewParams( workspaceId, desc.getFilter(), mutator, desc.getRootsArray() );
+                    }
+
+                    graph = graphFactory.open( params, false );
                 }
                 catch ( final RelationshipGraphException e )
                 {
