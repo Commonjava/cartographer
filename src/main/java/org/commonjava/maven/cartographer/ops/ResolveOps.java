@@ -130,12 +130,13 @@ public class ResolveOps
      * potential root GAV differences due to resolution of variable versions. If autoClose parameter is false, then leave the graph open for 
      * subsequent reuse.
      */
-    public ViewParams resolve( final String workspaceId, final AggregationOptions options, final boolean autoClose,
+    public ViewParams resolve( final String workspaceId, final AggregationOptions optionsPrototype,
+                               final boolean autoClose,
                                final ProjectVersionRef... roots )
         throws CartoDataException
     {
         //        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( source );
-        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
+        final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( optionsPrototype.getDiscoveryConfig() );
         config.setEnabled( true );
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
@@ -526,7 +527,9 @@ public class ResolveOps
         {
             final ProjectVersionRef[] rootsArray = desc.getRootsArray();
 
-            final ViewParams params = resolve( recipe.getWorkspaceId(), options, false, rootsArray );
+            final ViewParams params =
+                resolve( recipe.getWorkspaceId(), new DefaultAggregatorOptions( options, desc.getFilter() ), false,
+                         rootsArray );
 
             RelationshipGraph graph = null;
             try

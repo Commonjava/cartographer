@@ -20,6 +20,7 @@ import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
+import org.commonjava.maven.cartographer.preset.ScopedProjectFilter;
 
 public class DefaultAggregatorOptions
     implements AggregationOptions
@@ -41,6 +42,23 @@ public class DefaultAggregatorOptions
     private DiscoveryConfig dc;
 
     private GraphMutator mutator;
+
+    public DefaultAggregatorOptions()
+    {
+        this.filter = new ScopedProjectFilter();
+    }
+
+    public DefaultAggregatorOptions( final AggregationOptions options, final ProjectRelationshipFilter filter )
+    {
+        this.filter = filter;
+        this.processIncomplete = options.processIncompleteSubgraphs();
+        this.processVariable = options.processVariableSubgraphs();
+        this.discoveryEnabled = options.isDiscoveryEnabled();
+        this.discoverySource = options.getDiscoverySource();
+        this.discoveryTimeoutMillis = options.getDiscoveryTimeoutMillis();
+        this.dc = options.getDiscoveryConfig();
+        this.mutator = options.getMutator();
+    }
 
     public DefaultAggregatorOptions setFilter( final ProjectRelationshipFilter filter )
     {

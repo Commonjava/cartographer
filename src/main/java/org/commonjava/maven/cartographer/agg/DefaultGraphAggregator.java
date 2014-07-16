@@ -83,7 +83,8 @@ public class DefaultGraphAggregator
             final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading initial set of GAVs to be resolved..." );
-            final List<DiscoveryTodo> pending = loadInitialPending( graph, seen, config.getMutator() );
+            final List<DiscoveryTodo> pending = loadInitialPending( graph, seen, graph.getParams()
+                                                                                      .getMutator() );
             final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
             int pass = 0;
