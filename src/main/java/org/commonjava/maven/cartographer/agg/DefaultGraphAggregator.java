@@ -30,7 +30,6 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
@@ -83,8 +82,7 @@ public class DefaultGraphAggregator
             final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
 
             logger.debug( "Loading initial set of GAVs to be resolved..." );
-            final List<DiscoveryTodo> pending = loadInitialPending( graph, seen, graph.getParams()
-                                                                                      .getMutator() );
+            final List<DiscoveryTodo> pending = loadInitialPending( graph, seen );
             final HashSet<DiscoveryTodo> done = new HashSet<DiscoveryTodo>();
 
             int pass = 0;
@@ -475,8 +473,7 @@ public class DefaultGraphAggregator
     //        return participants;
     //    }
 
-    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen,
-                                                    final GraphMutator rootMutator )
+    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen )
     {
         logger.info( "Using root-level mutator: {}", graph.getMutator() );
 
