@@ -131,7 +131,7 @@ public class ResolveOps
      */
     public ViewParams resolve( final String workspaceId, final AggregationOptions options,
                                final boolean autoClose,
-                               final Map<ProjectRef, String> injectedDepMgmt,
+                               final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt,
                                final ProjectVersionRef... roots )
         throws CartoDataException
     {
@@ -155,7 +155,7 @@ public class ResolveOps
 
         final ViewParams params = new ViewParams.Builder( workspaceId, specifics ).withFilter( options.getFilter() )
                                                                                   .withMutator( options.getMutator() )
-                                                                                  .withInjectedDepMgmt( injectedDepMgmt )
+                                                                                  .withSelections( injectedDepMgmt )
                                                                                   .build();
 
         sourceManager.activateWorkspaceSources( params, locations );
@@ -383,7 +383,7 @@ public class ResolveOps
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
 
-        final Map<ProjectRef, String> injectedDepMgmt = new HashMap<ProjectRef, String>();
+        final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = new HashMap<ProjectRef, ProjectVersionRef>();
         final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
         if ( injectedBOMs != null )
         {
@@ -418,7 +418,7 @@ public class ResolveOps
                 final ViewParams params =
                     new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( graphDesc.getFilter() )
                                                                             .withMutator( new ManagedDependencyMutator() )
-                                                                            .withInjectedDepMgmt( injectedDepMgmt )
+                                                                            .withSelections( injectedDepMgmt )
                                                                             .build();
 
                 sourceManager.activateWorkspaceSources( params, locations );
@@ -478,7 +478,7 @@ public class ResolveOps
      * @throws CartoDataException if one of the BOMs does not exist or if its pom's dependencyManagement cannot be read correctly
      */
     private void readDepMgmtToVersionMap( final List<ProjectVersionRef> boms, final List<? extends Location> locations,
-                                          final Map<ProjectRef, String> versionMap ) throws CartoDataException
+                                          final Map<ProjectRef, ProjectVersionRef> versionMap ) throws CartoDataException
     {
         final List<ProjectVersionRef> nextLevel = new ArrayList<ProjectVersionRef>();
         for ( final ProjectVersionRef bom : boms )
@@ -490,7 +490,8 @@ public class ResolveOps
                 for ( final DependencyView managedDependency : managedDependencies )
                 {
                     final ProjectRef ga = managedDependency.asProjectRef();
-                    final String version = managedDependency.getVersion();
+                    final ProjectVersionRef version =
+                        new ProjectVersionRef( ga, managedDependency.getVersion() );
                     if ( !versionMap.containsKey( ga ) )
                     {
                         versionMap.put( ga, version );
@@ -533,7 +534,7 @@ public class ResolveOps
      * @param injectedDepMgmt map of versions managed by injected BOMs, can be {@code null}
      */
     public GraphComposition resolve( final ResolverRecipe recipe, final boolean autoClose,
-                                     final Map<ProjectRef, String> injectedDepMgmt )
+                                     final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt )
         throws CartoDataException
     {
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
