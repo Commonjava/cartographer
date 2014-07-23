@@ -221,4 +221,80 @@ public class MavenModelProcessorTest
         }
     }
 
+    @Test
+    public void resolvePluginVersionFromPropertyInProfile()
+        throws Exception
+    {
+        final URI src = new URI( "http://nowhere.com/path/to/repo" );
+
+        final ProjectVersionRef childRef =
+            new ProjectVersionRef( "org.test", "test-pom", "1.0" );
+
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        lineage.put( childRef, "test-pom-1.0.pom.xml" );
+
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, 10 );
+
+        final String base = PROJ_BASE + "version-expression-in-a-profile/";
+
+        for ( final Entry<ProjectVersionRef, String> entry : lineage.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final String filename = entry.getValue();
+
+            final String path = ArtifactPathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getMapper() );
+
+            fixture.getTransport()
+                   .registerDownload( new ConcreteResource( location, path ), new TestDownload( base + filename ) );
+        }
+
+        final Transfer transfer = fixture.getArtifacts()
+                                         .retrieve( location, childRef.asPomArtifact() );
+
+        final MavenPomView pomView = fixture.getPomReader()
+                                            .read( childRef, transfer, Collections.singletonList( location ) );
+
+        final List<PluginView> buildPlugins = pomView.getAllBuildPlugins();
+
+        assertThat( buildPlugins, notNullValue() );
+        assertThat( buildPlugins.size(), equalTo( 1 ) );
+
+        final PluginView pv = buildPlugins.get( 0 );
+        assertThat( pv, notNullValue() );
+        assertThat( pv.getVersion(), equalTo( "2.0" ) );
+
+        final DefaultDiscoveryConfig discoveryConfig = new DefaultDiscoveryConfig( src );
+        discoveryConfig.setIncludeManagedDependencies( true );
+        discoveryConfig.setIncludeBuildSection( true );
+        discoveryConfig.setIncludeManagedPlugins( false );
+
+        final DiscoveryResult result = fixture.getModelProcessor()
+                                              .readRelationships( pomView, src, discoveryConfig );
+
+        final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
+
+        logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
+
+        boolean seen = false;
+        for ( final ProjectRelationship<?> rel : rels )
+        {
+            if ( rel.getType() == RelationshipType.PLUGIN && !rel.isManaged() )
+            {
+                if ( seen )
+                {
+                    fail( "Multiple plugins found!" );
+                }
+
+                seen = true;
+                assertThat( rel.getTarget()
+                               .getVersionString(), equalTo( "2.0" ) );
+            }
+        }
+
+        if ( !seen )
+        {
+            fail( "Plugin relationship not found!" );
+        }
+    }
+
 }
