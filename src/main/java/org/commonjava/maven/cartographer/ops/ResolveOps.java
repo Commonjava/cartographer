@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
@@ -33,8 +32,8 @@ import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
@@ -93,8 +92,6 @@ public class ResolveOps
     @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
 
-    private final Map<ProjectVersionRef, MavenPomView> bomMap = new WeakHashMap<ProjectVersionRef, MavenPomView>();
-
     protected ResolveOps()
     {
     }
@@ -121,7 +118,7 @@ public class ResolveOps
                                final ProjectVersionRef... roots )
         throws CartoDataException
     {
-        return resolve( workspaceId, options, true, roots );
+        return resolve( workspaceId, options, true, null, roots );
     }
 
     /**
@@ -129,9 +126,12 @@ public class ResolveOps
      * graph. Return the {@link ViewParams} instance resulting from configuration via the given {@link AggregationOptions} and the root GAVs with
      * potential root GAV differences due to resolution of variable versions. If autoClose parameter is false, then leave the graph open for 
      * subsequent reuse.
+     *
+     * @param injectedDepMgmt map of versions managed by injected BOMs, can be {@code null}
      */
     public ViewParams resolve( final String workspaceId, final AggregationOptions options,
                                final boolean autoClose,
+                               final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt,
                                final ProjectVersionRef... roots )
         throws CartoDataException
     {
@@ -155,6 +155,7 @@ public class ResolveOps
 
         final ViewParams params = new ViewParams.Builder( workspaceId, specifics ).withFilter( options.getFilter() )
                                                                                   .withMutator( options.getMutator() )
+                                                                                  .withSelections( injectedDepMgmt )
                                                                                   .build();
 
         sourceManager.activateWorkspaceSources( params, locations );
@@ -218,20 +219,6 @@ public class ResolveOps
         }
 
         return params;
-    }
-
-    private MavenPomView getBOM( final ProjectVersionRef projectVersionRef, final List<? extends Location> locations )
-        throws GalleyMavenException
-    {
-        MavenPomView result = bomMap.get( projectVersionRef );
-
-        if ( result == null )
-        {
-            result = pomReader.read( projectVersionRef, locations );
-            bomMap.put( projectVersionRef, result );
-        }
-
-        return result;
     }
 
     /**
@@ -396,37 +383,16 @@ public class ResolveOps
 
         final List<? extends Location> locations = initDiscoveryLocations( config );
 
-        final Map<VersionlessArtifactRef, String> injectedDepMgmt = new HashMap<VersionlessArtifactRef, String>();
-        if ( recipe.getInjectedBOMs() != null )
+        final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = new HashMap<ProjectRef, ProjectVersionRef>();
+        final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
+        if ( injectedBOMs != null )
         {
-            // TODO read depMgmt recursively to include anything imported in the referenced BOMs
-            for ( final ProjectVersionRef bom : recipe.getInjectedBOMs() )
-            {
-                try
-                {
-                    final MavenPomView bomView = getBOM( bom, locations );
-                    final List<DependencyView> managedDependencies = bomView.getAllManagedDependencies();
-                    for ( final DependencyView managedDependency : managedDependencies )
-                    {
-                        final VersionlessArtifactRef ar = managedDependency.asVersionlessArtifactRef();
-                        final String version = managedDependency.getVersion();
-                        if ( !injectedDepMgmt.containsKey( ar ) )
-                        {
-                            injectedDepMgmt.put( ar, version );
-                        }
-                    }
-                }
-                catch ( final GalleyMavenException ex )
-                {
-                    logger.error( "BOM " + bom.toString() + " not available." , ex);
-                }
-            }
+            readDepMgmtToVersionMap( injectedBOMs, locations, injectedDepMgmt );
         }
 
         if ( recipe.isResolve() )
         {
-            // TODO pass the injected depMgmt
-            graphs = resolve( recipe, !hasCalculation );
+            graphs = resolve( recipe, !hasCalculation, injectedDepMgmt );
         }
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap;
@@ -452,6 +418,7 @@ public class ResolveOps
                 final ViewParams params =
                     new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( graphDesc.getFilter() )
                                                                             .withMutator( new ManagedDependencyMutator() )
+                                                                            .withSelections( injectedDepMgmt )
                                                                             .build();
 
                 sourceManager.activateWorkspaceSources( params, locations );
@@ -498,10 +465,64 @@ public class ResolveOps
         return refMap;
     }
 
+    /**
+     * Reads dependencyManagement from passed {@code boms} and add mapping for missing artifacts in the {@code versionMap}.
+     * It reads the BOMs recursively each level at a time, it means once all passed BOMs are read, the next level (imported
+     * BOMs into passed ones) is processed. This should be the same way as Maven does it.
+     *
+     * The method reads all the BOMs from the list of {@code locations} by {@link MavenPomReader}.
+     *
+     * @param boms the BOMs to read
+     * @param locations locations where to look for the BOMs and their dependencies
+     * @param versionMap target version map
+     * @throws CartoDataException if one of the BOMs does not exist or if its pom's dependencyManagement cannot be read correctly
+     */
+    private void readDepMgmtToVersionMap( final List<ProjectVersionRef> boms, final List<? extends Location> locations,
+                                          final Map<ProjectRef, ProjectVersionRef> versionMap ) throws CartoDataException
+    {
+        final List<ProjectVersionRef> nextLevel = new ArrayList<ProjectVersionRef>();
+        for ( final ProjectVersionRef bom : boms )
+        {
+            try
+            {
+                final MavenPomView bomView = pomReader.read( bom, locations );
+                final List<DependencyView> managedDependencies = bomView.getManagedDependenciesNoImports();
+                for ( final DependencyView managedDependency : managedDependencies )
+                {
+                    final ProjectRef ga = managedDependency.asProjectRef();
+                    final ProjectVersionRef version =
+                        new ProjectVersionRef( ga, managedDependency.getVersion() );
+                    if ( !versionMap.containsKey( ga ) )
+                    {
+                        versionMap.put( ga, version );
+                    }
+                }
+
+                final List<DependencyView> importedBOMsViews = bomView.getAllBOMs();
+                for ( final DependencyView importedBOMView : importedBOMsViews )
+                {
+                    if ( !nextLevel.contains( importedBOMView.asProjectVersionRef() ) )
+                    {
+                        nextLevel.add( importedBOMView.asProjectVersionRef() );
+                    }
+                }
+            }
+            catch ( final GalleyMavenException ex )
+            {
+                throw new CartoDataException( "Error when trying to process BOM {}.", ex, bom );
+            }
+        }
+
+        if ( !nextLevel.isEmpty() )
+        {
+            readDepMgmtToVersionMap( nextLevel, locations, versionMap );
+        }
+    }
+
     public GraphComposition resolve( final ResolverRecipe recipe )
         throws CartoDataException
     {
-        return resolve( recipe, true );
+        return resolve( recipe, true, null );
     }
 
     /**
@@ -509,8 +530,11 @@ public class ResolveOps
      * and if configured, discover missing parts of the relationship
      * graph. Return the {@link GraphComposition} instance, which might be different than the one in the given {@link ResolverRecipe} due to
      * potential root GAV differences from resolution of variable versions.
+     *
+     * @param injectedDepMgmt map of versions managed by injected BOMs, can be {@code null}
      */
-    public GraphComposition resolve( final ResolverRecipe recipe, final boolean autoClose )
+    public GraphComposition resolve( final ResolverRecipe recipe, final boolean autoClose,
+                                     final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt )
         throws CartoDataException
     {
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
@@ -532,7 +556,7 @@ public class ResolveOps
 
             final ViewParams params =
                 resolve( recipe.getWorkspaceId(), new DefaultAggregatorOptions( options, desc.getFilter() ), false,
-                         rootsArray );
+                        injectedDepMgmt, rootsArray );
 
             RelationshipGraph graph = null;
             try
