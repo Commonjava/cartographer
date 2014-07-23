@@ -486,7 +486,7 @@ public class ResolveOps
             try
             {
                 final MavenPomView bomView = pomReader.read( bom, locations );
-                final List<DependencyView> managedDependencies = bomView.getAllManagedDependenciesNoImports();
+                final List<DependencyView> managedDependencies = bomView.getManagedDependenciesNoImports();
                 for ( final DependencyView managedDependency : managedDependencies )
                 {
                     final ProjectRef ga = managedDependency.asProjectRef();
