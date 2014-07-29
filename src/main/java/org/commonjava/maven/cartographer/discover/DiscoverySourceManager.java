@@ -21,13 +21,17 @@ import org.commonjava.maven.galley.model.Location;
 public interface DiscoverySourceManager
 {
 
-    Location createLocation( Object source );
+    Location createLocation( Object source )
+        throws CartoDataException;
 
-    List<? extends Location> createLocations( Object... sources );
+    List<? extends Location> createLocations( Object... sources )
+        throws CartoDataException;
 
-    List<? extends Location> createLocations( Collection<Object> sources );
+    List<? extends Location> createLocations( Collection<Object> sources )
+        throws CartoDataException;
 
-    URI createSourceURI( String source );
+    URI createSourceURI( String source )
+        throws CartoDataException;
 
     boolean activateWorkspaceSources( ViewParams params, String... sources )
         throws CartoDataException;

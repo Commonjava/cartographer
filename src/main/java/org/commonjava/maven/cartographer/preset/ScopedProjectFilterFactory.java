@@ -17,6 +17,7 @@ import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.ident.DependencyScope;
 
 @Named( "scope" )
 @ApplicationScoped
@@ -36,7 +37,23 @@ public class ScopedProjectFilterFactory
     @Override
     public ProjectRelationshipFilter newFilter( final String presetId, final Map<String, Object> parameters )
     {
-        return null;
+        DependencyScope scope = (DependencyScope) parameters.get( CommonPresetParameters.SCOPE );
+        if ( scope == null )
+        {
+            scope = DependencyScope.getScope( presetId );
+            if ( scope == null )
+            {
+                scope = DependencyScope.runtime;
+            }
+        }
+
+        Boolean managed = (Boolean) parameters.get( CommonPresetParameters.MANAGED );
+        if ( managed == null )
+        {
+            managed = presetId.startsWith( "managed" );
+        }
+
+        return new ScopedProjectFilter( scope, managed );
     }
 
 }

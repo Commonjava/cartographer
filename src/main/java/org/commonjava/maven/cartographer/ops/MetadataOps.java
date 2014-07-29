@@ -210,6 +210,7 @@ public class MetadataOps
     }
 
     public void rescanMetadata( final RelationshipGraph graph )
+        throws CartoDataException
     {
         final Set<URI> sources = graph.getSources();
         final List<? extends Location> locations = sourceManager.createLocations( sources );
@@ -294,7 +295,8 @@ public class MetadataOps
             try
             {
                 graph =
-                    graphFactory.open( new ViewParams( recipe.getWorkspaceId(), graphDesc.getFilter(),
+                    graphFactory.open( new ViewParams( recipe.getWorkspaceId(),
+                                                       recipe.buildFilter( graphDesc.getFilter() ),
                                                        new ManagedDependencyMutator(), roots ), false );
             }
             catch ( final RelationshipGraphException e )

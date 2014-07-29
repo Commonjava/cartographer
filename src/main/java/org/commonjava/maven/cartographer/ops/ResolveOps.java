@@ -129,8 +129,7 @@ public class ResolveOps
      *
      * @param injectedDepMgmt map of versions managed by injected BOMs, can be {@code null}
      */
-    public ViewParams resolve( final String workspaceId, final AggregationOptions options,
-                               final boolean autoClose,
+    public ViewParams resolve( final String workspaceId, final AggregationOptions options, final boolean autoClose,
                                final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt,
                                final ProjectVersionRef... roots )
         throws CartoDataException
@@ -224,8 +223,10 @@ public class ResolveOps
     /**
      * Create one or more {@link Location} instances for the configured discovery source, according to the {@link DiscoverySourceManager} 
      * implementation's specific logic, if it hasn't already been done.
+     * @throws CartoDataException 
      */
     private List<? extends Location> initDiscoveryLocations( final DiscoveryConfig config )
+        throws CartoDataException
     {
         List<? extends Location> locations = config.getLocations();
         if ( locations == null || locations.isEmpty() )
@@ -416,7 +417,7 @@ public class ResolveOps
 
                 // TODO: Do we need to resolve specific versions for these roots?
                 final ViewParams params =
-                    new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( graphDesc.getFilter() )
+                    new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( recipe.buildFilter( graphDesc.getFilter() ) )
                                                                             .withMutator( new ManagedDependencyMutator() )
                                                                             .withSelections( injectedDepMgmt )
                                                                             .build();
@@ -478,7 +479,8 @@ public class ResolveOps
      * @throws CartoDataException if one of the BOMs does not exist or if its pom's dependencyManagement cannot be read correctly
      */
     private void readDepMgmtToVersionMap( final List<ProjectVersionRef> boms, final List<? extends Location> locations,
-                                          final Map<ProjectRef, ProjectVersionRef> versionMap ) throws CartoDataException
+                                          final Map<ProjectRef, ProjectVersionRef> versionMap )
+        throws CartoDataException
     {
         final List<ProjectVersionRef> nextLevel = new ArrayList<ProjectVersionRef>();
         for ( final ProjectVersionRef bom : boms )
@@ -490,8 +492,7 @@ public class ResolveOps
                 for ( final DependencyView managedDependency : managedDependencies )
                 {
                     final ProjectRef ga = managedDependency.asProjectRef();
-                    final ProjectVersionRef version =
-                        new ProjectVersionRef( ga, managedDependency.getVersion() );
+                    final ProjectVersionRef version = new ProjectVersionRef( ga, managedDependency.getVersion() );
                     if ( !versionMap.containsKey( ga ) )
                     {
                         versionMap.put( ga, version );
@@ -555,8 +556,9 @@ public class ResolveOps
             final ProjectVersionRef[] rootsArray = desc.getRootsArray();
 
             final ViewParams params =
-                resolve( recipe.getWorkspaceId(), new DefaultAggregatorOptions( options, desc.getFilter() ), false,
-                        injectedDepMgmt, rootsArray );
+                resolve( recipe.getWorkspaceId(),
+                         new DefaultAggregatorOptions( options, recipe.buildFilter( desc.getFilter() ) ), false,
+                         injectedDepMgmt, rootsArray );
 
             RelationshipGraph graph = null;
             try
@@ -599,6 +601,7 @@ public class ResolveOps
     }
 
     private AggregationOptions createAggregationOptions( final ResolverRecipe recipe, final URI sourceUri )
+        throws CartoDataException
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
 
@@ -611,6 +614,7 @@ public class ResolveOps
     }
 
     private DiscoveryConfig createDiscoveryConfig( final ResolverRecipe recipe, final URI sourceUri )
+        throws CartoDataException
     {
         final DefaultDiscoveryConfig dconf = new DefaultDiscoveryConfig( sourceUri );
         dconf.setEnabledPatchers( recipe.getPatcherIds() );

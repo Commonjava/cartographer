@@ -21,6 +21,7 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 public final class AggregationUtils
 {
@@ -33,6 +34,35 @@ public final class AggregationUtils
     {
         final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
         return collectProjectReferences( rels );
+    }
+
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> refMap )
+    {
+        final Map<ProjectRef, ProjectRefCollection> projects = new HashMap<>();
+
+        for ( final Map.Entry<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> projectEntry : refMap.entrySet() )
+        {
+            final ProjectVersionRef pvr = projectEntry.getKey();
+            final ProjectRef r = pvr.asProjectRef();
+
+            ProjectRefCollection prc = projects.get( r );
+            if ( prc == null )
+            {
+                prc = new ProjectRefCollection();
+                projects.put( r, prc );
+            }
+
+            prc.addVersionRef( pvr );
+            prc.addArtifactRef( pvr.asPomArtifact() );
+
+            for ( final ArtifactRef ar : projectEntry.getValue()
+                                                     .keySet() )
+            {
+                prc.addArtifactRef( ar );
+            }
+        }
+
+        return projects;
     }
 
     public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Collection<ProjectRelationship<?>> rels )

@@ -16,6 +16,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.commonjava.maven.atlas.graph.filter.ExcludingFilter;
+import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
@@ -36,6 +39,8 @@ public class ResolverRecipe
     protected boolean resolve;
 
     protected transient Location sourceLocation;
+
+    protected List<ProjectVersionRef> excludedSubgraphs;
 
     public String getWorkspaceId()
     {
@@ -160,6 +165,29 @@ public class ResolverRecipe
             {
                 it.remove();
             }
+        }
+    }
+
+    public List<ProjectVersionRef> getExcludedSubgraphs()
+    {
+        return excludedSubgraphs;
+    }
+
+    public void setExcludedSubgraphs( final Collection<ProjectVersionRef> excludedSubgraphs )
+    {
+        this.excludedSubgraphs = new ArrayList<ProjectVersionRef>( excludedSubgraphs );
+    }
+
+    public ProjectRelationshipFilter buildFilter( final ProjectRelationshipFilter filter )
+    {
+        final List<ProjectVersionRef> excludedSubgraphs = getExcludedSubgraphs();
+        if ( excludedSubgraphs == null || excludedSubgraphs.isEmpty() )
+        {
+            return filter;
+        }
+        else
+        {
+            return new ExcludingFilter( excludedSubgraphs, filter );
         }
     }
 }

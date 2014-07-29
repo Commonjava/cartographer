@@ -40,6 +40,7 @@ import org.commonjava.maven.atlas.graph.traverse.print.ListPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.TreePrinter;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
@@ -49,8 +50,10 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoGraphUtils;
+import org.commonjava.maven.cartographer.dto.BomRecipe;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 @ApplicationScoped
 public class GraphRenderingOps
@@ -58,6 +61,9 @@ public class GraphRenderingOps
 
     @Inject
     protected CalculationOps calcOps;
+
+    @Inject
+    protected ResolveOps resolveOps;
 
     @Inject
     protected RelationshipGraphFactory graphFactory;
@@ -153,6 +159,8 @@ public class GraphRenderingOps
         try
         {
             allWs = graphFactory.open( new ViewParams( workspaceId ), false );
+
+            return getLabels( allWs, roots, null );
         }
         catch ( final RelationshipGraphException e )
         {
@@ -164,8 +172,6 @@ public class GraphRenderingOps
         {
             CartoGraphUtils.closeGraphQuietly( allWs );
         }
-
-        return getLabels( allWs, roots, null );
     }
 
     private Map<String, Set<ProjectVersionRef>> getLabels( final RelationshipGraph allWs,
@@ -226,15 +232,20 @@ public class GraphRenderingOps
         }
     }
 
-    public Model generateBOM( final ProjectVersionRef bomCoord, final RelationshipGraph graph )
+    public Model generateBOM( final BomRecipe dto )
         throws CartoDataException
     {
-        if ( graph == null )
+        if ( dto == null )
         {
             return null;
         }
 
-        final Map<ProjectRef, ProjectRefCollection> projects = collectProjectReferences( graph );
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolved =
+            resolveOps.resolveRepositoryContents( dto );
+
+        final Map<ProjectRef, ProjectRefCollection> projects = collectProjectReferences( resolved );
+
+        final ProjectVersionRef bomCoord = dto.getOutput();
 
         final Model model = new Model();
         model.setGroupId( bomCoord.getGroupId() );
@@ -252,7 +263,8 @@ public class GraphRenderingOps
             final ProjectRef r = entry.getKey();
             final ProjectRefCollection prc = entry.getValue();
 
-            final VersionSpec spec = generateVersionSpec( prc.getVersionRefs() );
+            // TODO: This will reset the version for ALL referenced artifacts, regardless of actual references. This is not how Maven works...
+            final VersionSpec spec = generateVersionSpec( prc.getVersionRefs(), dto.isGenerateVersionRanges() );
             final Set<VersionlessArtifactRef> arts = prc.getVersionlessArtifactRefs();
             if ( arts == null )
             {
@@ -276,6 +288,11 @@ public class GraphRenderingOps
                     d.setClassifier( artifact.getClassifier() );
                 }
 
+                if ( artifact.isOptional() )
+                {
+                    d.setOptional( true );
+                }
+
                 dm.addDependency( d );
             }
         }
@@ -283,7 +300,7 @@ public class GraphRenderingOps
         return model;
     }
 
-    private VersionSpec generateVersionSpec( final Set<ProjectVersionRef> refs )
+    private VersionSpec generateVersionSpec( final Set<ProjectVersionRef> refs, final boolean generateVersionRanges )
     {
         final List<VersionSpec> versions = new ArrayList<VersionSpec>();
         for ( final ProjectVersionRef ref : refs )
@@ -294,7 +311,7 @@ public class GraphRenderingOps
 
         Collections.sort( versions );
 
-        if ( versions.size() == 1 )
+        if ( !generateVersionRanges || versions.size() == 1 )
         {
             return versions.get( 0 );
         }

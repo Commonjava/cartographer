@@ -72,6 +72,7 @@ public class PresetSelector
         }
     }
 
+    // TODO: Allow preset like: 'scoped(scope=runtime,managed=true)' by parsing off the '(..)' stuff into the parameter map and using the rest as the key.
     public ProjectRelationshipFilter getPresetFilter( String preset, final String defaultPreset,
                                                       final Map<String, Object> params )
     {
