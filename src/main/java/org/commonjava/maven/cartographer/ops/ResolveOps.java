@@ -373,7 +373,7 @@ public class ResolveOps
         DiscoveryConfig config;
         try
         {
-            config = recipe.getDiscoveryConfig();
+            config = recipe.buildDiscoveryConfig();
         }
         catch ( final URISyntaxException e )
         {
@@ -413,11 +413,11 @@ public class ResolveOps
                 final GraphDescription graphDesc = graphs.getGraphs()
                                                          .get( 0 );
 
-                final ProjectVersionRef[] roots = graphDesc.getRootsArray();
+                final ProjectVersionRef[] roots = graphDesc.rootsArray();
 
                 // TODO: Do we need to resolve specific versions for these roots?
                 final ViewParams params =
-                    new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( recipe.buildFilter( graphDesc.getFilter() ) )
+                    new ViewParams.Builder( recipe.getWorkspaceId(), roots ).withFilter( recipe.buildFilter( graphDesc.filter() ) )
                                                                             .withMutator( new ManagedDependencyMutator() )
                                                                             .withSelections( injectedDepMgmt )
                                                                             .build();
@@ -553,11 +553,11 @@ public class ResolveOps
 
         for ( final GraphDescription desc : recipe.getGraphComposition() )
         {
-            final ProjectVersionRef[] rootsArray = desc.getRootsArray();
+            final ProjectVersionRef[] rootsArray = desc.rootsArray();
 
             final ViewParams params =
                 resolve( recipe.getWorkspaceId(),
-                         new DefaultAggregatorOptions( options, recipe.buildFilter( desc.getFilter() ) ), false,
+                         new DefaultAggregatorOptions( options, recipe.buildFilter( desc.filter() ) ), false,
                          injectedDepMgmt, rootsArray );
 
             RelationshipGraph graph = null;

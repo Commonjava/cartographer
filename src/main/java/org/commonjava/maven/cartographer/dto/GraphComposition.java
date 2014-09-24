@@ -18,6 +18,8 @@ import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class GraphComposition
     implements Iterable<GraphDescription>
 {
@@ -60,18 +62,13 @@ public class GraphComposition
     {
         for ( final GraphDescription graph : getGraphs() )
         {
-            if ( graph.getFilter() == null )
+            if ( graph.filter() == null )
             {
                 final ProjectRelationshipFilter filter =
                     presets.getPresetFilter( graph.getPreset(), defaultPreset, graph.getPresetParams() );
                 graph.setFilter( filter );
             }
         }
-    }
-
-    public boolean isEmpty()
-    {
-        return graphs == null || graphs.isEmpty();
     }
 
     @Override
@@ -102,7 +99,8 @@ public class GraphComposition
                                            .iterator() : graphs.iterator();
     }
 
-    public boolean isValid()
+    @JsonIgnore
+    public boolean valid()
     {
         return graphs != null && !graphs.isEmpty();
     }
@@ -110,5 +108,49 @@ public class GraphComposition
     public int size()
     {
         return graphs == null ? 0 : graphs.size();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( calculation == null ) ? 0 : calculation.hashCode() );
+        result = prime * result + ( ( graphs == null ) ? 0 : graphs.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final GraphComposition other = (GraphComposition) obj;
+        if ( calculation != other.calculation )
+        {
+            return false;
+        }
+        if ( graphs == null )
+        {
+            if ( other.graphs != null )
+            {
+                return false;
+            }
+        }
+        else if ( !graphs.equals( other.graphs ) )
+        {
+            return false;
+        }
+        return true;
     }
 }

@@ -291,12 +291,12 @@ public class MetadataOps
             final GraphDescription graphDesc = graphs.getGraphs()
                                                      .get( 0 );
 
-            final ProjectVersionRef[] roots = graphDesc.getRootsArray();
+            final ProjectVersionRef[] roots = graphDesc.rootsArray();
             try
             {
                 graph =
                     graphFactory.open( new ViewParams( recipe.getWorkspaceId(),
-                                                       recipe.buildFilter( graphDesc.getFilter() ),
+                                                       recipe.buildFilter( graphDesc.filter() ),
                                                        new ManagedDependencyMutator(), roots ), false );
             }
             catch ( final RelationshipGraphException e )

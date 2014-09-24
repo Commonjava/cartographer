@@ -30,7 +30,7 @@ public class GraphDescription
 
     private String preset;
 
-    private Map<String, Object> presetParams;
+    private Map<String, Object> presetParams = new TreeMap<String, Object>();
 
     private transient ProjectRelationshipFilter filter;
 
@@ -85,12 +85,12 @@ public class GraphDescription
         this.preset = preset;
     }
 
-    public ProjectVersionRef[] getRootsArray()
+    public ProjectVersionRef[] rootsArray()
     {
         return roots == null ? new ProjectVersionRef[0] : roots.toArray( new ProjectVersionRef[roots.size()] );
     }
 
-    public ProjectRelationshipFilter getFilter()
+    public ProjectRelationshipFilter filter()
     {
         return filter;
     }
@@ -128,9 +128,72 @@ public class GraphDescription
         this.roots = new TreeSet<>( view.getRoots() );
     }
 
-    public ViewParams getView()
+    public ViewParams view()
     {
         return view;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( preset == null ) ? 0 : preset.hashCode() );
+        result = prime * result + ( ( presetParams == null ) ? 0 : presetParams.hashCode() );
+        result = prime * result + ( ( roots == null ) ? 0 : roots.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final GraphDescription other = (GraphDescription) obj;
+        if ( preset == null )
+        {
+            if ( other.preset != null )
+            {
+                return false;
+            }
+        }
+        else if ( !preset.equals( other.preset ) )
+        {
+            return false;
+        }
+        if ( presetParams == null )
+        {
+            if ( other.presetParams != null )
+            {
+                return false;
+            }
+        }
+        else if ( !presetParams.equals( other.presetParams ) )
+        {
+            return false;
+        }
+        if ( roots == null )
+        {
+            if ( other.roots != null )
+            {
+                return false;
+            }
+        }
+        else if ( !roots.equals( other.roots ) )
+        {
+            return false;
+        }
+        return true;
     }
 
 }

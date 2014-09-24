@@ -67,10 +67,10 @@ public class CalculationOps
         {
             try
             {
-                ViewParams params = from.getView();
+                ViewParams params = from.view();
                 if ( params == null )
                 {
-                    params = new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() );
+                    params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
                 }
 
                 firstWeb =
@@ -85,10 +85,10 @@ public class CalculationOps
             }
             try
             {
-                ViewParams params = to.getView();
+                ViewParams params = to.view();
                 if ( params == null )
                 {
-                    params = new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() );
+                    params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
                 }
 
                 secondWeb =
@@ -134,10 +134,10 @@ public class CalculationOps
         {
             try
             {
-                ViewParams params = from.getView();
+                ViewParams params = from.view();
                 if ( params == null )
                 {
-                    params = new ViewParams( workspaceId, from.getFilter(), mutator, from.getRootsArray() );
+                    params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
                 }
 
                 firstWeb =
@@ -152,10 +152,10 @@ public class CalculationOps
             }
             try
             {
-                ViewParams params = to.getView();
+                ViewParams params = to.view();
                 if ( params == null )
                 {
-                    params = new ViewParams( workspaceId, to.getFilter(), mutator, to.getRootsArray() );
+                    params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
                 }
 
                 secondWeb =
@@ -273,10 +273,10 @@ public class CalculationOps
             {
                 try
                 {
-                    ViewParams params = desc.getView();
+                    ViewParams params = desc.view();
                     if ( params == null )
                     {
-                        params = new ViewParams( workspaceId, desc.getFilter(), mutator, desc.getRootsArray() );
+                        params = new ViewParams( workspaceId, desc.filter(), mutator, desc.rootsArray() );
                     }
 
                     graph = graphFactory.open( params, false );

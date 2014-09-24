@@ -61,12 +61,12 @@ public class RepositoryContentRecipe
 
     public Set<String> getMetas()
     {
-        return metas == null ? DEFAULT_METAS : metas;
+        return metas == null || metas.isEmpty() ? DEFAULT_METAS : metas;
     }
 
     public void setMetas( final Set<String> metas )
     {
-        this.metas = new TreeSet<>( metas );
+        this.metas = metas == null || metas.isEmpty() ? null : new TreeSet<>( metas );
     }
 
     public Set<Location> getExcludedSourceLocations()

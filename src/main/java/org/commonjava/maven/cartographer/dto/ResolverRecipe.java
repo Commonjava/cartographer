@@ -67,7 +67,7 @@ public class ResolverRecipe
      * If the source {@link Location} is missing (because {@link ResolverRecipe#setSourceLocation(Location)} hasn't been called), throw {@link CartoDataException}. 
      * Throw {@link URISyntaxException} if the location URI is invalid.
      */
-    public DiscoveryConfig getDiscoveryConfig()
+    public DiscoveryConfig buildDiscoveryConfig()
         throws URISyntaxException, CartoDataException
     {
         if ( sourceLocation == null )
@@ -143,7 +143,7 @@ public class ResolverRecipe
     public boolean isValid()
     {
         return getWorkspaceId() != null && getSourceLocation() != null && graphComposition != null
-            && graphComposition.isValid();
+            && graphComposition.valid();
     }
 
     public void normalize()
