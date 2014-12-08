@@ -105,7 +105,7 @@ public class ResolverRecipe
         {
             if ( !this.patcherIds.contains( id ) )
             {
-                patcherIds.add( id );
+                this.patcherIds.add( id );
             }
         }
     }
