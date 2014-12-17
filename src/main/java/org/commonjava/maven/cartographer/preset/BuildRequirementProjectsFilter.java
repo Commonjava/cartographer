@@ -19,8 +19,10 @@ import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
+import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
+import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.filter.StructuralRelationshipsFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -37,6 +39,8 @@ public class BuildRequirementProjectsFilter
 {
 
     private static final long serialVersionUID = 1L;
+
+    private static transient OrFilter bomOrParentFilter;
 
     private final boolean runtimeOnly;
 
@@ -109,12 +113,22 @@ public class BuildRequirementProjectsFilter
         return result;
     }
 
+    private OrFilter getBomOrParentFilter()
+    {
+        if ( bomOrParentFilter == null )
+        {
+            bomOrParentFilter = new OrFilter( BomFilter.INSTANCE, ParentFilter.INCLUDE_TERMINAL_PARENTS );
+        }
+        return bomOrParentFilter;
+    }
+
     @Override
     public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {
             case BOM:
+                return getBomOrParentFilter();
             case PARENT:
             {
                 return this;
