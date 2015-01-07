@@ -17,12 +17,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.NoneFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.filter.StructuralRelationshipsFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
@@ -39,9 +38,9 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private static final long serialVersionUID = 1L;
 
-    private static transient OrFilter bomOrParentFilter;
-
     private final ProjectRelationshipFilter filter;
+
+    private final boolean acceptBOMs;
 
     private final boolean acceptManaged;
 
@@ -53,6 +52,7 @@ public class ScopeWithEmbeddedProjectsFilter
 
     public ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged )
     {
+        this.acceptBOMs = true;
         this.scope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
@@ -63,6 +63,7 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
     {
+        this.acceptBOMs = false;
         this.acceptManaged = false;
         this.filter =
             childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
@@ -76,9 +77,13 @@ public class ScopeWithEmbeddedProjectsFilter
     public boolean accept( final ProjectRelationship<?> rel )
     {
         boolean result;
-        if ( rel.getType() == RelationshipType.BOM || rel.getType() == RelationshipType.PARENT )
+        if ( rel.getType() == PARENT )
         {
             result = true;
+        }
+        else if ( rel.getType() == BOM )
+        {
+            result = acceptBOMs;
         }
         else if ( !acceptManaged && rel.isManaged() )
         {
@@ -99,22 +104,13 @@ public class ScopeWithEmbeddedProjectsFilter
         return result;
     }
 
-    private OrFilter getBomOrParentFilter()
-    {
-        if ( bomOrParentFilter == null )
-        {
-            bomOrParentFilter = new OrFilter( BomFilter.INSTANCE, ParentFilter.INCLUDE_TERMINAL_PARENTS );
-        }
-        return bomOrParentFilter;
-    }
-    
     @Override
     public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {
             case BOM:
-                return getBomOrParentFilter();
+                return StructuralRelationshipsFilter.INSTANCE;
             case PARENT:
             {
                 return this;
@@ -179,6 +175,8 @@ public class ScopeWithEmbeddedProjectsFilter
 
             sb.append( ",acceptManaged:" )
               .append( acceptManaged )
+              .append( ",acceptBOMs:" )
+              .append( acceptBOMs )
               .append( ")" );
 
             longId = sb.toString();
@@ -198,6 +196,7 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ( acceptBOMs ? 727 : 733 );
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + filter.hashCode();
         result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
@@ -220,6 +219,10 @@ public class ScopeWithEmbeddedProjectsFilter
             return false;
         }
         final ScopeWithEmbeddedProjectsFilter other = (ScopeWithEmbeddedProjectsFilter) obj;
+        if ( acceptBOMs != other.acceptBOMs )
+        {
+            return false;
+        }
         if ( acceptManaged != other.acceptManaged )
         {
             return false;
@@ -263,7 +266,10 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         final Set<RelationshipType> types = new HashSet<>();
         types.add( PARENT );
-        types.add( BOM );
+        if ( acceptBOMs )
+        {
+            types.add( BOM );
+        }
 
         types.addAll( filter.getAllowedTypes() );
 
