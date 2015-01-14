@@ -19,7 +19,6 @@ import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.filter.BomFilter;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.OrFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
@@ -40,13 +39,13 @@ public class BuildRequirementProjectsFilter
 
     private static final long serialVersionUID = 1L;
 
-    private static transient OrFilter bomOrParentFilter;
-
     private final boolean runtimeOnly;
 
     private final ProjectRelationshipFilter filter;
 
     private final Set<ProjectRef> excludes;
+
+    private final boolean acceptBOMs;
 
     private final boolean acceptManaged;
 
@@ -56,33 +55,45 @@ public class BuildRequirementProjectsFilter
 
     public BuildRequirementProjectsFilter()
     {
-        this.runtimeOnly = false;
-        this.acceptManaged = false;
-        this.filter = null;
-        this.excludes = null;
+        this( false );
     }
 
     public BuildRequirementProjectsFilter( final boolean acceptManaged )
     {
-        this.acceptManaged = acceptManaged;
-        this.runtimeOnly = false;
-        this.filter = null;
-        this.excludes = null;
+        this( acceptManaged, true );
+    }
+
+    public BuildRequirementProjectsFilter( final boolean acceptManaged, final boolean acceptBOMs )
+    {
+        this( false, acceptManaged, acceptBOMs, null, null );
     }
 
     private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged,
-                                            final Set<ProjectRef> excludes )
+                                            final boolean acceptBOMs, final Set<ProjectRef> excludes )
+    {
+        //        logger.info( "Creating filter {}",
+        //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
+        //                                     : "for any artifact" );
+        this( runtimeOnly, acceptManaged, acceptBOMs, excludes, 
+              runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
+                                                                true, excludes ),
+                                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false,
+                                                                true, excludes ) )
+                          : AnyFilter.INSTANCE
+        );
+    }
+
+    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged,
+                                            final boolean acceptBOMs, final Set<ProjectRef> excludes,
+                                            final ProjectRelationshipFilter filter )
     {
         //        logger.info( "Creating filter {}",
         //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
         //                                     : "for any artifact" );
         this.runtimeOnly = runtimeOnly;
+        this.acceptBOMs = acceptBOMs;
         this.acceptManaged = acceptManaged;
-        this.filter =
-            runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
-                                                              true, excludes ),
-                                        new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false,
-                                                              true, excludes ) ) : AnyFilter.INSTANCE;
+        this.filter = filter;
         this.excludes = excludes;
     }
 
@@ -91,9 +102,13 @@ public class BuildRequirementProjectsFilter
     {
         boolean result = false;
 
-        if ( rel.getType() == BOM || rel.getType() == PARENT )
+        if ( rel.getType() == PARENT )
         {
             result = true;
+        }
+        else if ( rel.getType() == BOM )
+        {
+            result = acceptBOMs;
         }
         else if ( !acceptManaged && rel.isManaged() )
         {
@@ -113,22 +128,13 @@ public class BuildRequirementProjectsFilter
         return result;
     }
 
-    private OrFilter getBomOrParentFilter()
-    {
-        if ( bomOrParentFilter == null )
-        {
-            bomOrParentFilter = new OrFilter( BomFilter.INSTANCE, ParentFilter.INCLUDE_TERMINAL_PARENTS );
-        }
-        return bomOrParentFilter;
-    }
-
     @Override
     public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {
             case BOM:
-                return getBomOrParentFilter();
+                return StructuralRelationshipsFilter.INSTANCE;
             case PARENT:
             {
                 return this;
@@ -137,7 +143,7 @@ public class BuildRequirementProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                return new BuildRequirementProjectsFilter( true, false, excludes );
+                return new BuildRequirementProjectsFilter( true, false, false, excludes );
             }
             default:
             {
@@ -167,7 +173,7 @@ public class BuildRequirementProjectsFilter
                 {
                     if ( !DependencyScope.runtime.implies( dr.getScope() ) )
                     {
-                        return StructuralRelationshipsFilter.INSTANCE;
+                        return ParentFilter.INCLUDE_TERMINAL_PARENTS;
                     }
                     else
                     {
@@ -191,7 +197,8 @@ public class BuildRequirementProjectsFilter
 
                 if ( construct )
                 {
-                    return new BuildRequirementProjectsFilter( nextRuntimeOnly, acceptManaged && nextRuntimeOnly, exc );
+                    return new BuildRequirementProjectsFilter( nextRuntimeOnly, acceptManaged && nextRuntimeOnly, false,
+                                                               exc );
                 }
 
                 return this;
@@ -210,6 +217,7 @@ public class BuildRequirementProjectsFilter
     {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ( acceptBOMs ? 727 : 733 );
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + ( ( excludes == null ) ? 0 : excludes.hashCode() );
         result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
@@ -233,6 +241,10 @@ public class BuildRequirementProjectsFilter
             return false;
         }
         final BuildRequirementProjectsFilter other = (BuildRequirementProjectsFilter) obj;
+        if ( acceptBOMs != other.acceptBOMs )
+        {
+            return false;
+        }
         if ( acceptManaged != other.acceptManaged )
         {
             return false;
@@ -289,6 +301,8 @@ public class BuildRequirementProjectsFilter
               .append( new JoinString( ",", excludes ) )
               .append( "},acceptManaged:" )
               .append( acceptManaged )
+              .append( "},acceptBOMs:" )
+              .append( acceptBOMs )
               .append( ")" );
 
             longId = sb.toString();
