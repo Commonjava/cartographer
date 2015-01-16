@@ -4,7 +4,7 @@
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
+ *
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
@@ -61,7 +61,7 @@ public class DistributionPomPatcher
             // TODO: find a way to detect an assembly/distro pom, and turn deps from provided scope to compile scope.
             final String assemblyOnPomProjectPath = join( PATHS, "|" );
 
-            if ( pomView.resolveXPathToNode( assemblyOnPomProjectPath, false ) != null )
+            if ( pomView.resolveXPathToNode( assemblyOnPomProjectPath, false ) == null )
             {
                 return;
             }
