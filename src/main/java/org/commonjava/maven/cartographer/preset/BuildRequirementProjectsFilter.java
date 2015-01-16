@@ -160,7 +160,7 @@ public class BuildRequirementProjectsFilter
                     {
                         exc = new HashSet<ProjectRef>( excludes );
                         exc.addAll( dr.getExcludes() );
-                        construct = exc.equals( dr.getExcludes() );
+                        construct = !exc.equals( dr.getExcludes() );
                     }
                     else
                     {
