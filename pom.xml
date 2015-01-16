@@ -32,7 +32,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.13.7</atlasVersion>
+    <atlasVersion>0.13.8-SNAPSHOT</atlasVersion>
     <galleyVersion>0.6.8</galleyVersion>
   </properties>
 
