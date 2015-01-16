@@ -4,7 +4,7 @@
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
+ *
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
@@ -38,6 +38,10 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private static final long serialVersionUID = 1L;
 
+    private static final boolean DEFAULT_CHILD_ACCEPTBOMS = false;
+
+    private static final boolean DEFAULT_CHILD_ACCEPTMANAGED = false;
+
     private final ProjectRelationshipFilter filter;
 
     private final boolean acceptBOMs;
@@ -63,8 +67,8 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
     {
-        this.acceptBOMs = false;
-        this.acceptManaged = false;
+        this.acceptBOMs = DEFAULT_CHILD_ACCEPTBOMS;
+        this.acceptManaged = DEFAULT_CHILD_ACCEPTMANAGED;
         this.filter =
             childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
                                                                       true, null ),
@@ -136,7 +140,8 @@ public class ScopeWithEmbeddedProjectsFilter
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    if ( filter == NoneFilter.INSTANCE )
+                    if ( acceptBOMs == DEFAULT_CHILD_ACCEPTBOMS && acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED
+                            && filter == NoneFilter.INSTANCE )
                     {
                         return this;
                     }
@@ -146,7 +151,8 @@ public class ScopeWithEmbeddedProjectsFilter
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                if ( nextFilter == filter )
+                if ( acceptBOMs == DEFAULT_CHILD_ACCEPTBOMS && acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED
+                        && nextFilter == filter )
                 {
                     return this;
                 }
