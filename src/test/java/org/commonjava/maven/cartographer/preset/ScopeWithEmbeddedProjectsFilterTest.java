@@ -111,7 +111,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), BOM, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -125,13 +125,13 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
-        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), PARENT );
+        assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>(), BOM, PARENT );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingRuntimeDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingRuntimeDependency()
         throws Exception
     {
         final DependencyRelationship dep =
@@ -141,13 +141,13 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
 
     @Test
-    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAfterTraversingCompileDependency()
+    public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingCompileDependency()
         throws Exception
     {
         final DependencyRelationship dep =
@@ -157,7 +157,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
 
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
