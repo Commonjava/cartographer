@@ -88,7 +88,7 @@ public class BuildRequirementProjectsFilterTest
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -102,7 +102,7 @@ public class BuildRequirementProjectsFilterTest
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -118,7 +118,7 @@ public class BuildRequirementProjectsFilterTest
 
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
@@ -134,7 +134,7 @@ public class BuildRequirementProjectsFilterTest
 
         assertConcreteAcceptance( child, from, src, tgt,
                                   new HashSet<DependencyScope>( Arrays.asList( embedded, runtime, compile ) ),
-                                  DEPENDENCY, PARENT );
+                                  DEPENDENCY, PARENT, BOM );
 
         assertRejectsAllManaged( child, from, src, tgt );
     }
