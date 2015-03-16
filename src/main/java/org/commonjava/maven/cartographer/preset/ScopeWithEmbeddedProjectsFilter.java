@@ -11,6 +11,7 @@
 package org.commonjava.maven.cartographer.preset;
 
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 
 import java.util.HashSet;
@@ -27,6 +28,8 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +45,9 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private final ProjectRelationshipFilter filter;
 
-    private final boolean acceptManaged;
+    private final Set<ProjectRef> excludes;
 
-    private DependencyScope scope;
+    private final boolean acceptManaged;
 
     private transient String longId;
 
@@ -52,23 +55,26 @@ public class ScopeWithEmbeddedProjectsFilter
 
     public ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged )
     {
-        this.scope = scope == null ? DependencyScope.runtime : scope;
+        this( scope, acceptManaged, null );
+    }
+    
+    ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged, Set<ProjectRef> exc )
+    {
+        DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null ),
+            new OrFilter( new DependencyFilter( filterScope, ScopeTransitivity.maven, false, true, true, null ),
                           new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true,
                                                 null ) );
+        this.excludes = exc;
     }
 
-    private ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final ProjectRelationshipFilter childFilter )
+    ScopeWithEmbeddedProjectsFilter( final ProjectRelationshipFilter childFilter, final boolean acceptManaged,
+                                     final Set<ProjectRef> excludes )
     {
-        this.acceptManaged = DEFAULT_CHILD_ACCEPTMANAGED;
-        this.filter =
-            childFilter == null ? new OrFilter( new DependencyFilter( scope, ScopeTransitivity.maven, false, true,
-                                                                      true, null ),
-                                                new DependencyFilter( DependencyScope.embedded,
-                                                                      ScopeTransitivity.maven, false, true, true, null ) )
-                            : childFilter;
+        this.acceptManaged = acceptManaged;
+        this.filter = childFilter;
+        this.excludes = excludes;
     }
 
     @Override
@@ -86,6 +92,11 @@ public class ScopeWithEmbeddedProjectsFilter
         else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
+        }
+        else if ( rel.getType() == DEPENDENCY )
+        {
+            result = ( excludes == null || !excludes.contains( rel.getTarget().asProjectRef() ) )
+                    && filter.accept( rel );
         }
         else
         {
@@ -132,24 +143,45 @@ public class ScopeWithEmbeddedProjectsFilter
                 //                logger.info( "getChildFilter({})", lastRelationship );
 
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
+
                 if ( DependencyScope.test == dr.getScope() || DependencyScope.provided == dr.getScope() )
                 {
-                    if ( acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED && filter == NoneFilter.INSTANCE )
-                    {
-                        return this;
-                    }
-
                     logger.debug( "[FILT-OFFx2]: {}", lastRelationship );
-                    return new ScopeWithEmbeddedProjectsFilter( scope, NoneFilter.INSTANCE );
+                    return StructuralRelationshipsFilter.INSTANCE;
+                }
+                
+                Set<ProjectRef> exc = null;
+                boolean excChanged = false;
+                
+                // if there are new excludes, ALWAYS construct a new child filter.
+                if ( dr.getExcludes() != null && !dr.getExcludes().isEmpty() )
+                {
+                    if ( excludes != null )
+                    {
+                        exc = new HashSet<ProjectRef>( excludes );
+                        exc.addAll( dr.getExcludes() );
+                        excChanged = !exc.equals( excludes );
+                    }
+                    else
+                    {
+                        exc = new HashSet<ProjectRef>( dr.getExcludes() );
+                        excChanged = true;
+                    }
+                }
+                else if ( excludes != null )
+                {
+                    exc = new HashSet<ProjectRef>( excludes );
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                if ( acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED && nextFilter == filter )
+                if ( filter.equals( nextFilter ) && acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED && !excChanged )
                 {
                     return this;
                 }
-
-                return new ScopeWithEmbeddedProjectsFilter( scope, nextFilter );
+                else
+                {
+                    return new ScopeWithEmbeddedProjectsFilter( nextFilter, DEFAULT_CHILD_ACCEPTMANAGED, exc );
+                }
             }
         }
     }
@@ -171,7 +203,9 @@ public class ScopeWithEmbeddedProjectsFilter
                 sb.append( filter.getLongId() );
             }
 
-            sb.append( ",acceptManaged:" )
+            sb.append( ",excludes:{" )
+              .append( new JoinString( ",", excludes ) )
+              .append( "},acceptManaged:" )
               .append( acceptManaged )
               .append( ")" );
 
@@ -194,7 +228,6 @@ public class ScopeWithEmbeddedProjectsFilter
         int result = 1;
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + filter.hashCode();
-        result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
         return result;
     }
 
@@ -219,10 +252,6 @@ public class ScopeWithEmbeddedProjectsFilter
             return false;
         }
         if ( !filter.equals( other.filter ) )
-        {
-            return false;
-        }
-        if ( scope != other.scope )
         {
             return false;
         }

@@ -11,6 +11,7 @@
 package org.commonjava.maven.cartographer.preset;
 
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 
 import java.util.HashSet;
@@ -25,6 +26,8 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 
 public class ScopedProjectFilter
     implements ProjectRelationshipFilter
@@ -32,11 +35,13 @@ public class ScopedProjectFilter
 
     private static final long serialVersionUID = 1L;
 
+    private static final boolean DEFAULT_ACCEPTMANAGED = false;
+
     private final ProjectRelationshipFilter filter;
 
-    private final boolean acceptManaged;
+    private final Set<ProjectRef> excludes;
 
-    private final DependencyScope scope;
+    private final boolean acceptManaged;
 
     private transient String longId;
 
@@ -44,23 +49,29 @@ public class ScopedProjectFilter
 
     public ScopedProjectFilter()
     {
-        this( null );
+        this( DependencyScope.runtime, DEFAULT_ACCEPTMANAGED, null );
     }
 
     public ScopedProjectFilter( final DependencyScope scope, final boolean acceptManaged )
     {
-        this.scope = scope == null ? DependencyScope.runtime : scope;
-        this.acceptManaged = acceptManaged;
-        this.filter = new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null );
+        this( scope, acceptManaged, null );
     }
 
-    private ScopedProjectFilter( final ProjectRelationshipFilter childFilter )
+    public ScopedProjectFilter( final DependencyScope scope , final boolean acceptManaged, 
+                                final Set<ProjectRef> excludes )
     {
-        this.scope = DependencyScope.runtime;
-        this.acceptManaged = false;
-        this.filter =
-            childFilter == null ? new DependencyFilter( this.scope, ScopeTransitivity.maven, false, true, true, null )
-                            : childFilter;
+        DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
+        this.acceptManaged = acceptManaged;
+        this.filter = new DependencyFilter( filterScope, ScopeTransitivity.maven, false, true, true, null );
+        this.excludes = excludes;
+    }
+
+    ScopedProjectFilter( final ProjectRelationshipFilter childFilter, final boolean acceptManaged,
+                         final Set<ProjectRef> excludes )
+    {
+        this.acceptManaged = acceptManaged;
+        this.filter = childFilter;
+        this.excludes = excludes;
     }
 
     @Override
@@ -68,13 +79,22 @@ public class ScopedProjectFilter
     {
         boolean result = false;
 
-        if ( rel.getType() == RelationshipType.BOM || rel.getType() == RelationshipType.PARENT )
+        if ( rel.getType() == PARENT )
+        {
+            result = true;
+        }
+        else if ( rel.getType() == BOM )
         {
             result = true;
         }
         else if ( !acceptManaged && rel.isManaged() )
         {
             result = false;
+        }
+        else if ( rel.getType() == DEPENDENCY )
+        {
+            result = ( excludes == null || !excludes.contains( rel.getTarget().asProjectRef() ) )
+                    && filter.accept( rel );
         }
         else
         {
@@ -93,6 +113,7 @@ public class ScopedProjectFilter
         switch ( lastRelationship.getType() )
         {
             case BOM:
+                return StructuralRelationshipsFilter.INSTANCE;
             case PARENT:
             {
                 return this;
@@ -113,13 +134,34 @@ public class ScopedProjectFilter
                     return StructuralRelationshipsFilter.INSTANCE;
                 }
 
-                final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                if ( nextFilter == filter )
+                Set<ProjectRef> exc = null;
+                boolean excChanged = false;
+
+                // if there are new excludes, ALWAYS construct a new child filter.
+                if ( dr.getExcludes() != null && !dr.getExcludes()
+                                                    .isEmpty() )
                 {
-                    return this;
+                    if ( excludes != null )
+                    {
+                        exc = new HashSet<ProjectRef>( excludes );
+                        exc.addAll( dr.getExcludes() );
+                        excChanged = !exc.equals( excludes );
+                    }
+                    else
+                    {
+                        exc = new HashSet<ProjectRef>( dr.getExcludes() );
+                        excChanged = true;
+                    }
                 }
 
-                return new ScopedProjectFilter( nextFilter );
+                final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
+                boolean construct = excChanged || acceptManaged != DEFAULT_ACCEPTMANAGED || nextFilter != filter;
+                if ( construct )
+                {
+                    return new ScopedProjectFilter( nextFilter, DEFAULT_ACCEPTMANAGED, exc );
+                }
+
+                return this;
             }
         }
     }
@@ -134,7 +176,9 @@ public class ScopedProjectFilter
 
             sb.append( filter.getLongId() );
 
-            sb.append( ",acceptManaged:" )
+            sb.append( ",excludes:{" )
+              .append( new JoinString( ",", excludes ) )
+              .append( "},acceptManaged:" )
               .append( acceptManaged )
               .append( ")" );
 
@@ -157,7 +201,6 @@ public class ScopedProjectFilter
         int result = 1;
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + filter.hashCode();
-        result = prime * result + ( ( scope == null ) ? 0 : scope.hashCode() );
         return result;
     }
 
@@ -182,10 +225,6 @@ public class ScopedProjectFilter
             return false;
         }
         if ( !filter.equals( other.filter ) )
-        {
-            return false;
-        }
-        if ( scope != other.scope )
         {
             return false;
         }

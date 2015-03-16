@@ -11,6 +11,7 @@
 package org.commonjava.maven.cartographer.preset;
 
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.BOM;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipType.DEPENDENCY;
 import static org.commonjava.maven.atlas.graph.rel.RelationshipType.PARENT;
 
 import java.util.Arrays;
@@ -18,17 +19,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
-import org.commonjava.maven.atlas.graph.filter.OrFilter;
-import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.filter.StructuralRelationshipsFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 
@@ -38,10 +34,6 @@ public class BuildRequirementProjectsFilter
 {
 
     private static final long serialVersionUID = 1L;
-
-    private final boolean runtimeOnly;
-
-    private final ProjectRelationshipFilter filter;
 
     private final Set<ProjectRef> excludes;
 
@@ -58,33 +50,12 @@ public class BuildRequirementProjectsFilter
 
     public BuildRequirementProjectsFilter( final boolean acceptManaged )
     {
-        this( false, acceptManaged, null, null );
+        this( acceptManaged, null );
     }
 
-    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged,
-                                            final Set<ProjectRef> excludes )
+    public BuildRequirementProjectsFilter( final boolean acceptManaged , Set<ProjectRef> excludes  )
     {
-        //        logger.info( "Creating filter {}",
-        //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
-        //                                     : "for any artifact" );
-        this( runtimeOnly, acceptManaged, excludes,
-              runtimeOnly ? new OrFilter( new DependencyFilter( DependencyScope.runtime, ScopeTransitivity.maven, false,
-                                                                true, excludes ),
-                                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false,
-                                                                true, excludes ) )
-                          : AnyFilter.INSTANCE
-        );
-    }
-
-    private BuildRequirementProjectsFilter( final boolean runtimeOnly, final boolean acceptManaged,
-                                            final Set<ProjectRef> excludes, final ProjectRelationshipFilter filter )
-    {
-        //        logger.info( "Creating filter {}",
-        //                     runtimeOnly ? "for runtime artifacts ONLY - only dependencies in the runtime/compile scope."
-        //                                     : "for any artifact" );
-        this.runtimeOnly = runtimeOnly;
         this.acceptManaged = acceptManaged;
-        this.filter = filter;
         this.excludes = excludes;
     }
 
@@ -105,12 +76,15 @@ public class BuildRequirementProjectsFilter
         {
             result = false;
         }
-        else
+        else if ( rel.getType() == DEPENDENCY )
         {
             result =
                 ( excludes == null || !excludes.contains( rel.getTarget()
-                                                             .asProjectRef() ) )
-                    && ( filter == null || filter.accept( rel ) );
+                                                             .asProjectRef() ) );
+        }
+        else
+        {
+            result = true;
         }
 
         //        logger.info( "{}: accept({})", Boolean.toString( result )
@@ -134,14 +108,13 @@ public class BuildRequirementProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                return new BuildRequirementProjectsFilter( true, false, excludes );
+                return new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, false );
             }
             default:
             {
                 final DependencyRelationship dr = (DependencyRelationship) lastRelationship;
 
                 Set<ProjectRef> exc = null;
-                boolean construct = false;
 
                 // if there are new excludes, ALWAYS construct a new child filter.
                 if ( dr.getExcludes() != null && !dr.getExcludes()
@@ -151,50 +124,18 @@ public class BuildRequirementProjectsFilter
                     {
                         exc = new HashSet<ProjectRef>( excludes );
                         exc.addAll( dr.getExcludes() );
-                        construct = !exc.equals( dr.getExcludes() );
                     }
                     else
                     {
-                        construct = true;
+                        exc = new HashSet<ProjectRef>( dr.getExcludes() );
                     }
                 }
-
-                boolean nextRuntimeOnly = runtimeOnly;
-
-                // runtimeOnly => runtime scope ...include only runtime ...return THIS
-                // runtimeOnly => test scope  ...exclude all
-                if ( runtimeOnly )
+                else if ( excludes != null )
                 {
-                    if ( !DependencyScope.runtime.implies( dr.getScope() ) )
-                    {
-                        return ParentFilter.INCLUDE_TERMINAL_PARENTS;
-                    }
-                    else
-                    {
-                        // defer to the excludes calculation above...
-                    }
-                }
-                // !runtimeOnly => test scope ...include only runtime
-                // !runtimeOnly => runtime scope ...include all ...return THIS
-                else
-                {
-                    if ( !DependencyScope.runtime.implies( dr.getScope() ) )
-                    {
-                        nextRuntimeOnly = true;
-                        construct = true;
-                    }
-                    else
-                    {
-                        // defer to excludes
-                    }
+                    exc = new HashSet<ProjectRef>( excludes );
                 }
 
-                if ( construct )
-                {
-                    return new BuildRequirementProjectsFilter( nextRuntimeOnly, acceptManaged && nextRuntimeOnly, exc );
-                }
-
-                return this;
+                return new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, acceptManaged, exc );
             }
         }
     }
@@ -212,8 +153,6 @@ public class BuildRequirementProjectsFilter
         int result = 1;
         result = prime * result + ( acceptManaged ? 1231 : 1237 );
         result = prime * result + ( ( excludes == null ) ? 0 : excludes.hashCode() );
-        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
-        result = prime * result + ( runtimeOnly ? 1231 : 1237 );
         return result;
     }
 
@@ -248,21 +187,6 @@ public class BuildRequirementProjectsFilter
         {
             return false;
         }
-        if ( filter == null )
-        {
-            if ( other.filter != null )
-            {
-                return false;
-            }
-        }
-        else if ( !filter.equals( other.filter ) )
-        {
-            return false;
-        }
-        if ( runtimeOnly != other.runtimeOnly )
-        {
-            return false;
-        }
         return true;
     }
 
@@ -272,20 +196,9 @@ public class BuildRequirementProjectsFilter
         if ( longId == null )
         {
             final StringBuilder sb = new StringBuilder();
-            sb.append( "Build-Requires(sub-filter:" );
+            sb.append( "Build-Requires(" );
 
-            if ( filter == null )
-            {
-                sb.append( "none" );
-            }
-            else
-            {
-                sb.append( filter.getLongId() );
-            }
-
-            sb.append( ",runtimeOnly:" )
-              .append( runtimeOnly )
-              .append( ",excludes:{" )
+            sb.append( "excludes:{" )
               .append( new JoinString( ",", excludes ) )
               .append( "},acceptManaged:" )
               .append( acceptManaged )
@@ -324,17 +237,7 @@ public class BuildRequirementProjectsFilter
     public Set<RelationshipType> getAllowedTypes()
     {
         final Set<RelationshipType> types = new HashSet<>();
-        types.add( PARENT );
-        types.add( BOM );
-
-        if ( filter != null )
-        {
-            types.addAll( filter.getAllowedTypes() );
-        }
-        else
-        {
-            types.addAll( Arrays.asList( RelationshipType.values() ) );
-        }
+        types.addAll( Arrays.asList( RelationshipType.values() ) );
 
         return types;
     }
