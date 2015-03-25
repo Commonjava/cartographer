@@ -589,10 +589,10 @@ public class ResolveOps
             }
             finally
             {
-                if ( autoClose )
-                {
+                //                if ( autoClose )
+                //                {
                     CartoGraphUtils.closeGraphQuietly( graph );
-                }
+                //                }
             }
         }
 

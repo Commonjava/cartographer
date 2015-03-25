@@ -84,7 +84,7 @@ public class ResolveOpsTest
 
         final List<ProjectRelationship<?>> rels = new ArrayList<ProjectRelationship<?>>();
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, 10 );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
 
         ProjectVersionRef last = null;
         for ( final ProjectVersionRef ref : lineage )
