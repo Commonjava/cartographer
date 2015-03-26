@@ -108,7 +108,7 @@ public class BuildRequirementProjectsFilter
             case PLUGIN:
             case PLUGIN_DEP:
             {
-                return new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, false );
+                return new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, acceptManaged );
             }
             default:
             {

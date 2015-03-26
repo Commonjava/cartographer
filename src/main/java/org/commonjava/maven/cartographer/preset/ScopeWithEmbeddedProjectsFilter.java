@@ -41,8 +41,6 @@ public class ScopeWithEmbeddedProjectsFilter
 
     private static final long serialVersionUID = 1L;
 
-    private static final boolean DEFAULT_CHILD_ACCEPTMANAGED = false;
-
     private final ProjectRelationshipFilter filter;
 
     private final Set<ProjectRef> excludes;
@@ -174,13 +172,13 @@ public class ScopeWithEmbeddedProjectsFilter
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                if ( filter.equals( nextFilter ) && acceptManaged == DEFAULT_CHILD_ACCEPTMANAGED && !excChanged )
+                if ( filter.equals( nextFilter ) && !excChanged )
                 {
                     return this;
                 }
                 else
                 {
-                    return new ScopeWithEmbeddedProjectsFilter( nextFilter, DEFAULT_CHILD_ACCEPTMANAGED, exc );
+                    return new ScopeWithEmbeddedProjectsFilter( nextFilter, acceptManaged, exc );
                 }
             }
         }

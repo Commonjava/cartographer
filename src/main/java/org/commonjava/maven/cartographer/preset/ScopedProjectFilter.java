@@ -49,7 +49,7 @@ public class ScopedProjectFilter
 
     public ScopedProjectFilter()
     {
-        this( DependencyScope.runtime, DEFAULT_ACCEPTMANAGED, null );
+        this( DependencyScope.runtime, DEFAULT_ACCEPTMANAGED );
     }
 
     public ScopedProjectFilter( final DependencyScope scope, final boolean acceptManaged )
@@ -155,10 +155,10 @@ public class ScopedProjectFilter
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                boolean construct = excChanged || acceptManaged != DEFAULT_ACCEPTMANAGED || nextFilter != filter;
+                boolean construct = excChanged || nextFilter != filter;
                 if ( construct )
                 {
-                    return new ScopedProjectFilter( nextFilter, DEFAULT_ACCEPTMANAGED, exc );
+                    return new ScopedProjectFilter( nextFilter, acceptManaged, exc );
                 }
 
                 return this;
