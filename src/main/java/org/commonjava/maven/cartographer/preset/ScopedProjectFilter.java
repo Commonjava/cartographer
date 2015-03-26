@@ -155,7 +155,7 @@ public class ScopedProjectFilter
                 }
 
                 final ProjectRelationshipFilter nextFilter = filter.getChildFilter( lastRelationship );
-                boolean construct = excChanged || nextFilter != filter;
+                boolean construct = excChanged || filter.equals( nextFilter );
                 if ( construct )
                 {
                     return new ScopedProjectFilter( nextFilter, acceptManaged, exc );
