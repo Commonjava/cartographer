@@ -28,6 +28,7 @@ import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
@@ -41,6 +42,7 @@ import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.ParentView;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
+import org.commonjava.maven.galley.maven.model.view.ProjectRefView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -523,10 +525,27 @@ public class MavenModelProcessor
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
 
+                    Set<ProjectRefView> exclusionsView = dep.getExclusions();
+                    ProjectRef[] excludes;
+                    if ( exclusionsView != null && !exclusionsView.isEmpty() )
+                    {
+                        excludes = new ProjectRef[exclusionsView.size()];
+                        int i = 0;
+                        for ( ProjectRefView exclusionView : exclusionsView )
+                        {
+                            excludes[i] = exclusionView.asProjectRef();
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        excludes = new ProjectRef[0];
+                    }
+
                     builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef,
                                                                           dep.getScope(),
                                                                           builder.getNextDependencyIndex( managed ),
-                                                                          managed ) );
+                                                                          managed, excludes ) );
                 }
                 catch ( final InvalidRefException e )
                 {
