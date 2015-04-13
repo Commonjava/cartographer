@@ -20,7 +20,7 @@
 
   <groupId>org.commonjava.maven.cartographer</groupId>
   <artifactId>cartographer</artifactId>
-  <version>0.8.2-SNAPSHOT</version>
+  <version>0.8.2</version>
 
   <name>Cartographer Project-Discovery API</name>
   
@@ -28,7 +28,7 @@
     <connection>scm:git:http://jdcasey@github.com/jdcasey/cartographer.git</connection>
     <developerConnection>scm:git:git@github.com:jdcasey/cartographer.git</developerConnection>
     <url>http://github.com/jdcasey/cartographer</url>
-    <tag>HEAD</tag>
+    <tag>cartographer-0.8.2</tag>
   </scm>
   
   <properties>
