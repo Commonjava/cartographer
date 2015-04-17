@@ -106,7 +106,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>13</version>
+        <version>16-SNAPSHOT</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

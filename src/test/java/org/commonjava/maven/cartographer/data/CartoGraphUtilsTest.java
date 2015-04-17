@@ -100,7 +100,7 @@ public class CartoGraphUtilsTest
         nfc = new MemoryNotFoundCache();
 
         final CacheProvider cacheProvider =
-            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
+            new FileCacheProvider( temp.newFolder(), new HashedLocationPathGenerator(),
                                    provider.getFileEventManager(), provider.getTransferDecorator() );
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
