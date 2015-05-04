@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -336,13 +337,17 @@ public class ResolveOps
         }
 
         // TODO: timeout with loop...
-        try
+        while ( latch.getCount() > 0 )
         {
-            latch.await();
-        }
-        catch ( final InterruptedException e )
-        {
-            logger.error( "Abandoning repo-content assembly for: {}", recipe );
+            logger.info( "Waiting for {} more content-collection threads to complete.", latch.getCount() );
+            try
+            {
+                latch.await( 2, TimeUnit.SECONDS );
+            }
+            catch ( final InterruptedException e )
+            {
+                logger.error( "Abandoning repo-content assembly for: {}", recipe );
+            }
         }
 
         return collectors;

@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -226,14 +227,18 @@ public class DefaultGraphAggregator
             executor.execute( runnable );
         }
 
-        try
+        while ( latch.getCount() > 0 )
         {
-            latch.await();
-        }
-        catch ( final InterruptedException e )
-        {
-            logger.error( "Interrupted on subgraph discovery." );
-            return null;
+            logger.info( "Waiting for {} more discovery threads to complete", latch.getCount() );
+            try
+            {
+                latch.await( 2, TimeUnit.SECONDS );
+            }
+            catch ( final InterruptedException e )
+            {
+                logger.error( "Interrupted on subgraph discovery." );
+                return null;
+            }
         }
 
         return runnables;

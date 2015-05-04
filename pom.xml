@@ -22,27 +22,27 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>7-SNAPSHOT</version>
+    <version>7</version>
   </parent>
 
   <groupId>org.commonjava.maven.cartographer</groupId>
   <artifactId>cartographer</artifactId>
-  <version>0.8.3-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
 
   <name>Cartographer Project-Discovery API</name>
   <inceptionYear>2013</inceptionYear>
   
   <scm>
-    <connection>scm:git:http://jdcasey@github.com/jdcasey/cartographer.git</connection>
-    <developerConnection>scm:git:git@github.com:jdcasey/cartographer.git</developerConnection>
-    <url>http://github.com/jdcasey/cartographer</url>
+    <connection>scm:git:https://github.com/Commonjava/cartographer.git</connection>
+    <developerConnection>scm:git:git@github.com:Commonjava/cartographer.git</developerConnection>
+    <url>http://github.com/Commonjava/cartographer</url>
     <tag>HEAD</tag>
   </scm>
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <atlasVersion>0.13.9-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.8-SNAPSHOT</galleyVersion>
+    <atlasVersion>0.14.0</atlasVersion>
+    <galleyVersion>0.8</galleyVersion>
   </properties>
 
   <dependencyManagement>
