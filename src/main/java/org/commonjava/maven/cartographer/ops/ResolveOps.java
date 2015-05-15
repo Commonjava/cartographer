@@ -36,7 +36,11 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
+import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
+import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -351,6 +355,90 @@ public class ResolveOps
         }
 
         return collectors;
+    }
+
+    /**
+     * Lists all paths leading from roots defined in recipe to target projects for the configured graph composition.
+     *
+     * @param recipe the graph recipe
+     * @param targets the set of target projects
+     * @return the list of paths, each path is a list of project relationships
+     */
+    public List<List<ProjectRelationship<ProjectVersionRef>>> resolvePaths( final RepositoryContentRecipe recipe, 
+                                                                            final Set<ProjectRef> targets )
+        throws CartoDataException
+    {
+        final List<List<ProjectRelationship<ProjectVersionRef>>> discoveredPaths = new ArrayList<>();
+
+        final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = new HashMap<ProjectRef, ProjectVersionRef>();
+        final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
+        if ( injectedBOMs != null )
+        {
+            List<? extends Location> locations;
+            try
+            {
+                locations = initDiscoveryLocations( recipe.buildDiscoveryConfig() );
+            }
+            catch ( URISyntaxException ex )
+            {
+                throw new CartoDataException( "Invalid discovery source URI: '{}'. Reason: {}", ex,
+                                              recipe.getSourceLocation().getUri(), ex.getMessage() );
+            }
+            readDepMgmtToVersionMap( injectedBOMs, locations, injectedDepMgmt );
+        }
+
+        List<GraphDescription> graphs;
+        GraphComposition graphComposition = recipe.getGraphComposition();
+        if ( recipe.isResolve() )
+        {
+            final boolean hasCalculation = graphComposition != null && graphComposition.size() > 1;
+            graphs = resolve( recipe, !hasCalculation, injectedDepMgmt ).getGraphs();
+        }
+        else
+        {
+            graphs = graphComposition.getGraphs();
+        }
+
+        for ( GraphDescription gd : graphs )
+        {
+            ProjectRelationshipFilter filter = gd.filter();
+
+            final Set<ProjectVersionRef> roots = gd.getRoots();
+
+            final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), roots )
+                                                    .withFilter( filter )
+                                                    .withMutator( new ManagedDependencyMutator() )
+                                                    .withSelections( injectedDepMgmt )
+                                                    .build();
+
+            final RelationshipGraph graph;
+            try
+            {
+                graph = graphFactory.open( params, false );
+            }
+            catch ( RelationshipGraphException ex )
+            {
+                throw new CartoDataException( "Failed to open the graph: " + ex.getMessage(), ex );
+            }
+
+            PathsTraversal paths = new PathsTraversal( filter, targets );
+            try
+            {
+                graph.traverse( paths, TraversalType.depth_first );
+            }
+            catch ( RelationshipGraphException ex )
+            {
+                throw new CartoDataException( "Failed to traverse the graph (find paths): " + ex.getMessage(), ex );
+            }
+
+            for (List<ProjectRelationship<?>> discoveredPath : paths.getDiscoveredPaths())
+            {
+                List<ProjectRelationship<ProjectVersionRef>> typed = (List) discoveredPath;
+                discoveredPaths.add( typed );
+            }
+        }
+
+        return discoveredPaths;
     }
 
     /**

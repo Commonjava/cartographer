@@ -489,7 +489,7 @@ public class DefaultGraphAggregator
 
         final Set<ProjectVersionRef> initialIncomplete = graph.getIncompleteSubgraphs();
 
-        logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n ", initialIncomplete ),
+        logger.info( "Finding paths to:\n  {} \n\nfrom:\n  {}\n\n", new JoinString( "\n  ", initialIncomplete ),
                      new JoinString( "\n  ", graph.getRoots() ) );
 
         if ( initialIncomplete == null || initialIncomplete.isEmpty() )
