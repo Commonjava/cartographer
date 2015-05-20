@@ -2,5 +2,5 @@ language: java
 
 script: 
   - 'echo ${TRAVIS_PULL_REQUEST}'
-  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn deploy  -s ./travis-settings.xml -V -Prun-its -B -e || echo "Entering PR build"'
-  - '[ "${TRAVIS_PULL_REQUEST}" != "false" ] && mvn install -s ./travis-settings.xml -V -Prun-its -B -e'
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn deploy  -s ./travis-settings.xml -V -Prun-its -B -e || echo "Entering PR Build."'
+  - '[ "${TRAVIS_PULL_REQUEST}" != "false" ] && mvn install -s ./travis-settings.xml -V -Prun-its -B -e || echo "Non-PR Build Complete."'
