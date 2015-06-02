@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>8-SNAPSHOT</version>
+    <version>8</version>
   </parent>
 
   <groupId>org.commonjava.maven.cartographer</groupId>
@@ -42,7 +42,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.14.0</atlasVersion>
-    <galleyVersion>0.8.1-SNAPSHOT</galleyVersion>
+    <galleyVersion>0.8.1</galleyVersion>
   </properties>
 
   <dependencyManagement>
