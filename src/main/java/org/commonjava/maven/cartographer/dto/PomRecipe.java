@@ -17,15 +17,23 @@ package org.commonjava.maven.cartographer.dto;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
-public class BomRecipe
+public class PomRecipe
     extends RepositoryContentRecipe
 {
 
-    private ProjectVersionRef output;
-
     private boolean generateVersionRanges;
 
-    public BomRecipe()
+    private ProjectVersionRef output;
+
+    /**
+     * Flag saying that all the deps from dependency graph should be placed in
+     * the dependencyManagement section. If false standard dependencies section
+     * will be used.
+     */
+    private boolean graphToManagedDeps;
+
+
+    public PomRecipe()
     {
     }
 
@@ -47,6 +55,27 @@ public class BomRecipe
     public void setOutput( final ProjectVersionRef outputGav )
     {
         this.output = outputGav;
+    }
+
+    /**
+     * @return the flag saying that all the deps from dependency graph should be
+     *         placed in the dependencyManagement section. If false standard
+     *         dependencies section will be used.
+     */
+    public boolean isGraphToManagedDeps()
+    {
+        return graphToManagedDeps;
+    }
+
+    /**
+     * @param graphToManagedDeps
+     *            the flag saying that all the deps from dependency graph should
+     *            be placed in the dependencyManagement section. If false
+     *            standard dependencies section will be used
+     */
+    public void setGraphToManagedDeps( boolean graphToManagedDeps )
+    {
+        this.graphToManagedDeps = graphToManagedDeps;
     }
 
 }
