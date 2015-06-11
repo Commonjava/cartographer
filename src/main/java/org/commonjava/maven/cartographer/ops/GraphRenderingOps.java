@@ -254,6 +254,7 @@ public class GraphRenderingOps
         final ProjectVersionRef pomCoord = dto.getOutput();
 
         final Model model = new Model();
+        model.setModelVersion( "4.0.0" );
         model.setGroupId( pomCoord.getGroupId() );
         model.setArtifactId( pomCoord.getArtifactId() );
         model.setVersion( ( (SingleVersion) pomCoord.getVersionSpec() ).renderStandard() );
