@@ -82,9 +82,12 @@ import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
+import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CartographerBuilder
 {
@@ -126,7 +129,7 @@ public class CartographerBuilder
 
     private ArtifactMetadataManager artifactMetadataManager;
 
-    private HttpImpl http;
+    private Http http;
 
     private GlobalHttpConfiguration globalHttpConfig;
 
@@ -208,7 +211,7 @@ public class CartographerBuilder
     public CartographerBuilder withDefaultTransports()
     {
         initHttpComponents();
-        transports.add( new HttpClientTransport( http, globalHttpConfig ) );
+        transports.add( new HttpClientTransport( http, new ObjectMapper(), globalHttpConfig ) );
         transports.add( new FileTransport() );
         transports.add( new ZipJarTransport() );
 
@@ -617,7 +620,7 @@ public class CartographerBuilder
         return artifactMetadataManager;
     }
 
-    public HttpImpl getHttp()
+    public Http getHttp()
     {
         return http;
     }
@@ -725,7 +728,7 @@ public class CartographerBuilder
         return this;
     }
 
-    public CartographerBuilder withHttp( final HttpImpl http )
+    public CartographerBuilder withHttp( final Http http )
     {
         this.http = http;
         return this;
