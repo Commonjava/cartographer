@@ -34,6 +34,8 @@ import javax.inject.Inject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Repository;
+import org.apache.maven.model.RepositoryPolicy;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
@@ -58,7 +60,10 @@ import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.dto.PomRecipe;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
 @ApplicationScoped
 public class GraphRenderingOps
@@ -69,6 +74,9 @@ public class GraphRenderingOps
 
     @Inject
     protected ResolveOps resolveOps;
+
+    @Inject
+    protected LocationExpander locationExpander;
 
     @Inject
     protected RelationshipGraphFactory graphFactory;
@@ -320,6 +328,31 @@ public class GraphRenderingOps
             }
         }
 
+        List<Location> expLocations;
+        Location srcLocation = dto.getSourceLocation();
+        try
+        {
+            expLocations = locationExpander.expand( srcLocation );
+        }
+        catch ( final TransferException ex )
+        {
+            throw new CartoDataException( "Failed to expand locations from " + srcLocation, ex );
+        }
+
+        for ( Location expLocation : expLocations )
+        {
+            Repository repository = new Repository();
+            repository.setId( expLocation.getName().replaceAll( ".*:", "" ) );
+            repository.setUrl( expLocation.getUri() );
+            RepositoryPolicy releasesPolicy = new RepositoryPolicy();
+            releasesPolicy.setEnabled( expLocation.allowsReleases() );
+            repository.setReleases( releasesPolicy );
+            RepositoryPolicy snapshotsPolicy = new RepositoryPolicy();
+            snapshotsPolicy.setEnabled( expLocation.allowsSnapshots() );
+            repository.setSnapshots( snapshotsPolicy );
+            model.addRepository( repository );
+        }
+        
         return model;
     }
 
