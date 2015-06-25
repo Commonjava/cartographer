@@ -42,7 +42,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.14.0</atlasVersion>
-    <galleyVersion>0.8.2-SNAPSHOT</galleyVersion>
+    <galleyVersion>0.9</galleyVersion>
   </properties>
 
   <dependencyManagement>
