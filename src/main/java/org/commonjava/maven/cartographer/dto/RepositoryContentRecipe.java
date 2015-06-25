@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.cartographer.dto;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,8 @@ public class RepositoryContentRecipe
             add( "asc" );
         }
     };
+
+    private static final String NO_METAS = "none";
 
     private boolean multiSourceGAVs;
 
@@ -66,7 +69,18 @@ public class RepositoryContentRecipe
 
     public Set<String> getMetas()
     {
-        return metas == null || metas.isEmpty() ? DEFAULT_METAS : metas;
+        if ( metas == null || metas.isEmpty() )
+        {
+            return DEFAULT_METAS;
+        }
+        else if ( metas.size() == 1 && metas.contains( NO_METAS ) )
+        {
+            return Collections.emptySet();
+        }
+        else
+        {
+            return metas;
+        }
     }
 
     public void setMetas( final Set<String> metas )
