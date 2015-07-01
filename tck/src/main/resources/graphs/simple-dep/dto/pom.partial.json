@@ -1,0 +1,6 @@
+{
+	"graphs" : [{
+	  "roots" : ["org.foo:consumer:1"],
+	  "preset" : "requires"
+	}]
+}
