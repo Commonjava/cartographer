@@ -26,8 +26,9 @@
   </parent>
 
   <groupId>org.commonjava.maven.cartographer</groupId>
-  <artifactId>cartographer</artifactId>
+  <artifactId>cartographer-parent</artifactId>
   <version>0.9.3-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <name>Cartographer Project-Discovery API</name>
   <inceptionYear>2013</inceptionYear>
@@ -42,11 +43,22 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.14.0</atlasVersion>
-    <galleyVersion>0.9</galleyVersion>
+    <galleyVersion>0.9.1-SNAPSHOT</galleyVersion>
   </properties>
+
+  <modules>
+    <module>cartographer</module>
+    <!-- <module>tck</module> -->
+  </modules>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.commonjava.maven.cartographer</groupId>
+        <artifactId>cartographer</artifactId>
+        <version>0.9.3-SNAPSHOT</version>
+      </dependency>
+
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-identities</artifactId>
@@ -134,80 +146,8 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  
+
   <dependencies>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-identities</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-relationships-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-interpolation</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-transport-filearc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-transport-httpclient</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.enterprise</groupId>
-      <artifactId>cdi-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.cdi.util</groupId>
-      <artifactId>weft</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.weld.se</groupId>
-      <artifactId>weld-se-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-neo4j-embedded</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-jung</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-test-harness-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-test-harness-maven</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-maven</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.commonjava.atservice</groupId>
       <artifactId>atservice-annotation</artifactId>
@@ -219,10 +159,6 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
     </dependency>
   </dependencies>
   
