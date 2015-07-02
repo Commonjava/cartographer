@@ -41,6 +41,8 @@ public class GraphDescription
 
     private transient ViewParams view;
 
+    protected transient String defaultPreset;
+
     protected GraphDescription()
     {
     }
@@ -199,6 +201,16 @@ public class GraphDescription
             return false;
         }
         return true;
+    }
+
+    public String getDefaultPreset()
+    {
+        return defaultPreset;
+    }
+
+    public void setDefaultPreset( final String defaultPreset )
+    {
+        this.defaultPreset = defaultPreset;
     }
 
 }

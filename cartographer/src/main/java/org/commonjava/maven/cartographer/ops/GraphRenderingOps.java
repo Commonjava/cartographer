@@ -57,9 +57,10 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoGraphUtils;
-import org.commonjava.maven.cartographer.dto.PomRecipe;
 import org.commonjava.maven.cartographer.dto.GraphCalculation;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.cartographer.dto.PomRecipe;
+import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -81,14 +82,20 @@ public class GraphRenderingOps
     @Inject
     protected RelationshipGraphFactory graphFactory;
 
+    @Inject
+    protected DTOResolver dtoResolver;
+
     protected GraphRenderingOps()
     {
     }
 
-    public GraphRenderingOps( final CalculationOps calcOps, final RelationshipGraphFactory graphFactory )
+    public GraphRenderingOps( final CalculationOps calcOps, final ResolveOps resolveOps,
+                              final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
     {
         this.calcOps = calcOps;
+        this.resolveOps = resolveOps;
         this.graphFactory = graphFactory;
+        this.dtoResolver = dtoResolver;
     }
 
     public void depTree( final RelationshipGraph graph, final boolean collapseTransitives,
@@ -245,10 +252,12 @@ public class GraphRenderingOps
         }
     }
 
-    @SuppressWarnings("null")
+    @SuppressWarnings( "null" )
     public Model generatePOM( final PomRecipe dto )
         throws CartoDataException
     {
+        dtoResolver.resolve( dto );
+
         if ( dto == null )
         {
             return null;
@@ -329,7 +338,7 @@ public class GraphRenderingOps
         }
 
         List<Location> expLocations;
-        Location srcLocation = dto.getSourceLocation();
+        final Location srcLocation = dto.getSourceLocation();
         try
         {
             expLocations = locationExpander.expand( srcLocation );
@@ -339,20 +348,21 @@ public class GraphRenderingOps
             throw new CartoDataException( "Failed to expand locations from " + srcLocation, ex );
         }
 
-        for ( Location expLocation : expLocations )
+        for ( final Location expLocation : expLocations )
         {
-            Repository repository = new Repository();
-            repository.setId( expLocation.getName().replaceAll( ".*:", "" ) );
+            final Repository repository = new Repository();
+            repository.setId( expLocation.getName()
+                                         .replaceAll( ".*:", "" ) );
             repository.setUrl( expLocation.getUri() );
-            RepositoryPolicy releasesPolicy = new RepositoryPolicy();
+            final RepositoryPolicy releasesPolicy = new RepositoryPolicy();
             releasesPolicy.setEnabled( expLocation.allowsReleases() );
             repository.setReleases( releasesPolicy );
-            RepositoryPolicy snapshotsPolicy = new RepositoryPolicy();
+            final RepositoryPolicy snapshotsPolicy = new RepositoryPolicy();
             snapshotsPolicy.setEnabled( expLocation.allowsSnapshots() );
             repository.setSnapshots( snapshotsPolicy );
             model.addRepository( repository );
         }
-        
+
         return model;
     }
 

@@ -40,12 +40,15 @@ import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSuppo
 import org.commonjava.maven.cartographer.discover.post.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.discover.post.patch.DepgraphPatcher;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
+import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
 import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
+import org.commonjava.maven.cartographer.preset.PresetFactory;
+import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
@@ -117,9 +120,13 @@ public class CartographerBuilder
 
     private MavenModelProcessor mavenModelProcessor;
 
+    private DTOResolver dtoResolver;
+
     private final GalleyMavenBuilder mavenBuilder;
 
     private final GalleyMaven maven;
+
+    private PresetSelector presetSelector;
 
     public CartographerBuilder( final GalleyMaven galleyMaven,
                                 final RelationshipGraphConnectionFactory connectionFactory )
@@ -288,24 +295,37 @@ public class CartographerBuilder
             aggregator = new DefaultGraphAggregator( discoverer, aggregatorExecutor );
         }
 
+        if ( presetSelector == null )
+        {
+            presetSelector = new PresetSelector( Arrays.<PresetFactory> asList() );
+        }
+
+        if ( dtoResolver == null )
+        {
+            dtoResolver = new DTOResolver( getLocationResolver(), presetSelector );
+        }
+
         final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
 
-        final CalculationOps calculationOps = new CalculationOps( graphFactory );
-        final GraphOps graphOps = new GraphOps( graphFactory );
-        final GraphRenderingOps graphRenderingOps = new GraphRenderingOps( calculationOps, graphFactory );
+        final CalculationOps calculationOps = new CalculationOps( graphFactory, dtoResolver );
+
         final ResolveOps resolveOps =
             new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, getArtifactManager(),
-                            resolveExecutor, graphFactory );
+                            resolveExecutor, graphFactory, dtoResolver );
+
+        final GraphOps graphOps = new GraphOps( graphFactory );
+
+        final GraphRenderingOps graphRenderingOps =
+            new GraphRenderingOps( calculationOps, resolveOps, graphFactory, dtoResolver );
 
         final MetadataOps metadataOps =
-            new MetadataOps( getArtifactManager(), getPomReader(), scannerSupport,
-                             sourceManager, resolveOps, calculationOps, graphFactory );
+            new MetadataOps( getArtifactManager(), getPomReader(), scannerSupport, sourceManager, resolveOps,
+                             calculationOps, graphFactory, dtoResolver );
 
         try
         {
             return new Cartographer( maven == null ? mavenBuilder.build() : maven, calculationOps, graphOps,
-                                     graphRenderingOps, metadataOps,
-                                     resolveOps, graphFactory );
+                                     graphRenderingOps, metadataOps, resolveOps, graphFactory );
         }
         catch ( final GalleyInitException e )
         {
@@ -778,6 +798,28 @@ public class CartographerBuilder
     {
         checkMaven();
         mavenBuilder.withAdditionalTransport( transport );
+        return this;
+    }
+
+    public DTOResolver getDtoResolver()
+    {
+        return dtoResolver;
+    }
+
+    public CartographerBuilder withDtoResolver( final DTOResolver dtoResolver )
+    {
+        this.dtoResolver = dtoResolver;
+        return this;
+    }
+
+    public PresetSelector getPresetSelector()
+    {
+        return presetSelector;
+    }
+
+    public CartographerBuilder withPresetSelector( final PresetSelector presetSelector )
+    {
+        this.presetSelector = presetSelector;
         return this;
     }
 }

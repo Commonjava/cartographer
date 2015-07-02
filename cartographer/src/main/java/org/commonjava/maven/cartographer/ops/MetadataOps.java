@@ -45,6 +45,7 @@ import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.MetadataCollation;
 import org.commonjava.maven.cartographer.dto.MetadataCollationRecipe;
+import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -60,6 +61,9 @@ public class MetadataOps
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    @Inject
+    protected DTOResolver dtoResolver;
 
     @Inject
     protected ArtifactManager artifacts;
@@ -89,7 +93,7 @@ public class MetadataOps
     public MetadataOps( final ArtifactManager artifacts, final MavenPomReader pomReader,
                         final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager,
                         final ResolveOps resolver, final CalculationOps calculations,
-                        final RelationshipGraphFactory graphFactory )
+                        final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
     {
         this.artifacts = artifacts;
         this.pomReader = pomReader;
@@ -98,6 +102,7 @@ public class MetadataOps
         this.resolver = resolver;
         this.calculations = calculations;
         this.graphFactory = graphFactory;
+        this.dtoResolver = dtoResolver;
     }
 
     public Map<String, String> getMetadata( final ProjectVersionRef ref, final ViewParams params )
@@ -268,6 +273,7 @@ public class MetadataOps
     public MetadataCollation collate( final MetadataCollationRecipe recipe )
         throws CartoDataException
     {
+        dtoResolver.resolve( recipe );
         resolver.resolve( recipe );
 
         final GraphComposition graphs = recipe.getGraphComposition();

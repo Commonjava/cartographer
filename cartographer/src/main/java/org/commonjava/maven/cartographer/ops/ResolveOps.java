@@ -61,6 +61,7 @@ import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.dto.ResolverRecipe;
+import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
@@ -99,6 +100,9 @@ public class ResolveOps
     protected MavenPomReader pomReader;
 
     @Inject
+    protected DTOResolver dtoResolver;
+
+    @Inject
     @ExecutorConfig( daemon = true, named = "carto-resolve-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
 
@@ -109,7 +113,7 @@ public class ResolveOps
     public ResolveOps( final CalculationOps calculations, final DiscoverySourceManager sourceManager,
                        final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator,
                        final ArtifactManager artifacts, final ExecutorService executor,
-                       final RelationshipGraphFactory graphFactory )
+                       final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
     {
         this.sourceManager = sourceManager;
         this.discoverer = discoverer;
@@ -117,6 +121,7 @@ public class ResolveOps
         this.artifacts = artifacts;
         this.executor = executor;
         this.graphFactory = graphFactory;
+        this.dtoResolver = dtoResolver;
     }
 
     /**
@@ -251,6 +256,8 @@ public class ResolveOps
     public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
         throws CartoDataException
     {
+        dtoResolver.resolve( recipe );
+
         if ( recipe == null || !recipe.isValid() )
         {
             throw new CartoDataException( "Repository content recipe is invalid: {}", recipe );
@@ -368,6 +375,8 @@ public class ResolveOps
                                                                             final Set<ProjectRef> targets )
         throws CartoDataException
     {
+        dtoResolver.resolve( recipe );
+
         final List<List<ProjectRelationship<ProjectVersionRef>>> discoveredPaths = new ArrayList<>();
 
         final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = new HashMap<ProjectRef, ProjectVersionRef>();
@@ -379,7 +388,7 @@ public class ResolveOps
             {
                 locations = initDiscoveryLocations( recipe.buildDiscoveryConfig() );
             }
-            catch ( URISyntaxException ex )
+            catch ( final URISyntaxException ex )
             {
                 throw new CartoDataException( "Invalid discovery source URI: '{}'. Reason: {}", ex,
                                               recipe.getSourceLocation().getUri(), ex.getMessage() );
@@ -388,7 +397,7 @@ public class ResolveOps
         }
 
         List<GraphDescription> graphs;
-        GraphComposition graphComposition = recipe.getGraphComposition();
+        final GraphComposition graphComposition = recipe.getGraphComposition();
         if ( recipe.isResolve() )
         {
             final boolean hasCalculation = graphComposition != null && graphComposition.size() > 1;
@@ -399,9 +408,9 @@ public class ResolveOps
             graphs = graphComposition.getGraphs();
         }
 
-        for ( GraphDescription gd : graphs )
+        for ( final GraphDescription gd : graphs )
         {
-            ProjectRelationshipFilter filter = gd.filter();
+            final ProjectRelationshipFilter filter = gd.filter();
 
             final Set<ProjectVersionRef> roots = gd.getRoots();
 
@@ -416,24 +425,25 @@ public class ResolveOps
             {
                 graph = graphFactory.open( params, false );
             }
-            catch ( RelationshipGraphException ex )
+            catch ( final RelationshipGraphException ex )
             {
                 throw new CartoDataException( "Failed to open the graph: " + ex.getMessage(), ex );
             }
 
-            PathsTraversal paths = new PathsTraversal( filter, targets );
+            final PathsTraversal paths = new PathsTraversal( filter, targets );
             try
             {
                 graph.traverse( paths, TraversalType.depth_first );
             }
-            catch ( RelationshipGraphException ex )
+            catch ( final RelationshipGraphException ex )
             {
                 throw new CartoDataException( "Failed to traverse the graph (find paths): " + ex.getMessage(), ex );
             }
 
-            for (List<ProjectRelationship<?>> discoveredPath : paths.getDiscoveredPaths())
+            for (final List<ProjectRelationship<?>> discoveredPath : paths.getDiscoveredPaths())
             {
-                List<ProjectRelationship<ProjectVersionRef>> typed = (List) discoveredPath;
+                @SuppressWarnings( { "unchecked", "rawtypes" } )
+                final List<ProjectRelationship<ProjectVersionRef>> typed = (List) discoveredPath;
                 discoveredPaths.add( typed );
             }
         }
@@ -458,6 +468,8 @@ public class ResolveOps
         throws CartoDataException
     {
         logger.info( "Building repository for: {}", recipe );
+
+        dtoResolver.resolve( recipe );
 
         recipe.normalize();
         if ( !recipe.isValid() )
@@ -636,6 +648,8 @@ public class ResolveOps
                                      final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt )
         throws CartoDataException
     {
+        dtoResolver.resolve( recipe );
+
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
                                                                    .getUri() );
         if ( sourceUri == null )

@@ -41,6 +41,7 @@ import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphDifference;
+import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 
 @ApplicationScoped
 public class CalculationOps
@@ -49,19 +50,26 @@ public class CalculationOps
     @Inject
     protected RelationshipGraphFactory graphFactory;
 
+    @Inject
+    protected DTOResolver dtoResolver;
+
     protected CalculationOps()
     {
     }
 
-    public CalculationOps( final RelationshipGraphFactory graphFactory )
+    public CalculationOps( final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
     {
         this.graphFactory = graphFactory;
+        this.dtoResolver = dtoResolver;
     }
 
     public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to,
                                                                final String workspaceId )
         throws CartoDataException
     {
+        dtoResolver.resolvePresets( from );
+        dtoResolver.resolvePresets( to );
+
         final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
 
         RelationshipGraph firstWeb = null;
@@ -78,9 +86,7 @@ public class CalculationOps
                     params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
                 }
 
-                firstWeb =
- graphFactory.open( params,
-                                       false );
+                firstWeb = graphFactory.open( params, false );
             }
             catch ( final RelationshipGraphException e )
             {
@@ -96,9 +102,7 @@ public class CalculationOps
                     params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
                 }
 
-                secondWeb =
- graphFactory.open( params,
-                                       false );
+                secondWeb = graphFactory.open( params, false );
             }
             catch ( final RelationshipGraphException e )
             {
@@ -129,6 +133,9 @@ public class CalculationOps
                                                                        final GraphDescription to )
         throws CartoDataException
     {
+        dtoResolver.resolvePresets( from );
+        dtoResolver.resolvePresets( to );
+
         final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
         RelationshipGraph firstWeb = null;
         RelationshipGraph secondWeb = null;
@@ -145,9 +152,7 @@ public class CalculationOps
                     params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
                 }
 
-                firstWeb =
- graphFactory.open( params,
-                                       false );
+                firstWeb = graphFactory.open( params, false );
             }
             catch ( final RelationshipGraphException e )
             {
@@ -163,9 +168,7 @@ public class CalculationOps
                     params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
                 }
 
-                secondWeb =
- graphFactory.open( params,
-                                       false );
+                secondWeb = graphFactory.open( params, false );
             }
             catch ( final RelationshipGraphException e )
             {
@@ -266,6 +269,8 @@ public class CalculationOps
     public GraphCalculation calculate( final GraphComposition composition, final String workspaceId )
         throws CartoDataException
     {
+        dtoResolver.resolvePresets( composition );
+
         Set<ProjectRelationship<?>> result = null;
         Set<ProjectVersionRef> roots = null;
 
