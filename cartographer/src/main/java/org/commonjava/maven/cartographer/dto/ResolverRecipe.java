@@ -27,7 +27,6 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
-import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.galley.model.Location;
 
 public class ResolverRecipe
@@ -41,11 +40,23 @@ public class ResolverRecipe
 
     protected Integer timeoutSecs;
 
+    protected String source;
+
     protected boolean resolve;
 
     protected transient Location sourceLocation;
 
     protected List<ProjectVersionRef> excludedSubgraphs;
+
+    public String getSource()
+    {
+        return source;
+    }
+
+    public void setSource( final String source )
+    {
+        this.source = source;
+    }
 
     public String getWorkspaceId()
     {
@@ -125,14 +136,9 @@ public class ResolverRecipe
         this.graphComposition = graphComposition;
     }
 
-    public void resolveFilters( final PresetSelector presets, final String defaultPreset )
+    public void setDefaultPreset( final String defaultPreset )
     {
-        graphComposition.resolveFilters( presets, defaultPreset );
-    }
-
-    public ResolverRecipe()
-    {
-        super();
+        graphComposition.setDefaultPreset( defaultPreset );
     }
 
     public boolean isResolve()

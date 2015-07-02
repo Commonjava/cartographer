@@ -46,15 +46,29 @@ public class RepositoryContentRecipe
 
     private Set<String> metas;
 
+    private Set<String> excludedSources;
+
     private transient Set<Location> excludedSourceLocations;
     
     private List<ProjectVersionRef> injectedBOMs;
+
+    private boolean localUrls;
 
     @Override
     public String toString()
     {
         return String.format( "RepositoryContentRecipe [graphs=%s, workspaceId=%s, source-location=%s]",
                               graphComposition, workspaceId, getSourceLocation() );
+    }
+
+    public Set<String> getExcludedSources()
+    {
+        return excludedSources;
+    }
+
+    public void setExcludedSources( final Set<String> excludedSources )
+    {
+        this.excludedSources = new TreeSet<String>( excludedSources );
     }
 
     public Set<ExtraCT> getExtras()
@@ -141,6 +155,16 @@ public class RepositoryContentRecipe
         normalize( extras );
         normalize( metas );
         normalize( excludedSourceLocations );
+    }
+
+    public boolean getLocalUrls()
+    {
+        return localUrls;
+    }
+
+    public void setLocalUrls( final boolean localUrls )
+    {
+        this.localUrls = localUrls;
     }
 
 }

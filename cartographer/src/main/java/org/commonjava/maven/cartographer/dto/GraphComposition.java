@@ -19,9 +19,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
-import org.commonjava.maven.cartographer.preset.PresetSelector;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -63,18 +61,17 @@ public class GraphComposition
         this.graphs = graphs;
     }
 
-    public void resolveFilters( final PresetSelector presets, final String defaultPreset )
+    public void setDefaultPreset( final String defaultPreset )
     {
-        for ( final GraphDescription graph : getGraphs() )
+        if ( graphs != null )
         {
-            if ( graph.filter() == null )
+            for ( final GraphDescription graph : graphs )
             {
-                final ProjectRelationshipFilter filter =
-                    presets.getPresetFilter( graph.getPreset(), defaultPreset, graph.getPresetParams() );
-                graph.setFilter( filter );
+                graph.setDefaultPreset( defaultPreset );
             }
         }
     }
+
 
     @Override
     public String toString()
