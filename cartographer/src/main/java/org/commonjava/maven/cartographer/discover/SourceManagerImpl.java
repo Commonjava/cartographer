@@ -20,33 +20,85 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
+import org.commonjava.maven.galley.model.VirtualResource;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-@Named( "default-carto-source-mgr" )
+@Named
 public class SourceManagerImpl
-    implements DiscoverySourceManager
+    implements DiscoverySourceManager, LocationExpander
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    private final Map<String, String> aliases = new HashMap<String, String>();
+
+    /**
+     * Alias the given URL with a new short-handed key for use in various cartographer recipes.
+     * 
+     * @param alias
+     * @param url
+     */
+    public SourceManagerImpl withAlias( final String alias, final String url )
+    {
+        aliases.put( alias, url );
+        return this;
+    }
+
+    /**
+     * Add the aliases given in the {@link Map} object to the current mapping.
+     * 
+     * @param aliases
+     */
+    public SourceManagerImpl withAliases( final Map<String, String> aliases )
+    {
+        this.aliases.putAll( aliases );
+        return this;
+    }
+
+    /**
+     * Add the aliases given in the {@link Properties} object to the current mapping.
+     * 
+     * @param aliases
+     */
+    public SourceManagerImpl withAliases( final Properties aliases )
+    {
+        for ( final Enumeration<?> names = aliases.propertyNames(); names.hasMoreElements(); )
+        {
+            final String name = (String) names.nextElement();
+            this.aliases.put( name, aliases.getProperty( name ) );
+        }
+        return this;
+    }
 
     @Override
     public URI createSourceURI( final String source )
     {
         try
         {
-            return new URL( source ).toURI();
+            final String value = aliases.get( source );
+            final String u = value == null ? source : value;
+            return new URL( u ).toURI();
         }
         catch ( final URISyntaxException e )
         {
@@ -119,16 +171,18 @@ public class SourceManagerImpl
     @Override
     public Location createLocation( final Object source )
     {
-        return new SimpleLocation( source.toString() );
+        final String value = aliases.get( source.toString() );
+        return new SimpleLocation( value == null ? source.toString() : value );
     }
 
     @Override
     public List<? extends Location> createLocations( final Object... sources )
     {
-        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>( sources.length );
+        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>();
         for ( final Object source : sources )
         {
-            locations.add( new SimpleLocation( source.toString() ) );
+            final String value = aliases.get( source.toString() );
+            locations.add( new SimpleLocation( value == null ? source.toString() : value ) );
         }
 
         return locations;
@@ -137,13 +191,97 @@ public class SourceManagerImpl
     @Override
     public List<? extends Location> createLocations( final Collection<Object> sources )
     {
-        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>( sources.size() );
+        final List<SimpleLocation> locations = new ArrayList<SimpleLocation>();
         for ( final Object source : sources )
         {
-            locations.add( new SimpleLocation( source.toString() ) );
+            final String value = aliases.get( source.toString() );
+            locations.add( new SimpleLocation( value == null ? source.toString() : value ) );
         }
 
         return locations;
+    }
+
+    @Override
+    public List<Location> expand( final Location... locations )
+    {
+        logger.debug( "Expanding location array: {}", Arrays.toString( locations ) );
+        final List<Location> result = new ArrayList<Location>();
+        for ( final Location source : locations )
+        {
+            final String value = aliases.get( source.getUri() );
+            if ( value == null )
+            {
+                result.add( source );
+            }
+            else
+            {
+                result.add( new SimpleLocation( value ) );
+            }
+        }
+
+        logger.debug( "Result: {}", result );
+
+        return result;
+    }
+
+    @Override
+    public <T extends Location> List<Location> expand( final Collection<T> locations )
+        throws TransferException
+    {
+        logger.debug( "Expanding location collection: {}", locations );
+        final List<Location> result = new ArrayList<Location>();
+        for ( final Location source : locations )
+        {
+            final String value = aliases.get( source.getUri() );
+            if ( value == null )
+            {
+                result.add( source );
+            }
+            else
+            {
+                result.add( new SimpleLocation( value ) );
+            }
+        }
+
+        logger.debug( "Result: {}", result );
+
+        return result;
+    }
+
+    @Override
+    public VirtualResource expand( final Resource resource )
+        throws TransferException
+    {
+        logger.debug( "Expanding virtual: {}", resource );
+        final List<ConcreteResource> res = new ArrayList<ConcreteResource>();
+        if ( resource instanceof VirtualResource )
+        {
+            final VirtualResource virtual = (VirtualResource) resource;
+            for ( final ConcreteResource concrete : virtual )
+            {
+                res.addAll( expandConcrete( concrete ) );
+            }
+        }
+        else
+        {
+            res.addAll( expandConcrete( (ConcreteResource) resource ) );
+        }
+
+        final VirtualResource result = new VirtualResource( res );
+        logger.debug( "Result: {}", result );
+        return result;
+    }
+
+    private List<ConcreteResource> expandConcrete( final ConcreteResource concrete )
+    {
+        final Location source = concrete.getLocation();
+        final List<ConcreteResource> result = new ArrayList<ConcreteResource>();
+        for ( final Location loc : expand( source ) )
+        {
+            result.add( new ConcreteResource( loc, concrete.getPath() ) );
+        }
+
+        return result;
     }
 
 }

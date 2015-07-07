@@ -42,7 +42,7 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <atlasVersion>0.14.0</atlasVersion>
+    <atlasVersion>0.14.1-SNAPSHOT</atlasVersion>
     <galleyVersion>0.9.1-SNAPSHOT</galleyVersion>
   </properties>
 
@@ -80,6 +80,16 @@
         <artifactId>atlas-driver-jung</artifactId>
         <version>${atlasVersion}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-bindings-jackson-identities</artifactId>
+        <version>${atlasVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-bindings-jackson-relationships</artifactId>
+        <version>${atlasVersion}</version>
       </dependency>
       
       <dependency>
@@ -143,6 +153,11 @@
         <artifactId>atservice-processor</artifactId>
         <version>0.1</version>
         <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>http-testserver</artifactId>
+        <version>1.0-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
