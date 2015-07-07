@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.maven.atlas.graph.ViewParams;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
+@Alternative
 @Named
 public class SourceManagerImpl
     implements DiscoverySourceManager, LocationExpander
