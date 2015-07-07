@@ -28,6 +28,8 @@ import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.galley.maven.GalleyMaven;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @ApplicationScoped
 public class Cartographer
 {
@@ -52,6 +54,9 @@ public class Cartographer
 
     private GalleyMaven galleyMaven;
 
+    @Inject
+    protected ObjectMapper objectMapper;
+
     protected Cartographer()
     {
     }
@@ -59,7 +64,7 @@ public class Cartographer
     public Cartographer( final GalleyMaven galleyMaven, final CalculationOps calculator, final GraphOps grapher,
                          final GraphRenderingOps renderer,
                          final MetadataOps metadata, final ResolveOps resolver,
-                         final RelationshipGraphFactory graphFactory )
+                         final RelationshipGraphFactory graphFactory, final ObjectMapper objectMapper )
     {
         this.galleyMaven = galleyMaven;
         this.calculator = calculator;
@@ -68,6 +73,12 @@ public class Cartographer
         this.metadata = metadata;
         this.resolver = resolver;
         this.graphFactory = graphFactory;
+        this.objectMapper = objectMapper;
+    }
+
+    public ObjectMapper getObjectMapper()
+    {
+        return objectMapper;
     }
 
     public GalleyMaven getGalley()

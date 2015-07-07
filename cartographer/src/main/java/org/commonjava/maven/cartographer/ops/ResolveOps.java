@@ -650,8 +650,10 @@ public class ResolveOps
     {
         dtoResolver.resolve( recipe );
 
+        logger.info( "Initial source location: '{}'", recipe.getSourceLocation() );
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
                                                                    .getUri() );
+
         if ( sourceUri == null )
         {
             throw new CartoDataException( "Invalid source format: '{}'. Use the form: '{}' instead.",

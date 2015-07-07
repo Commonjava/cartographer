@@ -26,7 +26,9 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
+import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.cartographer.agg.DefaultGraphAggregator;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.data.CartoDataException;
@@ -47,8 +49,11 @@ import org.commonjava.maven.cartographer.ops.GraphOps;
 import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
 import org.commonjava.maven.cartographer.ops.MetadataOps;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
+import org.commonjava.maven.cartographer.preset.BuildRequirementProjectsFilterFactory;
 import org.commonjava.maven.cartographer.preset.PresetFactory;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
+import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilterFactory;
+import org.commonjava.maven.cartographer.preset.ScopedProjectFilterFactory;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
@@ -81,11 +86,16 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CartographerBuilder
 {
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
     private int aggregatorThreads = 2;
 
     private int resolverThreads = 10;
@@ -127,6 +137,8 @@ public class CartographerBuilder
     private final GalleyMaven maven;
 
     private PresetSelector presetSelector;
+
+    private ObjectMapper objectMapper;
 
     public CartographerBuilder( final GalleyMaven galleyMaven,
                                 final RelationshipGraphConnectionFactory connectionFactory )
@@ -297,12 +309,21 @@ public class CartographerBuilder
 
         if ( presetSelector == null )
         {
-            presetSelector = new PresetSelector( Arrays.<PresetFactory> asList() );
+            presetSelector =
+                new PresetSelector( Arrays.<PresetFactory> asList( new BuildRequirementProjectsFilterFactory(),
+                                                                   new ScopeWithEmbeddedProjectsFilterFactory(),
+                                                                   new ScopedProjectFilterFactory() ) );
         }
 
         if ( dtoResolver == null )
         {
             dtoResolver = new DTOResolver( getLocationResolver(), presetSelector );
+        }
+
+        if ( objectMapper == null )
+        {
+            objectMapper = new ObjectMapper();
+            withStandardObjectMapperModules();
         }
 
         final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
@@ -325,12 +346,35 @@ public class CartographerBuilder
         try
         {
             return new Cartographer( maven == null ? mavenBuilder.build() : maven, calculationOps, graphOps,
-                                     graphRenderingOps, metadataOps, resolveOps, graphFactory );
+                                     graphRenderingOps, metadataOps, resolveOps, graphFactory, objectMapper );
         }
         catch ( final GalleyInitException e )
         {
             throw new CartoDataException( "Failed to build Galley Maven component: %s", e, e.getMessage() );
         }
+    }
+
+    public CartographerBuilder withStandardObjectMapperModules()
+    {
+        if ( objectMapper == null )
+        {
+            objectMapper = new ObjectMapper();
+        }
+
+        objectMapper.registerModules( new ProjectVersionRefSerializerModule(),
+                                      new ProjectRelationshipSerializerModule() );
+        return this;
+    }
+
+    public CartographerBuilder withObjectMapperModules( final Module... modules )
+    {
+        if ( objectMapper == null )
+        {
+            objectMapper = new ObjectMapper();
+        }
+
+        objectMapper.registerModules( modules );
+        return this;
     }
 
     public MavenModelProcessor getMavenModelProcessor()
@@ -663,6 +707,7 @@ public class CartographerBuilder
     public CartographerBuilder withLocationExpander( final LocationExpander locationExpander )
     {
         checkMaven();
+        logger.debug( "Setting location expander: {}", locationExpander );
         mavenBuilder.withLocationExpander( locationExpander );
         return this;
     }
@@ -820,6 +865,17 @@ public class CartographerBuilder
     public CartographerBuilder withPresetSelector( final PresetSelector presetSelector )
     {
         this.presetSelector = presetSelector;
+        return this;
+    }
+
+    public ObjectMapper getObjectMapper()
+    {
+        return objectMapper;
+    }
+
+    public CartographerBuilder withObjectMapper( final ObjectMapper objectMapper )
+    {
+        this.objectMapper = objectMapper;
         return this;
     }
 }
