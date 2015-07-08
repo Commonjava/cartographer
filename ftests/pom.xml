@@ -25,12 +25,20 @@
     <version>0.9.3-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cartographer-tck</artifactId>
+  <artifactId>cartographer-ftests</artifactId>
+
+  <properties>
+    <test-forkCount>1C</test-forkCount>
+  </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.commonjava.maven.cartographer</groupId>
       <artifactId>cartographer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.cartographer</groupId>
+      <artifactId>cartographer-tck</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -43,21 +51,27 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>http-testserver</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.commonjava.maven.atlas</groupId>
       <artifactId>atlas-driver-neo4j-embedded</artifactId>
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <forkCount>${test-forkCount}</forkCount>
+              <reuseForks>false</reuseForks>
+            <redirectTestOutputToFile>${test-redirectOutput}</redirectTestOutputToFile>
+              <dependenciesToScan>
+                <dependency>org.commonjava.maven.cartographer:cartographer-tck</dependency>
+              </dependenciesToScan> 
+            </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>

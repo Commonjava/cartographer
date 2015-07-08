@@ -337,7 +337,7 @@ public class CartographerBuilder
         final GraphOps graphOps = new GraphOps( graphFactory );
 
         final GraphRenderingOps graphRenderingOps =
-            new GraphRenderingOps( calculationOps, resolveOps, graphFactory, dtoResolver );
+            new GraphRenderingOps( calculationOps, resolveOps, graphFactory, getLocationExpander(), dtoResolver );
 
         final MetadataOps metadataOps =
             new MetadataOps( getArtifactManager(), getPomReader(), scannerSupport, sourceManager, resolveOps,

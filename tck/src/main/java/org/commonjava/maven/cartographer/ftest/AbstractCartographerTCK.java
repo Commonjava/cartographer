@@ -1,0 +1,166 @@
+package org.commonjava.maven.cartographer.ftest;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Model;
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.cartographer.Cartographer;
+import org.commonjava.maven.galley.util.PathUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+public abstract class AbstractCartographerTCK
+{
+
+    protected static final String GRAPHS = "graphs";
+
+    protected static final String DTOS = "dto";
+
+    protected static final String OUTPUT = "output";
+
+    protected abstract String getTestDir();
+
+    @Rule
+    public TemporaryFolder temp = new TemporaryFolder();
+
+    private CartoTCKDriver driver;
+
+    protected Cartographer carto;
+
+    @Before
+    public void before()
+        throws Exception
+    {
+        final ServiceLoader<CartoTCKDriver> driverLoader = ServiceLoader.load( CartoTCKDriver.class );
+        driver = driverLoader.iterator()
+                             .next();
+
+        carto = driver.start( temp );
+    }
+
+    @After
+    public void after()
+        throws Exception
+    {
+        if ( driver != null )
+        {
+            driver.stop();
+        }
+    }
+
+    protected void aliasRepo( final String alias, final String repoResource, final int repoResourceTrim )
+        throws Exception
+    {
+        String path = resourcePath( GRAPHS, getTestDir(), repoResource );
+
+        final URL pomUrl = Thread.currentThread()
+                                 .getContextClassLoader()
+                                 .getResource( path );
+
+        assertThat( repoResource + " is not on the classpath!", pomUrl, notNullValue() );
+
+        File f = new File( pomUrl.getPath() );
+        for ( int i = 0; i < repoResourceTrim; i++ )
+        {
+            f = f.getParentFile();
+        }
+
+        System.out.println( "Got file: " + f );
+
+        path = f.getPath();
+        if ( path.contains( ".jar!" ) )
+        {
+            path = "jar:" + path;
+        }
+
+        System.out.println( "Got repo path: " + path );
+
+        driver.createRepoAlias( alias, path );
+    }
+
+    protected <T> T readRecipe( final String dtoFile, final Class<T> type )
+        throws Exception
+    {
+        final String dto = resourcePath( GRAPHS, getTestDir(), DTOS, dtoFile );
+        final InputStream dtoStream = Thread.currentThread()
+                                            .getContextClassLoader()
+                                            .getResourceAsStream( dto );
+
+        assertThat( dto + " is not on the classpath!", dtoStream, notNullValue() );
+
+        try
+        {
+            return carto.getObjectMapper()
+                        .readValue( dtoStream, type );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( dtoStream );
+        }
+    }
+
+    protected String resourcePath( final String... parts )
+    {
+        return PathUtils.normalize( parts );
+    }
+
+    protected void assertPomDeps( final Model pom, final boolean managed, final String depsFile )
+        throws Exception
+    {
+        final String depListing = resourcePath( GRAPHS, getTestDir(), OUTPUT, depsFile );
+
+        final InputStream depsStream = Thread.currentThread()
+                                             .getContextClassLoader()
+                                             .getResourceAsStream( depListing );
+
+        final List<String> specs = IOUtils.readLines( depsStream );
+
+        IOUtils.closeQuietly( depsStream );
+
+        final List<Dependency> deps;
+        if ( managed )
+        {
+            final DependencyManagement dm = pom.getDependencyManagement();
+            assertThat( dm, notNullValue() );
+            deps = dm.getDependencies();
+        }
+        else
+        {
+            deps = pom.getDependencies();
+        }
+
+        assertThat( deps.size(), equalTo( 2 ) );
+
+        final List<ArtifactRef> depArtifacts = new ArrayList<ArtifactRef>();
+        for ( final Dependency dep : deps )
+        {
+            final String depSpec =
+                String.format( "%s:%s:%s:%s%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
+                               ( dep.getType() == null ? "jar" : dep.getType() ), ( dep.getClassifier() == null ? ""
+                                               : ":" + dep.getClassifier() ) );
+
+            depArtifacts.add( ArtifactRef.parse( depSpec ) );
+        }
+
+        assertThat( depArtifacts.size(), equalTo( specs.size() ) );
+        for ( final String spec : specs )
+        {
+            final ArtifactRef ar = ArtifactRef.parse( spec );
+            assertThat( spec + " was missing from dependencies!", depArtifacts.contains( ar ), equalTo( true ) );
+        }
+    }
+}

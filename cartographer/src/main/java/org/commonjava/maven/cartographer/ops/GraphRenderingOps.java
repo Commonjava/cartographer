@@ -50,6 +50,7 @@ import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.version.CompoundVersionSpec;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
@@ -90,11 +91,13 @@ public class GraphRenderingOps
     }
 
     public GraphRenderingOps( final CalculationOps calcOps, final ResolveOps resolveOps,
-                              final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
+                              final RelationshipGraphFactory graphFactory, final LocationExpander locationExpander,
+                              final DTOResolver dtoResolver )
     {
         this.calcOps = calcOps;
         this.resolveOps = resolveOps;
         this.graphFactory = graphFactory;
+        this.locationExpander = locationExpander;
         this.dtoResolver = dtoResolver;
     }
 
@@ -304,36 +307,31 @@ public class GraphRenderingOps
                 continue;
             }
 
+            VersionlessArtifactRef pomArtifact = null;
+            boolean nonPomSeen = false;
             for ( final VersionlessArtifactRef artifact : arts )
             {
-                final Dependency d = new Dependency();
-
-                d.setGroupId( r.getGroupId() );
-                d.setArtifactId( r.getArtifactId() );
-                d.setVersion( spec.renderStandard() );
-                if ( !"jar".equals( artifact.getType() ) )
+                if ( "pom".equals( artifact.getType() ) && artifact.getClassifier() == null )
                 {
-                    d.setType( artifact.getType() );
-                }
-
-                if ( artifact.getClassifier() != null )
-                {
-                    d.setClassifier( artifact.getClassifier() );
-                }
-
-                if ( artifact.isOptional() )
-                {
-                    d.setOptional( true );
-                }
-
-                if ( dto.isGraphToManagedDeps() )
-                {
-                    dm.addDependency( d );
+                    pomArtifact = artifact;
+                    continue;
                 }
                 else
                 {
-                    model.addDependency( d );
+                    nonPomSeen = true;
                 }
+
+                addDependencyTo( model, artifact, spec, r, dm, dto );
+            }
+
+            if ( !nonPomSeen )
+            {
+                if ( pomArtifact == null )
+                {
+                    pomArtifact = new VersionlessArtifactRef( r, new TypeAndClassifier( "pom" ), false );
+                }
+
+                addDependencyTo( model, pomArtifact, spec, r, dm, dto );
             }
         }
 
@@ -353,17 +351,54 @@ public class GraphRenderingOps
             final Repository repository = new Repository();
             repository.setId( expLocation.getName()
                                          .replaceAll( ".*:", "" ) );
+
             repository.setUrl( expLocation.getUri() );
+
             final RepositoryPolicy releasesPolicy = new RepositoryPolicy();
             releasesPolicy.setEnabled( expLocation.allowsReleases() );
             repository.setReleases( releasesPolicy );
+
             final RepositoryPolicy snapshotsPolicy = new RepositoryPolicy();
             snapshotsPolicy.setEnabled( expLocation.allowsSnapshots() );
             repository.setSnapshots( snapshotsPolicy );
+
             model.addRepository( repository );
         }
 
         return model;
+    }
+
+    private void addDependencyTo( final Model model, final VersionlessArtifactRef artifact, final VersionSpec spec,
+                                  final ProjectRef ga, final DependencyManagement depMgmt, final PomRecipe dto )
+    {
+        final Dependency d = new Dependency();
+
+        d.setGroupId( ga.getGroupId() );
+        d.setArtifactId( ga.getArtifactId() );
+        d.setVersion( spec.renderStandard() );
+        if ( !"jar".equals( artifact.getType() ) )
+        {
+            d.setType( artifact.getType() );
+        }
+
+        if ( artifact.getClassifier() != null )
+        {
+            d.setClassifier( artifact.getClassifier() );
+        }
+
+        if ( artifact.isOptional() )
+        {
+            d.setOptional( true );
+        }
+
+        if ( dto.isGraphToManagedDeps() )
+        {
+            depMgmt.addDependency( d );
+        }
+        else
+        {
+            model.addDependency( d );
+        }
     }
 
     private VersionSpec generateVersionSpec( final Set<ProjectVersionRef> refs, final boolean generateVersionRanges )

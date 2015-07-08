@@ -48,7 +48,8 @@
 
   <modules>
     <module>cartographer</module>
-    <!-- <module>tck</module> -->
+    <module>tck</module>
+    <module>ftests</module>
   </modules>
 
   <dependencyManagement>
@@ -56,6 +57,12 @@
       <dependency>
         <groupId>org.commonjava.maven.cartographer</groupId>
         <artifactId>cartographer</artifactId>
+        <version>0.9.3-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.maven.cartographer</groupId>
+        <artifactId>cartographer-tck</artifactId>
         <version>0.9.3-SNAPSHOT</version>
       </dependency>
 

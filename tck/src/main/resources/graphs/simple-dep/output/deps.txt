@@ -1,0 +1,2 @@
+org.foo:consumer:1:pom
+org.bar:dep:1.1:jar
