@@ -86,6 +86,10 @@ public abstract class AbstractCartographerTCK
         {
             path = "jar:" + path;
         }
+        else
+        {
+            path = "file:" + path;
+        }
 
         System.out.println( "Got repo path: " + path );
 
@@ -142,8 +146,6 @@ public abstract class AbstractCartographerTCK
         {
             deps = pom.getDependencies();
         }
-
-        assertThat( deps.size(), equalTo( 2 ) );
 
         final List<ArtifactRef> depArtifacts = new ArrayList<ArtifactRef>();
         for ( final Dependency dep : deps )
