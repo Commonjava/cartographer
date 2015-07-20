@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
@@ -133,6 +134,8 @@ public abstract class AbstractCartographerTCK
 
         final List<String> specs = IOUtils.readLines( depsStream );
 
+        System.out.println( "Asserting presence of artifacts:\n  " + StringUtils.join( specs, "\n  " ) );
+
         IOUtils.closeQuietly( depsStream );
 
         final List<Dependency> deps;
@@ -157,6 +160,8 @@ public abstract class AbstractCartographerTCK
 
             depArtifacts.add( ArtifactRef.parse( depSpec ) );
         }
+
+        System.out.println( "POM dependencies:\n  " + StringUtils.join( depArtifacts, "\n  " ) );
 
         assertThat( depArtifacts.size(), equalTo( specs.size() ) );
         for ( final String spec : specs )
