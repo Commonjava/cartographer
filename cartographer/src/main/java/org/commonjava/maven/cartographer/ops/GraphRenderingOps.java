@@ -66,10 +66,14 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class GraphRenderingOps
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     protected CalculationOps calcOps;
@@ -313,14 +317,18 @@ public class GraphRenderingOps
             {
                 if ( "pom".equals( artifact.getType() ) && artifact.getClassifier() == null )
                 {
+                    logger.debug( "Saving POM artifact for possible later inclusion (if no other artifact is found for this project): {}",
+                                  artifact );
                     pomArtifact = artifact;
                     continue;
                 }
                 else
                 {
+                    logger.debug( "Including non-POM artifact: {}", artifact );
                     nonPomSeen = true;
                 }
 
+                logger.debug( "Adding dependency: {}", artifact );
                 addDependencyTo( model, artifact, spec, r, dm, dto );
             }
 
@@ -329,8 +337,10 @@ public class GraphRenderingOps
                 if ( pomArtifact == null )
                 {
                     pomArtifact = new VersionlessArtifactRef( r, new TypeAndClassifier( "pom" ), false );
+                    logger.debug( "No artifacts found for: {}; created POM artifact for inclusion: {}", r, pomArtifact );
                 }
 
+                logger.debug( "Adding POM artifact to output, since non-POM was NOT encountered: {}", pomArtifact );
                 addDependencyTo( model, pomArtifact, spec, r, dm, dto );
             }
         }
