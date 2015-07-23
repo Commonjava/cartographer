@@ -320,16 +320,14 @@ public class GraphRenderingOps
                     logger.debug( "Saving POM artifact for possible later inclusion (if no other artifact is found for this project): {}",
                                   artifact );
                     pomArtifact = artifact;
-                    continue;
                 }
                 else
                 {
                     logger.debug( "Including non-POM artifact: {}", artifact );
                     nonPomSeen = true;
+                    logger.debug( "Adding dependency: {}", artifact );
+                    addDependencyTo( model, artifact, spec, r, dm, dto );
                 }
-
-                logger.debug( "Adding dependency: {}", artifact );
-                addDependencyTo( model, artifact, spec, r, dm, dto );
             }
 
             if ( !nonPomSeen )
