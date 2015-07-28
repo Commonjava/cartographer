@@ -1,0 +1,3 @@
+org.foo:consumer:1:pom
+org.bar:bom:1.1:pom
+org.bar:parent:1.1:pom
