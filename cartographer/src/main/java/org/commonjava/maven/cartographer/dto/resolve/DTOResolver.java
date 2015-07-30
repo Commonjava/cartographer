@@ -15,21 +15,32 @@
  */
 package org.commonjava.maven.cartographer.dto.resolve;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
+import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
+import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
+import org.commonjava.maven.cartographer.dto.AbstractResolverRecipe;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
-import org.commonjava.maven.cartographer.dto.ResolverRecipe;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 
@@ -40,19 +51,28 @@ public class DTOResolver
     private LocationResolver resolver;
 
     @Inject
+    private DiscoverySourceManager sourceManager;
+
+    @Inject
+    private MavenPomReader pomReader;
+
+    @Inject
     private PresetSelector presets;
 
     protected DTOResolver()
     {
     }
 
-    public DTOResolver( final LocationResolver resolver, final PresetSelector presets )
+    public DTOResolver( final LocationResolver resolver, final DiscoverySourceManager sourceManager,
+                        final MavenPomReader pomReader, final PresetSelector presets )
     {
         this.resolver = resolver;
+        this.sourceManager = sourceManager;
+        this.pomReader = pomReader;
         this.presets = presets;
     }
 
-    public void resolve( final ResolverRecipe recipe )
+    public void resolve( final AbstractResolverRecipe recipe )
         throws CartoDataException
     {
         if ( recipe == null )
@@ -62,6 +82,8 @@ public class DTOResolver
 
         resolveSourceLocation( recipe );
         resolvePresets( recipe );
+        resolveDiscoveryConfig( recipe );
+        resolveVersionSelections( recipe );
 
         if ( recipe instanceof RepositoryContentRecipe )
         {
@@ -72,7 +94,128 @@ public class DTOResolver
         }
     }
 
-    public void resolveSourceLocation( final ResolverRecipe recipe )
+    private void resolveDiscoveryConfig( final AbstractResolverRecipe recipe )
+        throws CartoDataException
+    {
+        if ( recipe.getDiscoveryConfig() == null )
+        {
+            final Location sourceLocation = recipe.getSourceLocation();
+            if ( sourceLocation == null )
+            {
+                throw new CartoDataException(
+                                              "Source Location appears not to have been set on RepositoryContentRecipe: {}. Cannot create DiscoveryConfig.",
+                                              this );
+            }
+
+            final String uri = sourceLocation.getUri();
+
+            DefaultDiscoveryConfig ddc;
+            try
+            {
+                ddc = new DefaultDiscoveryConfig( uri );
+            }
+            catch ( final URISyntaxException e )
+            {
+                throw new CartoDataException( "Invalid Source Location URI: {}. Cannot create DiscoveryConfig.", uri );
+            }
+
+            ddc.setEnabled( recipe.isResolve() );
+            ddc.setEnabledPatchers( recipe.getPatcherIds() );
+            ddc.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );
+
+            recipe.setDiscoveryConfig( ddc );
+        }
+    }
+
+    private void resolveVersionSelections( final AbstractResolverRecipe recipe )
+        throws CartoDataException
+    {
+        final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
+        if ( injectedBOMs != null )
+        {
+            final List<? extends Location> locations = initDiscoveryLocations( recipe.getDiscoveryConfig() );
+
+            final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = recipe.getVersionSelections();
+            readDepMgmtToVersionMap( injectedBOMs, locations, injectedDepMgmt );
+
+            recipe.setVersionSelections( injectedDepMgmt );
+        }
+
+    }
+
+    /**
+     * Reads dependencyManagement from passed {@code boms} and add mapping for missing artifacts in the {@code versionMap}.
+     * It reads the BOMs recursively each level at a time, it means once all passed BOMs are read, the next level (imported
+     * BOMs into passed ones) is processed. This should be the same way as Maven does it.
+     *
+     * The method reads all the BOMs from the list of {@code locations} by {@link MavenPomReader}.
+     *
+     * @param boms the BOMs to read
+     * @param locations locations where to look for the BOMs and their dependencies
+     * @param versionMap target version map
+     * @throws CartoDataException if one of the BOMs does not exist or if its pom's dependencyManagement cannot be read correctly
+     */
+    private void readDepMgmtToVersionMap( final List<ProjectVersionRef> boms, final List<? extends Location> locations,
+                                          final Map<ProjectRef, ProjectVersionRef> versionMap )
+        throws CartoDataException
+    {
+        final List<ProjectVersionRef> nextLevel = new ArrayList<ProjectVersionRef>();
+        for ( final ProjectVersionRef bom : boms )
+        {
+            try
+            {
+                final MavenPomView bomView = pomReader.read( bom, locations );
+                final List<DependencyView> managedDependencies = bomView.getManagedDependenciesNoImports();
+                for ( final DependencyView managedDependency : managedDependencies )
+                {
+                    final ProjectRef ga = managedDependency.asProjectRef();
+                    final ProjectVersionRef version = new ProjectVersionRef( ga, managedDependency.getVersion() );
+                    if ( !versionMap.containsKey( ga ) )
+                    {
+                        versionMap.put( ga, version );
+                    }
+                }
+
+                final List<DependencyView> importedBOMsViews = bomView.getAllBOMs();
+                for ( final DependencyView importedBOMView : importedBOMsViews )
+                {
+                    if ( !nextLevel.contains( importedBOMView.asProjectVersionRef() ) )
+                    {
+                        nextLevel.add( importedBOMView.asProjectVersionRef() );
+                    }
+                }
+            }
+            catch ( final GalleyMavenException ex )
+            {
+                throw new CartoDataException( "Error when trying to process BOM {}.", ex, bom );
+            }
+        }
+
+        if ( !nextLevel.isEmpty() )
+        {
+            readDepMgmtToVersionMap( nextLevel, locations, versionMap );
+        }
+    }
+
+    /**
+     * Create one or more {@link Location} instances for the configured discovery source, according to the {@link DiscoverySourceManager} 
+     * implementation's specific logic, if it hasn't already been done.
+     * @throws CartoDataException 
+     */
+    public List<? extends Location> initDiscoveryLocations( final DiscoveryConfig config )
+        throws CartoDataException
+    {
+        List<? extends Location> locations = config.getLocations();
+        if ( locations == null || locations.isEmpty() )
+        {
+            locations = sourceManager.createLocations( config.getDiscoverySource() );
+            config.setLocations( locations );
+        }
+
+        return locations;
+    }
+
+    public void resolveSourceLocation( final AbstractResolverRecipe recipe )
         throws CartoDataException
     {
         if ( recipe == null )
@@ -130,7 +273,7 @@ public class DTOResolver
         }
     }
 
-    public void resolvePresets( final ResolverRecipe recipe )
+    public void resolvePresets( final AbstractResolverRecipe recipe )
     {
         if ( recipe == null )
         {

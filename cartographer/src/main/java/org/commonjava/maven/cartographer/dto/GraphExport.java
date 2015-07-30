@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.cartographer.dto;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,20 +27,25 @@ public class GraphExport
 
     private Set<ProjectRelationship<?>> relationships;
 
-    private Set<ProjectVersionRef> missingProjects;
+    private Set<ProjectVersionRef> missing;
 
-    private Set<ProjectVersionRef> variableProjects;
+    private Set<ProjectVersionRef> variable;
 
-    private Map<ProjectVersionRef, String> projectErrors;
+    private Map<ProjectVersionRef, String> errors;
 
-    public GraphExport( final Set<ProjectRelationship<?>> relationships, final Set<ProjectVersionRef> missingProjects,
+    private final Set<List<ProjectRelationship<?>>> cycles;
+
+    public GraphExport( final Set<ProjectRelationship<?>> relationships,
+                        final Set<ProjectVersionRef> missingProjects,
                         final Set<ProjectVersionRef> variableProjects,
-                        final Map<ProjectVersionRef, String> projectErrors )
+                        final Map<ProjectVersionRef, String> projectErrors,
+                        final Set<List<ProjectRelationship<?>>> cycles )
     {
         this.relationships = relationships;
-        this.missingProjects = missingProjects;
-        this.variableProjects = variableProjects;
-        this.projectErrors = projectErrors;
+        this.missing = missingProjects;
+        this.variable = variableProjects;
+        this.errors = projectErrors;
+        this.cycles = cycles;
     }
 
     public Set<ProjectRelationship<?>> getRelationships()
@@ -52,34 +58,39 @@ public class GraphExport
         this.relationships = relationships;
     }
 
-    public Set<ProjectVersionRef> getMissingProjects()
+    public Set<ProjectVersionRef> getMissing()
     {
-        return missingProjects;
+        return missing;
     }
 
-    public void setMissingProjects( final Set<ProjectVersionRef> missingProjects )
+    public void setMissing( final Set<ProjectVersionRef> missing )
     {
-        this.missingProjects = missingProjects;
+        this.missing = missing;
     }
 
-    public Set<ProjectVersionRef> getVariableProjects()
+    public Set<ProjectVersionRef> getVariable()
     {
-        return variableProjects;
+        return variable;
     }
 
-    public void setVariableProjects( final Set<ProjectVersionRef> variableProjects )
+    public void setVariable( final Set<ProjectVersionRef> variable )
     {
-        this.variableProjects = variableProjects;
+        this.variable = variable;
     }
 
-    public Map<ProjectVersionRef, String> getProjectErrors()
+    public Map<ProjectVersionRef, String> getErrors()
     {
-        return projectErrors;
+        return errors;
     }
 
-    public void setProjectErrors( final Map<ProjectVersionRef, String> projectErrors )
+    public void setErrors( final Map<ProjectVersionRef, String> errors )
     {
-        this.projectErrors = projectErrors;
+        this.errors = errors;
+    }
+
+    public Set<List<ProjectRelationship<?>>> getCycles()
+    {
+        return cycles;
     }
 
 }

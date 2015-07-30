@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.cartographer.discover;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +37,6 @@ import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 
 @ApplicationScoped
@@ -81,12 +79,11 @@ public class DiscovererImpl
     public ProjectVersionRef resolveSpecificVersion( final ProjectVersionRef ref, final DiscoveryConfig discoveryConfig )
         throws CartoDataException
     {
-        final Location location = new SimpleLocation( discoveryConfig.getDiscoverySource()
-                                                                     .toString() );
+        final List<? extends Location> locations = discoveryConfig.getLocations();
 
         try
         {
-            return artifactManager.resolveVariableVersion( Arrays.asList( location ), ref );
+            return artifactManager.resolveVariableVersion( locations, ref );
         }
         catch ( final TransferException e )
         {
@@ -111,16 +108,13 @@ public class DiscovererImpl
             specific = ref;
         }
 
-        final Location location = new SimpleLocation( discoveryConfig.getDiscoverySource()
-                                                                     .toString() );
-
-        final List<? extends Location> locations = Arrays.asList( location );
+        final List<? extends Location> locations = discoveryConfig.getLocations();
 
         Transfer transfer;
         final MavenPomView pomView;
         try
         {
-            transfer = artifactManager.retrieve( location, specific.asPomArtifact() );
+            transfer = artifactManager.retrieveFirst( locations, specific.asPomArtifact() );
             if ( transfer == null )
             {
                 return null;
@@ -130,12 +124,12 @@ public class DiscovererImpl
         }
         catch ( final TransferException e )
         {
-            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, location,
+            throw new CartoDataException( "Failed to retrieve POM: {} from: {}. Reason: {}", e, specific, locations,
                                           e.getMessage() );
         }
         catch ( final GalleyMavenException e )
         {
-            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, location,
+            throw new CartoDataException( "Failed to parse POM: {} from: {}. Reason: {}", e, specific, locations,
                                           e.getMessage() );
         }
 

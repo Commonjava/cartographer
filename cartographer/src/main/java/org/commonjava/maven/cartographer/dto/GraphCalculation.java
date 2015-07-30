@@ -34,6 +34,8 @@ public class GraphCalculation
 
     private List<GraphDescription> graphs;
 
+    private transient Set<ProjectVersionRef> projects;
+
     protected GraphCalculation()
     {
     }
@@ -67,9 +69,27 @@ public class GraphCalculation
         return result;
     }
 
-    public Set<ProjectVersionRef> getResultingProjects()
+    public synchronized Set<ProjectVersionRef> getResultingProjects()
     {
-        return targets( result );
+        if ( projects == null )
+        {
+            projects = targets( result );
+            if ( !graphs.isEmpty() )
+            {
+                projects.addAll( graphs.get( 0 )
+                                       .getRoots() );
+                if ( operation == null || operation != Type.SUBTRACT )
+                {
+                    for ( int i = 1; i < graphs.size(); i++ )
+                    {
+                        projects.addAll( graphs.get( i )
+                                               .getRoots() );
+                    }
+                }
+            }
+        }
+
+        return projects;
     }
 
     public Set<ProjectRelationship<?>> getResult()

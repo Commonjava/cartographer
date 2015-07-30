@@ -15,30 +15,22 @@
  */
 package org.commonjava.maven.cartographer.dto;
 
-import java.util.Set;
-import java.util.TreeSet;
 
-public class MetadataCollationRecipe
-    extends MultiGraphResolverRecipe
+public class MultiGraphResolverRecipe
+    extends AbstractResolverRecipe
 {
 
-    private Set<String> keys;
-
-    public Set<String> getKeys()
-    {
-        return keys;
-    }
-
-    public void setKeys( final Set<String> keys )
-    {
-        this.keys = new TreeSet<>( keys );
-    }
+    protected GraphComposition graphComposition;
 
     @Override
-    public void normalize()
+    public GraphComposition getGraphComposition()
     {
-        super.normalize();
-        normalize( keys );
+        return graphComposition;
+    }
+
+    public void setGraphComposition( final GraphComposition graphComposition )
+    {
+        this.graphComposition = graphComposition;
     }
 
 }

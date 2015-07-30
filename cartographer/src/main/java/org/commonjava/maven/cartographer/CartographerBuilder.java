@@ -89,8 +89,10 @@ import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class CartographerBuilder
 {
@@ -317,14 +319,15 @@ public class CartographerBuilder
 
         if ( dtoResolver == null )
         {
-            dtoResolver = new DTOResolver( getLocationResolver(), presetSelector );
+            dtoResolver = new DTOResolver( getLocationResolver(), sourceManager, getPomReader(), presetSelector );
         }
 
         if ( objectMapper == null )
         {
-            objectMapper = new ObjectMapper();
             withStandardObjectMapperModules();
         }
+
+        logger.debug( "Object mapper: {}", objectMapper );
 
         final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
 
@@ -334,7 +337,7 @@ public class CartographerBuilder
             new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, getArtifactManager(),
                             resolveExecutor, graphFactory, dtoResolver );
 
-        final GraphOps graphOps = new GraphOps( graphFactory );
+        final GraphOps graphOps = new GraphOps( graphFactory, resolveOps, calculationOps );
 
         final GraphRenderingOps graphRenderingOps =
             new GraphRenderingOps( calculationOps, resolveOps, graphFactory, getLocationExpander(), dtoResolver );
@@ -356,23 +359,35 @@ public class CartographerBuilder
 
     public CartographerBuilder withStandardObjectMapperModules()
     {
-        if ( objectMapper == null )
-        {
-            objectMapper = new ObjectMapper();
-        }
+        initDefaultObjectMapper();
 
+        logger.debug( "{} adding standard modules", objectMapper );
         objectMapper.registerModules( new ProjectVersionRefSerializerModule(),
                                       new ProjectRelationshipSerializerModule() );
         return this;
     }
 
-    public CartographerBuilder withObjectMapperModules( final Module... modules )
+    public CartographerBuilder initDefaultObjectMapper()
     {
         if ( objectMapper == null )
         {
+            logger.debug( "initializing object mapper" );
             objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion( Include.NON_NULL );
+            objectMapper.enable( SerializationFeature.INDENT_OUTPUT );
+            objectMapper.disable( SerializationFeature.WRITE_NULL_MAP_VALUES );
+            objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
+            objectMapper.enable( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS );
         }
 
+        return this;
+    }
+
+    public CartographerBuilder withObjectMapperModules( final Module... modules )
+    {
+        initDefaultObjectMapper();
+
+        logger.debug( "{} adding custom modules", objectMapper );
         objectMapper.registerModules( modules );
         return this;
     }
