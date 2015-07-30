@@ -15,30 +15,30 @@
  */
 package org.commonjava.maven.cartographer.dto;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Collections;
 
-public class MetadataCollationRecipe
-    extends MultiGraphResolverRecipe
+import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
+
+public class SingleGraphResolverRecipe
+    extends AbstractResolverRecipe
 {
 
-    private Set<String> keys;
-
-    public Set<String> getKeys()
-    {
-        return keys;
-    }
-
-    public void setKeys( final Set<String> keys )
-    {
-        this.keys = new TreeSet<>( keys );
-    }
+    protected GraphDescription graph;
 
     @Override
-    public void normalize()
+    public GraphComposition getGraphComposition()
     {
-        super.normalize();
-        normalize( keys );
+        return new GraphComposition( Type.ADD, Collections.singletonList( graph ) );
+    }
+
+    public GraphDescription getGraph()
+    {
+        return graph;
+    }
+
+    public void setGraph( final GraphDescription graph )
+    {
+        this.graph = graph;
     }
 
 }

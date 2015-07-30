@@ -18,21 +18,23 @@ package org.commonjava.maven.cartographer.dto;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.commonjava.maven.atlas.graph.filter.ExcludingFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.galley.model.Location;
 
-public class ResolverRecipe
-{
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-    protected GraphComposition graphComposition;
+public abstract class AbstractResolverRecipe
+{
 
     protected String workspaceId;
 
@@ -44,9 +46,17 @@ public class ResolverRecipe
 
     protected boolean resolve;
 
+    @JsonIgnore
     protected transient Location sourceLocation;
 
+    protected List<ProjectVersionRef> injectedBOMs;
+
+    protected Map<ProjectRef, ProjectVersionRef> versionSelections;
+
     protected List<ProjectVersionRef> excludedSubgraphs;
+
+    @JsonIgnore
+    private transient DiscoveryConfig discoveryConfig;
 
     public String getSource()
     {
@@ -78,25 +88,20 @@ public class ResolverRecipe
         this.sourceLocation = source;
     }
 
+    public void setDiscoveryConfig( final DiscoveryConfig discoveryConfig )
+    {
+        this.discoveryConfig = discoveryConfig;
+    }
+
     /**
      * construct a new {@link DiscoveryConfig} with the configured source {@link Location} which should have been set on this instance already.
-     * If the source {@link Location} is missing (because {@link ResolverRecipe#setSourceLocation(Location)} hasn't been called), throw {@link CartoDataException}. 
+     * If the source {@link Location} is missing (because {@link AbstractResolverRecipe#setSourceLocation(Location)} hasn't been called), throw {@link CartoDataException}. 
      * Throw {@link URISyntaxException} if the location URI is invalid.
      */
-    public DiscoveryConfig buildDiscoveryConfig()
-        throws URISyntaxException, CartoDataException
+    public DiscoveryConfig getDiscoveryConfig()
+        throws CartoDataException
     {
-        if ( sourceLocation == null )
-        {
-            throw new CartoDataException(
-                                          "Source Location appears not to have been set on RepositoryContentRecipe: {}. Cannot create DiscoveryConfig.",
-                          this );
-        }
-
-        final DefaultDiscoveryConfig ddc = new DefaultDiscoveryConfig( getSourceLocation().getUri() );
-        ddc.setEnabled( true );
-
-        return ddc;
+        return discoveryConfig;
     }
 
     public Integer getTimeoutSecs()
@@ -116,6 +121,11 @@ public class ResolverRecipe
 
     public void setPatcherIds( final Collection<String> patcherIds )
     {
+        if ( patcherIds == null )
+        {
+            return;
+        }
+
         this.patcherIds = new ArrayList<>();
         for ( final String id : patcherIds )
         {
@@ -126,19 +136,12 @@ public class ResolverRecipe
         }
     }
 
-    public GraphComposition getGraphComposition()
-    {
-        return graphComposition;
-    }
+    public abstract GraphComposition getGraphComposition();
 
-    public void setGraphComposition( final GraphComposition graphComposition )
-    {
-        this.graphComposition = graphComposition;
-    }
-
+    @JsonIgnore
     public void setDefaultPreset( final String defaultPreset )
     {
-        graphComposition.setDefaultPreset( defaultPreset );
+        getGraphComposition().setDefaultPreset( defaultPreset );
     }
 
     public boolean isResolve()
@@ -151,15 +154,26 @@ public class ResolverRecipe
         this.resolve = resolve;
     }
 
+    public List<ProjectVersionRef> getInjectedBOMs()
+    {
+        return injectedBOMs;
+    }
+
+    public void setInjectedBOMs( final List<ProjectVersionRef> injectedBOMs )
+    {
+        this.injectedBOMs = injectedBOMs;
+    }
+
+    @JsonIgnore
     public boolean isValid()
     {
-        return getWorkspaceId() != null && getSourceLocation() != null && graphComposition != null
-            && graphComposition.valid();
+        return getWorkspaceId() != null && getSourceLocation() != null && getGraphComposition() != null
+            && getGraphComposition().valid();
     }
 
     public void normalize()
     {
-        graphComposition.normalize();
+        getGraphComposition().normalize();
         normalize( patcherIds );
     }
 
@@ -186,6 +200,11 @@ public class ResolverRecipe
 
     public void setExcludedSubgraphs( final Collection<ProjectVersionRef> excludedSubgraphs )
     {
+        if ( excludedSubgraphs == null )
+        {
+            return;
+        }
+
         this.excludedSubgraphs = new ArrayList<ProjectVersionRef>( excludedSubgraphs );
     }
 
@@ -201,4 +220,15 @@ public class ResolverRecipe
             return new ExcludingFilter( excludedSubgraphs, filter );
         }
     }
+
+    public Map<ProjectRef, ProjectVersionRef> getVersionSelections()
+    {
+        return versionSelections == null ? new HashMap<ProjectRef, ProjectVersionRef>() : versionSelections;
+    }
+
+    public void setVersionSelections( final Map<ProjectRef, ProjectVersionRef> versionSelections )
+    {
+        this.versionSelections = versionSelections;
+    }
+
 }

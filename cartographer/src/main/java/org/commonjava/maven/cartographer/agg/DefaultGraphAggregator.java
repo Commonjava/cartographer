@@ -413,8 +413,7 @@ public class DefaultGraphAggregator
 
                     try
                     {
-                        graph.storeRelationships( new ParentRelationship( config.getDiscoverySource(),
-                                                                          result.getSelectedRef() ) );
+                        graph.storeRelationships( new ParentRelationship( result.getSelectedRef() ) );
                     }
                     catch ( final RelationshipGraphException e )
                     {

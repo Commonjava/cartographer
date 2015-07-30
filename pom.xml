@@ -42,10 +42,9 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <atlasVersion>0.14.1</atlasVersion>
+    <atlasVersion>0.14.2-SNAPSHOT</atlasVersion>
     <galleyVersion>0.9.2</galleyVersion>
-    <enforceStandards>false</enforceStandards>
-    <enforceBestPractices>false</enforceBestPractices>
+    <javaVersion>1.8</javaVersion>
   </properties>
 
   <modules>
@@ -192,9 +191,9 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
-<!--             <source>1.6</source>
-            <target>1.6</target>
- -->            <annotationProcessors>
+            <source>${javaVersion}</source>
+            <target>${javaVersion}</target>
+            <annotationProcessors>
               <annotationProcessor>org.commonjava.atservice.processor.ServiceAnnotationProcessor</annotationProcessor>
             </annotationProcessors>
           </configuration>

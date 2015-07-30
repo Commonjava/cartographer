@@ -17,15 +17,15 @@ package org.commonjava.maven.cartographer.dto;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class RepositoryContentRecipe
-    extends ResolverRecipe
+    extends MultiGraphResolverRecipe
 {
     private static final Set<String> DEFAULT_METAS = new HashSet<String>()
     {
@@ -48,10 +48,9 @@ public class RepositoryContentRecipe
 
     private Set<String> excludedSources;
 
+    @JsonIgnore
     private transient Set<Location> excludedSourceLocations;
     
-    private List<ProjectVersionRef> injectedBOMs;
-
     private boolean localUrls;
 
     @Override
@@ -68,6 +67,10 @@ public class RepositoryContentRecipe
 
     public void setExcludedSources( final Set<String> excludedSources )
     {
+        if ( excludedSources == null )
+        {
+            return;
+        }
         this.excludedSources = new TreeSet<String>( excludedSources );
     }
 
@@ -78,6 +81,10 @@ public class RepositoryContentRecipe
 
     public void setExtras( final Set<ExtraCT> extras )
     {
+        if ( extras == null )
+        {
+            return;
+        }
         this.extras = new TreeSet<>( extras );
     }
 
@@ -136,16 +143,6 @@ public class RepositoryContentRecipe
     public void setMultiSourceGAVs( final boolean multiSourceGAVs )
     {
         this.multiSourceGAVs = multiSourceGAVs;
-    }
-
-    public List<ProjectVersionRef> getInjectedBOMs()
-    {
-        return injectedBOMs;
-    }
-
-    public void setInjectedBOMs( final List<ProjectVersionRef> injectedBOMs )
-    {
-        this.injectedBOMs = injectedBOMs;
     }
 
     @Override
