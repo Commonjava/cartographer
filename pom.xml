@@ -44,6 +44,8 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.14.1-SNAPSHOT</atlasVersion>
     <galleyVersion>0.9.1-SNAPSHOT</galleyVersion>
+    <enforceStandards>false</enforceStandards>
+    <enforceBestPractices>false</enforceBestPractices>
   </properties>
 
   <modules>
