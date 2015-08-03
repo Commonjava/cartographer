@@ -43,9 +43,9 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,14 +57,10 @@ public class MavenModelProcessorTest
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Rule
-    public CartoFixture fixture = new CartoFixture();
+    public TemporaryFolder temp = new TemporaryFolder();
 
-    @Before
-    public void setup()
-        throws Exception
-    {
-        fixture.initMissingComponents();
-    }
+    @Rule
+    public CartoFixture fixture = new CartoFixture( temp );
 
     @Test
     public void resolvePluginVersionFromManagementExpression()

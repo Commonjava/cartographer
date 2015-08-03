@@ -49,7 +49,6 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,13 +61,6 @@ public class ResolveOpsTest
 
     @Rule
     public CartoFixture fixture = new CartoFixture();
-
-    @Before
-    public void setup()
-        throws Exception
-    {
-        fixture.initMissingComponents();
-    }
 
     @Test
     public void resolveRepoContent_NoExtras_RuntimePreset_PreResolved_IncludeDirectAncestry()
@@ -114,7 +106,7 @@ public class ResolveOpsTest
             last = ref;
         }
 
-        rels.add( new ParentRelationship( src, lineage.getLast() ) );
+        rels.add( new ParentRelationship( lineage.getLast() ) );
 
         final RelationshipGraph rootlessGraph =
             fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
@@ -176,7 +168,7 @@ public class ResolveOpsTest
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()
         ) );
         /* @formatter:on */

@@ -127,7 +127,7 @@ public class DefaultGraphAggregator
                 pass++;
             }
 
-            logger.info( "Discovery complete. {} seen, {} missing in {} passes.", seen.size(), missing.size(), pass - 1 );
+            logger.info( "Discovery complete. {} seen, {} missing in {} passes.", seen.size(), missing.size(), pass );
         }
     }
 

@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -62,8 +63,13 @@ public abstract class AbstractCartographerTCK
         throws Exception
     {
         final ServiceLoader<CartoTCKDriver> driverLoader = ServiceLoader.load( CartoTCKDriver.class );
-        driver = driverLoader.iterator()
-                             .next();
+        final Iterator<CartoTCKDriver> driverIter = driverLoader.iterator();
+        if ( !driverIter.hasNext() )
+        {
+            throw new IllegalStateException( "No TCK driver found!" );
+        }
+
+        driver = driverIter.next();
 
         carto = driver.start( temp );
     }

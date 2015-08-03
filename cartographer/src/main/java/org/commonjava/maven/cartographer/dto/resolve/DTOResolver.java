@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.cartographer.dto.resolve;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 
 public class DTOResolver
@@ -49,6 +51,9 @@ public class DTOResolver
 
     @Inject
     private LocationResolver resolver;
+
+    @Inject
+    private LocationExpander locationExpander;
 
     @Inject
     private DiscoverySourceManager sourceManager;
@@ -63,10 +68,12 @@ public class DTOResolver
     {
     }
 
-    public DTOResolver( final LocationResolver resolver, final DiscoverySourceManager sourceManager,
+    public DTOResolver( final LocationResolver resolver, final LocationExpander locationExpander,
+                        final DiscoverySourceManager sourceManager,
                         final MavenPomReader pomReader, final PresetSelector presets )
     {
         this.resolver = resolver;
+        this.locationExpander = locationExpander;
         this.sourceManager = sourceManager;
         this.pomReader = pomReader;
         this.presets = presets;
@@ -80,9 +87,9 @@ public class DTOResolver
             return;
         }
 
-        resolveSourceLocation( recipe );
-        resolvePresets( recipe );
+        resolveSourceLocations( recipe );
         resolveDiscoveryConfig( recipe );
+        resolvePresets( recipe );
         resolveVersionSelections( recipe );
 
         if ( recipe instanceof RepositoryContentRecipe )
@@ -123,6 +130,8 @@ public class DTOResolver
             ddc.setEnabledPatchers( recipe.getPatcherIds() );
             ddc.setTimeoutMillis( 1000 * recipe.getTimeoutSecs() );
 
+            resolveDiscoveryLocations( ddc, recipe );
+
             recipe.setDiscoveryConfig( ddc );
         }
     }
@@ -133,8 +142,8 @@ public class DTOResolver
         final List<ProjectVersionRef> injectedBOMs = recipe.getInjectedBOMs();
         if ( injectedBOMs != null )
         {
-            final List<? extends Location> locations = initDiscoveryLocations( recipe.getDiscoveryConfig() );
-
+            final List<? extends Location> locations = recipe.getDiscoveryConfig()
+                                                             .getLocations();
             final Map<ProjectRef, ProjectVersionRef> injectedDepMgmt = recipe.getVersionSelections();
             readDepMgmtToVersionMap( injectedBOMs, locations, injectedDepMgmt );
 
@@ -202,7 +211,8 @@ public class DTOResolver
      * implementation's specific logic, if it hasn't already been done.
      * @throws CartoDataException 
      */
-    public List<? extends Location> initDiscoveryLocations( final DiscoveryConfig config )
+    public List<? extends Location> resolveDiscoveryLocations( final DiscoveryConfig config,
+                                                               final AbstractResolverRecipe recipe )
         throws CartoDataException
     {
         List<? extends Location> locations = config.getLocations();
@@ -211,11 +221,39 @@ public class DTOResolver
             locations = sourceManager.createLocations( config.getDiscoverySource() );
             config.setLocations( locations );
         }
+        else
+        {
+            final Location location = recipe.getSourceLocation();
+            try
+            {
+                locations = locationExpander.expand( location );
+                config.setLocations( locations );
+            }
+            catch ( final TransferException e )
+            {
+                throw new CartoDataException( "Failed to expand potentially virtualized location: '%s'. Reason: %s", e,
+                                              location, e.getMessage() );
+            }
+        }
 
         return locations;
     }
 
-    public void resolveSourceLocation( final AbstractResolverRecipe recipe )
+    public List<? extends Location> resolveDiscoveryLocations( final DefaultDiscoveryConfig config,
+                                                               final URI discoverySource )
+        throws CartoDataException
+    {
+        List<? extends Location> locations = config.getLocations();
+        if ( locations == null || locations.isEmpty() )
+        {
+            locations = sourceManager.createLocations( discoverySource );
+            config.setLocations( locations );
+        }
+
+        return locations;
+    }
+
+    public void resolveSourceLocations( final AbstractResolverRecipe recipe )
         throws CartoDataException
     {
         if ( recipe == null )
@@ -241,7 +279,10 @@ public class DTOResolver
                                           e.getMessage() );
         }
 
-        recipe.setSourceLocation( location );
+        if ( location != null )
+        {
+            recipe.setSourceLocation( location );
+        }
     }
 
     public void resolvePresets( final GraphComposition graphs )
