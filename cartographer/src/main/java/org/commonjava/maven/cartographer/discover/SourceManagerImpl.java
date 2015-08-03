@@ -41,6 +41,7 @@ import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
 @Alternative
 @Named
 public class SourceManagerImpl
-    implements DiscoverySourceManager, LocationExpander
+    implements DiscoverySourceManager, LocationExpander, LocationResolver
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -75,6 +76,7 @@ public class SourceManagerImpl
     public SourceManagerImpl withAliases( final Map<String, String> aliases )
     {
         this.aliases.putAll( aliases );
+
         return this;
     }
 
@@ -118,6 +120,7 @@ public class SourceManagerImpl
     public boolean activateWorkspaceSources( final ViewParams params, final String... sources )
         throws CartoDataException
     {
+        logger.debug( "Original source locations: {}", params.getActiveSources() );
         boolean result = false;
         for ( final String source : sources )
         {
@@ -130,7 +133,9 @@ public class SourceManagerImpl
                     continue;
                 }
 
+                logger.debug( "Adding source location: {}", src );
                 params.addActiveSource( src );
+
                 result = result || params.getActiveSources()
                                          .contains( src );
             }
@@ -143,6 +148,7 @@ public class SourceManagerImpl
     public boolean activateWorkspaceSources( final ViewParams params, final Collection<? extends Location> sources )
         throws CartoDataException
     {
+        logger.debug( "Original source locations: {}", params.getActiveSources() );
         boolean result = false;
         for ( final Location source : sources )
         {
@@ -155,7 +161,9 @@ public class SourceManagerImpl
                     continue;
                 }
 
+                logger.debug( "Adding source location: {}", src );
                 params.addActiveSource( src );
+
                 result = result || params.getActiveSources()
                                          .contains( src );
             }
@@ -284,6 +292,13 @@ public class SourceManagerImpl
         }
 
         return result;
+    }
+
+    @Override
+    public Location resolve( final String spec )
+        throws TransferException
+    {
+        return createLocation( spec );
     }
 
 }

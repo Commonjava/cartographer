@@ -150,7 +150,9 @@ public class ResolveOps
         final DefaultDiscoveryConfig config = new DefaultDiscoveryConfig( options.getDiscoveryConfig() );
         config.setEnabled( true );
 
-        final List<? extends Location> locations = dtoResolver.initDiscoveryLocations( config );
+        final List<? extends Location> locations =
+            dtoResolver.resolveDiscoveryLocations( config, options.getDiscoverySource() );
+
         final List<ProjectVersionRef> specifics = new ArrayList<ProjectVersionRef>();
 
         for ( final ProjectVersionRef root : roots )

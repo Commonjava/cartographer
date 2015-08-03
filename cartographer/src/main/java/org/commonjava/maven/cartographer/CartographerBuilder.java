@@ -222,6 +222,15 @@ public class CartographerBuilder
     public Cartographer build()
         throws CartoDataException
     {
+        // this has implications on how the maven components are built, below...so it has to happen first.
+        if ( this.sourceManager == null )
+        {
+            final SourceManagerImpl smi = new SourceManagerImpl();
+            this.sourceManager = smi;
+            withLocationExpander( smi );
+            withLocationResolver( smi );
+        }
+
         if ( maven == null )
         {
             final List<Transport> transports = mavenBuilder.getEnabledTransports();
@@ -244,11 +253,6 @@ public class CartographerBuilder
         if ( events == null )
         {
             events = new NoOpCartoEventManager();
-        }
-
-        if ( this.sourceManager == null )
-        {
-            this.sourceManager = new SourceManagerImpl();
         }
 
         aggregatorThreads = aggregatorThreads < 2 ? 2 : aggregatorThreads;
@@ -319,7 +323,9 @@ public class CartographerBuilder
 
         if ( dtoResolver == null )
         {
-            dtoResolver = new DTOResolver( getLocationResolver(), sourceManager, getPomReader(), presetSelector );
+            dtoResolver =
+                new DTOResolver( getLocationResolver(), getLocationExpander(), sourceManager, getPomReader(),
+                                 presetSelector );
         }
 
         if ( objectMapper == null )
@@ -454,6 +460,16 @@ public class CartographerBuilder
     public CartographerBuilder withSourceManager( final DiscoverySourceManager sourceManager )
     {
         this.sourceManager = sourceManager;
+        if ( sourceManager instanceof LocationResolver )
+        {
+            withLocationResolver( (LocationResolver) sourceManager );
+        }
+
+        if ( sourceManager instanceof LocationExpander )
+        {
+            withLocationExpander( (LocationExpander) sourceManager );
+        }
+
         return this;
     }
 
