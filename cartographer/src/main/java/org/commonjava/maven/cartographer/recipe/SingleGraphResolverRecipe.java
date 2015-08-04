@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import java.util.Collections;
 
+import org.commonjava.maven.cartographer.dto.GraphComposition;
+import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
 
 public class SingleGraphResolverRecipe

@@ -13,24 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
+import java.util.Set;
+import java.util.TreeSet;
 
-public class MultiGraphResolverRecipe
-    extends AbstractResolverRecipe
+public class MetadataCollationRecipe
+    extends ProjectGraphRecipe
 {
 
-    protected GraphComposition graphComposition;
+    private Set<String> keys;
 
-    @Override
-    public GraphComposition getGraphComposition()
+    public Set<String> getKeys()
     {
-        return graphComposition;
+        return keys;
     }
 
-    public void setGraphComposition( final GraphComposition graphComposition )
+    public void setKeys( final Set<String> keys )
     {
-        this.graphComposition = graphComposition;
+        this.keys = new TreeSet<>( keys );
+    }
+
+    @Override
+    public void normalize()
+    {
+        super.normalize();
+        normalize( keys );
     }
 
 }

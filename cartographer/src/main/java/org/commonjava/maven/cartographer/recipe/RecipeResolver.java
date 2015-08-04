@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto.resolve;
+package org.commonjava.maven.cartographer.recipe;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,10 +32,8 @@ import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DefaultDiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
-import org.commonjava.maven.cartographer.dto.AbstractResolverRecipe;
 import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
-import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -46,7 +44,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 
-public class DTOResolver
+public class RecipeResolver
 {
 
     @Inject
@@ -64,11 +62,11 @@ public class DTOResolver
     @Inject
     private PresetSelector presets;
 
-    protected DTOResolver()
+    protected RecipeResolver()
     {
     }
 
-    public DTOResolver( final LocationResolver resolver, final LocationExpander locationExpander,
+    public RecipeResolver( final LocationResolver resolver, final LocationExpander locationExpander,
                         final DiscoverySourceManager sourceManager,
                         final MavenPomReader pomReader, final PresetSelector presets )
     {
@@ -98,6 +96,12 @@ public class DTOResolver
             final Set<String> excludedSources = rcr.getExcludedSources();
             final Set<Location> excludedLocations = resolveSourceLocationSet( excludedSources );
             rcr.setExcludedSourceLocations( excludedLocations );
+        }
+
+        recipe.normalize();
+        if ( !recipe.isValid() )
+        {
+            throw new CartoDataException( "Invalid repository recipe: {}", recipe );
         }
     }
 
@@ -239,7 +243,7 @@ public class DTOResolver
         return locations;
     }
 
-    public List<? extends Location> resolveDiscoveryLocations( final DefaultDiscoveryConfig config,
+    public List<? extends Location> resolveDiscoveryLocations( final DiscoveryConfig config,
                                                                final URI discoverySource )
         throws CartoDataException
     {

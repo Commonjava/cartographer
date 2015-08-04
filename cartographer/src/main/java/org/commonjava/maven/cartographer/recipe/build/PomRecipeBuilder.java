@@ -1,7 +1,7 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.cartographer.dto.PomRecipe;
+import org.commonjava.maven.cartographer.recipe.PomRecipe;
 
 public class PomRecipeBuilder<T extends PomRecipeBuilder<T, O, R>, O extends ResolverRecipeOwner<O, R>, R extends PomRecipe>
     extends RepositoryContentRecipeBuilder<T, O, R>

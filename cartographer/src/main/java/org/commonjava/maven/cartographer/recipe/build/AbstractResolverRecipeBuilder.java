@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.cartographer.dto.AbstractResolverRecipe;
+import org.commonjava.maven.cartographer.recipe.AbstractResolverRecipe;
 import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

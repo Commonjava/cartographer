@@ -1,6 +1,6 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
-import org.commonjava.maven.cartographer.dto.AbstractResolverRecipe;
+import org.commonjava.maven.cartographer.recipe.AbstractResolverRecipe;
 
 public interface ResolverRecipeOwner<T extends ResolverRecipeOwner<T, R>, R extends AbstractResolverRecipe>
 {

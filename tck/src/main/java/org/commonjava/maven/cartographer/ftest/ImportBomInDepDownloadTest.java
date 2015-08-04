@@ -16,7 +16,7 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.maven.model.Model;
-import org.commonjava.maven.cartographer.dto.PomRecipe;
+import org.commonjava.maven.cartographer.recipe.PomRecipe;
 import org.junit.Test;
 
 public class ImportBomInDepDownloadTest

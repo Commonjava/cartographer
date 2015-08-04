@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 

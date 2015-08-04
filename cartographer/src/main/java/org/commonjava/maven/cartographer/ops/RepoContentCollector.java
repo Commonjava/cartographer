@@ -30,7 +30,7 @@ import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.dto.ExtraCT;
-import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
+import org.commonjava.maven.cartographer.recipe.RepositoryContentRecipe;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.model.ConcreteResource;

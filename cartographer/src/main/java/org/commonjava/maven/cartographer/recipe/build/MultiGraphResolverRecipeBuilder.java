@@ -1,7 +1,7 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
 import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.MultiGraphResolverRecipe;
+import org.commonjava.maven.cartographer.recipe.MultiGraphResolverRecipe;
 
 public class MultiGraphResolverRecipeBuilder<T extends MultiGraphResolverRecipeBuilder<T, O, R>, O extends ResolverRecipeOwner<O, R>, R extends MultiGraphResolverRecipe>
     extends AbstractResolverRecipeBuilder<O, T, R>

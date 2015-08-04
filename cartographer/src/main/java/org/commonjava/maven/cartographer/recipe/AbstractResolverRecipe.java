@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
+import org.commonjava.maven.cartographer.dto.GraphComposition;
 import org.commonjava.maven.galley.model.Location;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
