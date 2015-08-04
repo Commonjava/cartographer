@@ -58,8 +58,10 @@ import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInput;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInputSelector;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
 import org.commonjava.maven.cartographer.recipe.MultiGraphResolverRecipe;
+import org.commonjava.maven.cartographer.recipe.MultiRenderRecipe;
 import org.commonjava.maven.cartographer.recipe.PomRecipe;
 import org.commonjava.maven.cartographer.recipe.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
@@ -157,11 +159,7 @@ public class GraphRenderingOps
                 }
             };
 
-        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE,
-                                                recipe,
-                                                ( allRefs, allRels, roots ) -> new MultiGraphAllInput( allRefs,
-                                                                                                       allRels, roots ),
-                                                extractor );
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
     }
 
     private Map<String, Set<ProjectVersionRef>> getLabels( final RelationshipGraph allWs,
@@ -231,11 +229,7 @@ public class GraphRenderingOps
                 }
             };
 
-        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE,
-                                                recipe,
-                                                ( allRefs, allRels, roots ) -> new MultiGraphAllInput( allRefs,
-                                                                                                       allRels, roots ),
-                                                extractor );
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
     }
 
     @SuppressWarnings( "null" )
@@ -407,23 +401,18 @@ public class GraphRenderingOps
         return new CompoundVersionSpec( null, versions );
     }
 
-    public String dotfile( final ProjectVersionRef coord, final RelationshipGraph graph )
+    public String dotfile( final MultiRenderRecipe recipe )
         throws CartoDataException
     {
-        if ( graph != null )
-        {
-            final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>( graph.getAllProjects() );
-            final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
+        final StringBuilder sb = new StringBuilder();
+        final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
+            final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>( input.getAllProjects() );
+            final Collection<ProjectRelationship<?>> rels = input.getAllRelationships();
 
             final Map<ProjectVersionRef, String> aliases = new HashMap<ProjectVersionRef, String>();
 
-            final StringBuilder sb = new StringBuilder();
             sb.append( "digraph " )
-              .append( cleanDotName( coord.getGroupId() ) )
-              .append( '_' )
-              .append( cleanDotName( coord.getArtifactId() ) )
-              .append( '_' )
-              .append( cleanDotName( ( (SingleVersion) coord.getVersionSpec() ).renderStandard() ) )
+              .append( cleanDotName( recipe.getRenderParamWithPrecedingDefault( "Unknown Graph", "name", "coord" ) ) )
               .append( " {" );
 
             sb.append( "\nsize=\"300,20\"; resolution=72;\n" );
@@ -466,10 +455,10 @@ public class GraphRenderingOps
             }
 
             sb.append( "\n\n}\n" );
-            return sb.toString();
-        }
+        };
 
-        return null;
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
+        return sb.toString();
     }
 
     private String cleanDotName( final String src )
