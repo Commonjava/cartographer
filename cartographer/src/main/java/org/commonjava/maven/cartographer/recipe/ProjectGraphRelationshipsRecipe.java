@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import java.util.Arrays;
 import java.util.HashSet;

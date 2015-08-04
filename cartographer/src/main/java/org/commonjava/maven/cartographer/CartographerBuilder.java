@@ -42,7 +42,6 @@ import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSuppo
 import org.commonjava.maven.cartographer.discover.post.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.discover.post.patch.DepgraphPatcher;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
-import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
 import org.commonjava.maven.cartographer.ops.CalculationOps;
 import org.commonjava.maven.cartographer.ops.GraphOps;
@@ -54,6 +53,7 @@ import org.commonjava.maven.cartographer.preset.PresetFactory;
 import org.commonjava.maven.cartographer.preset.PresetSelector;
 import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilterFactory;
 import org.commonjava.maven.cartographer.preset.ScopedProjectFilterFactory;
+import org.commonjava.maven.cartographer.recipe.RecipeResolver;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
@@ -132,7 +132,7 @@ public class CartographerBuilder
 
     private MavenModelProcessor mavenModelProcessor;
 
-    private DTOResolver dtoResolver;
+    private RecipeResolver dtoResolver;
 
     private final GalleyMavenBuilder mavenBuilder;
 
@@ -324,7 +324,7 @@ public class CartographerBuilder
         if ( dtoResolver == null )
         {
             dtoResolver =
-                new DTOResolver( getLocationResolver(), getLocationExpander(), sourceManager, getPomReader(),
+                new RecipeResolver( getLocationResolver(), getLocationExpander(), sourceManager, getPomReader(),
                                  presetSelector );
         }
 
@@ -877,12 +877,12 @@ public class CartographerBuilder
         return this;
     }
 
-    public DTOResolver getDtoResolver()
+    public RecipeResolver getDtoResolver()
     {
         return dtoResolver;
     }
 
-    public CartographerBuilder withDtoResolver( final DTOResolver dtoResolver )
+    public CartographerBuilder withDtoResolver( final RecipeResolver dtoResolver )
     {
         this.dtoResolver = dtoResolver;
         return this;

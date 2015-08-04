@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 

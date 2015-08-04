@@ -15,10 +15,7 @@
  */
 package org.commonjava.maven.cartographer.ops;
 
-import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.gavs;
-
-import java.net.URI;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,24 +25,22 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
-import org.commonjava.maven.cartographer.dto.GraphCalculation;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.MetadataCollation;
-import org.commonjava.maven.cartographer.dto.MetadataCollationRecipe;
-import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
+import org.commonjava.maven.cartographer.ops.fn.MatchingProjectFunction;
+import org.commonjava.maven.cartographer.ops.fn.ProjectCollector;
+import org.commonjava.maven.cartographer.ops.fn.ProjectProjector;
+import org.commonjava.maven.cartographer.recipe.MetadataCollationRecipe;
+import org.commonjava.maven.cartographer.recipe.MetadataExtractionRecipe;
+import org.commonjava.maven.cartographer.recipe.MetadataUpdateRecipe;
+import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
+import org.commonjava.maven.cartographer.recipe.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -63,7 +58,7 @@ public class MetadataOps
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    protected DTOResolver dtoResolver;
+    protected RecipeResolver recipeResolver;
 
     @Inject
     protected ArtifactManager artifacts;
@@ -93,7 +88,7 @@ public class MetadataOps
     public MetadataOps( final ArtifactManager artifacts, final MavenPomReader pomReader,
                         final MetadataScannerSupport scannerSupport, final DiscoverySourceManager sourceManager,
                         final ResolveOps resolver, final CalculationOps calculations,
-                        final RelationshipGraphFactory graphFactory, final DTOResolver dtoResolver )
+                        final RelationshipGraphFactory graphFactory, final RecipeResolver dtoResolver )
     {
         this.artifacts = artifacts;
         this.pomReader = pomReader;
@@ -102,244 +97,196 @@ public class MetadataOps
         this.resolver = resolver;
         this.calculations = calculations;
         this.graphFactory = graphFactory;
-        this.dtoResolver = dtoResolver;
+        this.recipeResolver = dtoResolver;
     }
 
-    public Map<String, String> getMetadata( final ProjectVersionRef ref, final ViewParams params )
+    public Map<ProjectVersionRef, Map<String, String>> getMetadata( final MetadataExtractionRecipe recipe )
         throws CartoDataException
     {
-        RelationshipGraph graph = null;
-        try
-        {
-            try
-            {
-                graph = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref, params,
-                                              e.getMessage() );
-            }
-            return graph.getMetadata( ref );
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( graph );
-        }
+        final Map<ProjectVersionRef, Map<String, String>> result = new HashMap<>();
+        final Set<String> keys = recipe.getKeys();
+
+        final ProjectProjector<Map<String, String>> extractor = ( ref, graph ) -> {
+            return keys == null || keys.isEmpty() ? graph.getMetadata( ref ) : graph.getMetadata( ref, keys );
+        };
+
+        final ProjectCollector<Map<String, String>> consumer = ( ref, metadata ) -> {
+            result.put( ref, metadata );
+        };
+
+        resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
+                                               new MatchingProjectFunction<Map<String, String>>( recipe, extractor,
+                                                                                                 consumer ) );
+        return result;
     }
 
-    public String getMetadataValue( final ProjectVersionRef ref, final String key, final ViewParams params )
+    public List<ProjectVersionRef> updateMetadata( final MetadataUpdateRecipe recipe )
         throws CartoDataException
     {
-        RelationshipGraph graph = null;
-        try
-        {
-            try
-            {
-                graph = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e, ref, params,
-                                              e.getMessage() );
-            }
+        recipe.setResolve( false );
 
-            final Map<String, String> metadata = graph.getMetadata( ref, Collections.singleton( key ) );
+        final Map<String, String> globalMetadata = recipe.getGlobalMetadata();
+        final Map<ProjectVersionRef, Map<String, String>> projectMetadata = recipe.getProjectMetadata();
 
-            if ( metadata != null )
-            {
-                return metadata.get( key );
-            }
-
-            return null;
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( graph );
-        }
-    }
-
-    public void updateMetadata( final ProjectVersionRef ref, final Map<String, String> metadata, final ViewParams params )
-        throws CartoDataException
-    {
-        if ( metadata != null && !metadata.isEmpty() )
-        {
-            RelationshipGraph graph = null;
-            try
-            {
-                try
+        final List<ProjectVersionRef> result = new ArrayList<>();
+        final ProjectProjector<ProjectVersionRef> projector =
+            ( ref, graph ) -> {
+                final Map<String, String> metadata = new HashMap<>();
+                if ( globalMetadata != null )
                 {
-                    graph = graphFactory.open( params, false );
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    throw new CartoDataException( "Cannot open graph for workspace: {}. Reason: {}", e, params,
-                                                  e.getMessage() );
+                    metadata.putAll( globalMetadata );
                 }
 
-                logger.info( "Adding metadata for: {}\n\n  ", ref, new JoinString( "\n  ", metadata.entrySet() ) );
+                final Map<String, String> pm = projectMetadata.get( ref );
+                if ( pm != null )
+                {
+                    metadata.putAll( pm );
+                }
 
                 try
                 {
                     graph.addMetadata( ref, metadata );
+                    return ref;
                 }
                 catch ( final RelationshipGraphException e )
                 {
-                    throw new CartoDataException( "Failed to update metadata on: {} in workspace: {}. Reason: {}", e,
-                                                  ref, params, e.getMessage() );
-                }
-            }
-            finally
-            {
-                CartoGraphUtils.closeGraphQuietly( graph );
-            }
-        }
-    }
-
-    public void rescanMetadata( final ViewParams params )
-        throws CartoDataException
-    {
-        RelationshipGraph graph = null;
-        try
-        {
-            try
-            {
-                graph = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Failed to open graph: {}. Reason: {}", e, params, e.getMessage() );
-            }
-
-            rescanMetadata( graph );
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( graph );
-        }
-    }
-
-    public void rescanMetadata( final RelationshipGraph graph )
-        throws CartoDataException
-    {
-        final Set<URI> sources = graph.getSources();
-        final List<? extends Location> locations = sourceManager.createLocations( sources );
-
-        for ( final ProjectVersionRef ref : graph.getAllProjects() )
-        {
-            Transfer transfer;
-            MavenPomView pomView;
-            try
-            {
-                transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
-                if ( transfer == null )
-                {
-                    logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...",
-                                  ref.asPomArtifact(), locations );
+                    logger.error( String.format( "Failed to update metadata for: %s. Reason: %s", ref, e.getMessage() ),
+                                  e );
                 }
 
-                pomView = pomReader.read( ref, transfer, locations );
-            }
-            catch ( final TransferException e )
-            {
-                logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(),
-                                             locations, e.getMessage() ), e );
-                continue;
-            }
-            catch ( final GalleyMavenException e )
-            {
-                logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(),
-                                             e.getMessage() ), e );
-                continue;
-            }
+                return null;
+            };
 
-            final Map<String, String> allMeta = scannerSupport.scan( ref, locations, pomView, transfer );
-
-            if ( allMeta != null && !allMeta.isEmpty() )
+        final ProjectCollector<ProjectVersionRef> collector = ( unused, ref ) -> {
+            if ( ref != null )
             {
+                result.add( ref );
+            }
+        };
+
+        resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
+                                               new MatchingProjectFunction<ProjectVersionRef>( recipe, projector,
+                                                                                               collector ) );
+        return result;
+    }
+
+    public List<ProjectVersionRef> rescanMetadata( final ProjectGraphRecipe recipe )
+        throws CartoDataException
+    {
+        recipe.setResolve( false );
+        final List<ProjectVersionRef> result = new ArrayList<>();
+
+        recipeResolver.resolve( recipe );
+        final List<? extends Location> locations = recipe.getDiscoveryConfig()
+                                                         .getLocations();
+
+        if ( locations == null || locations.isEmpty() )
+        {
+            logger.error( "No source locations available; returning empty result." );
+            return result;
+        }
+
+        final ProjectProjector<ProjectVersionRef> projector =
+            ( ref, graph ) -> {
+                Transfer transfer = null;
+                MavenPomView pomView = null;
                 try
                 {
-                    graph.addMetadata( ref, allMeta );
+                    transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
+                    if ( transfer == null )
+                    {
+                        logger.error( "Cannot find POM: {} in locations: {}. Skipping for metadata scanning...",
+                                      ref.asPomArtifact(), locations );
+                    }
+                    else
+                    {
+                        pomView = pomReader.read( ref, transfer, locations );
+                    }
                 }
-                catch ( final RelationshipGraphException e )
+                catch ( final TransferException e )
                 {
-                    logger.error( String.format( "Failed to update metadata for: %s in: %s. Reason: %s", ref, graph,
+                    logger.error( String.format( "Cannot read: %s from locations: %s. Reason: %s", ref.asPomArtifact(),
+                                                 locations, e.getMessage() ), e );
+                }
+                catch ( final GalleyMavenException e )
+                {
+                    logger.error( String.format( "Cannot build POM view for: %s. Reason: %s", ref.asPomArtifact(),
                                                  e.getMessage() ), e );
                 }
+
+                if ( pomView == null )
+                {
+                    return null;
+                }
+
+                final Map<String, String> allMeta = scannerSupport.scan( ref, locations, pomView, transfer );
+
+                if ( allMeta != null && !allMeta.isEmpty() )
+                {
+                    try
+                    {
+                        graph.addMetadata( ref, allMeta );
+                    }
+                    catch ( final RelationshipGraphException e )
+                    {
+                        logger.error( String.format( "Failed to update metadata for: %s in: %s. Reason: %s", ref,
+                                                     graph, e.getMessage() ), e );
+                    }
+                }
+
+                return ref;
+            };
+
+        final ProjectCollector<ProjectVersionRef> collector = ( unused, ref ) -> {
+            if ( ref != null )
+            {
+                result.add( ref );
             }
-        }
+        };
+
+        resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, new MatchingProjectFunction<>( recipe,
+                                                                                                          projector,
+                                                                                                          collector ) );
+        return result;
     }
 
     public MetadataCollation collate( final MetadataCollationRecipe recipe )
         throws CartoDataException
     {
-        dtoResolver.resolve( recipe );
-        resolver.resolve( recipe );
+        final Map<Map<String, String>, Set<ProjectVersionRef>> result = new HashMap<>();
 
-        final GraphComposition graphs = recipe.getGraphComposition();
-
-        Set<ProjectVersionRef> gavs;
-        RelationshipGraph graph;
-        if ( graphs.getCalculation() != null && graphs.size() > 1 )
+        final Set<String> keys = recipe.getKeys();
+        if ( keys == null || keys.isEmpty() )
         {
-            try
-            {
-                graph =
-                    graphFactory.open( new ViewParams( recipe.getWorkspaceId(), AnyFilter.INSTANCE,
-                                                       new ManagedDependencyMutator() ), false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Cannot open root-less graph in workspace: {}. Reason: {}", e,
-                                              recipe.getWorkspaceId(), e.getMessage() );
-            }
-
-            final GraphCalculation result = calculations.calculate( graphs, recipe.getWorkspaceId() );
-            gavs = gavs( result.getResult() );
-        }
-        else
-        {
-            final GraphDescription graphDesc = graphs.getGraphs()
-                                                     .get( 0 );
-
-            final ProjectVersionRef[] roots = graphDesc.rootsArray();
-            try
-            {
-                graph =
-                    graphFactory.open( new ViewParams( recipe.getWorkspaceId(),
-                                                       recipe.buildFilter( graphDesc.filter() ),
-                                                       new ManagedDependencyMutator(), roots ), false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException( "Cannot open graph for: {} in workspace: {}. Reason: {}", e,
-                                              new JoinString( ", ", roots ), recipe.getWorkspaceId(), e.getMessage() );
-            }
-
-            gavs = graph.getAllProjects();
+            return new MetadataCollation( result );
         }
 
-        final Map<Map<String, String>, Set<ProjectVersionRef>> map = graph.collateByMetadata( gavs, recipe.getKeys() );
-
-        for ( final Map<String, String> metadata : new HashSet<Map<String, String>>( map.keySet() ) )
-        {
-            final Map<String, String> changed =
-                metadata == null ? new HashMap<String, String>() : new HashMap<String, String>( metadata );
-            for ( final String key : recipe.getKeys() )
+        final ProjectProjector<Map<String, String>> projector = ( ref, graph ) -> {
+            final Map<String, String> metadata = graph.getMetadata( ref, keys );
+            for ( final String key : keys )
             {
-                if ( !changed.containsKey( key ) )
+                if ( !metadata.containsKey( key ) )
                 {
-                    changed.put( key, null );
+                    metadata.put( key, null );
                 }
             }
+            return metadata;
+        };
 
-            // long way around to preserve Map.equals() on the overall collation, 
-            // since changing a key of type Map leaves equals() of the containing 
-            // Map undefined.
-            final Set<ProjectVersionRef> refs = map.remove( metadata );
-            map.put( changed, refs );
-        }
+        final ProjectCollector<Map<String, String>> collector = ( ref, metadata ) -> {
+            Set<ProjectVersionRef> collated = result.get( metadata );
+            if ( collated == null )
+            {
+                collated = new HashSet<ProjectVersionRef>();
+                result.put( metadata, collated );
+            }
 
-        return new MetadataCollation( map );
+            collated.add( ref );
+        };
+
+        resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, new MatchingProjectFunction<>( recipe,
+                                                                                                          projector,
+                                                                                                          collector ) );
+        return new MetadataCollation( result );
     }
 }

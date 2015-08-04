@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.commonjava.maven.cartographer.dto.ExtraCT;
 import org.commonjava.maven.galley.model.Location;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

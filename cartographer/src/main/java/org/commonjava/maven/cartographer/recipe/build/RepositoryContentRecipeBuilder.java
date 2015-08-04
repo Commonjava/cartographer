@@ -1,10 +1,10 @@
-package org.commonjava.maven.cartographer.dto.build;
+package org.commonjava.maven.cartographer.recipe.build;
 
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.commonjava.maven.cartographer.dto.ExtraCT;
-import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
+import org.commonjava.maven.cartographer.recipe.RepositoryContentRecipe;
 import org.commonjava.maven.galley.model.Location;
 
 public class RepositoryContentRecipeBuilder<T extends RepositoryContentRecipeBuilder<T, O, R>, O extends ResolverRecipeOwner<O, R>, R extends RepositoryContentRecipe>

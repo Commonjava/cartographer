@@ -1,4 +1,4 @@
-package org.commonjava.maven.cartographer.dto;
+package org.commonjava.maven.cartographer.recipe;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
