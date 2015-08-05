@@ -19,6 +19,26 @@ import org.apache.maven.model.Model;
 import org.commonjava.maven.cartographer.dto.PomRecipe;
 import org.junit.Test;
 
+
+/**
+ * TCK test class checking that a simple dependency of a project is included when running generatečPOM() method. The
+ * dependency graph looks like this:
+ * <pre>
+ *   +----------+
+ *   | consumer |
+ *   +----------+
+ *        |
+ *        | depends on
+ *        V
+ *   +----------+
+ *   |   dep    |
+ *   +----------+
+ * </pre>
+ *
+ * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom and dep jar
+ * are expected to be in the result.
+ */
 public class SimpleProjectWithOneDepDownloadTest
     extends AbstractCartographerTCK
 {

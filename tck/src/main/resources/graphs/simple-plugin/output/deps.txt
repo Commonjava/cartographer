@@ -1,0 +1,2 @@
+org.foo:consumer:1:pom
+org.bar:plugin:1.1:maven-plugin

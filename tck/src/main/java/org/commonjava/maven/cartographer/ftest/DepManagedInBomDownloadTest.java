@@ -19,6 +19,26 @@ import org.apache.maven.model.Model;
 import org.commonjava.maven.cartographer.dto.PomRecipe;
 import org.junit.Test;
 
+
+/**
+ * TCK test class checking that an imported BOM with another BOM imported in a project are included when running
+ * generatečPOM() method. The dependency graph looks like this:
+ * <pre>
+ *   +----------+             imports             +-------+
+ *   | consumer |-------------------------------->|  bom  |
+ *   +----------+                                 +-------+
+ *        |                                           |
+ *        | depends on with no version specified      | manages dep version to 1.1
+ *        V                                           |
+ *   +---------+                                      |
+ *   |   dep   |<-------------------------------------+
+ *   +---------+
+ * </pre>
+ *
+ * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
+ * and dep jar 1.2 are expected to be in the result.
+ */
 public class DepManagedInBomDownloadTest
     extends AbstractCartographerTCK
 {
