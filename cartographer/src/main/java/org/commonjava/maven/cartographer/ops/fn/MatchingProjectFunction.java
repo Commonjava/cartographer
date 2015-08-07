@@ -7,8 +7,8 @@ import java.util.List;
 import org.codehaus.plexus.util.StringUtils;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.ProjectVersionRefComparator;
 import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
-import org.commonjava.maven.cartographer.util.ProjectVersionRefComparator;
 
 public class MatchingProjectFunction<T>
     implements GraphFunction
