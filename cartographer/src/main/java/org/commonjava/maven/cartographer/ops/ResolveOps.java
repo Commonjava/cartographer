@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +45,7 @@ import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
-import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
@@ -57,7 +53,6 @@ import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoGraphUtils;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
@@ -539,65 +534,6 @@ public class ResolveOps
         }
 
         return collectors;
-    }
-
-    /**
-     * Lists all paths leading from roots defined in recipe to target projects for the configured graph composition.
-     *
-     * @param recipe the graph recipe
-     * @param targets the set of target projects
-     * @return the list of paths, each path is a list of project relationships
-     */
-    public List<List<ProjectRelationship<?>>> resolvePaths( final RepositoryContentRecipe recipe,
-                                                            final Set<ProjectRef> targets )
-        throws CartoDataException
-    {
-        recipeResolver.resolve( recipe );
-
-        final List<List<ProjectRelationship<?>>> discoveredPaths = new ArrayList<>();
-
-        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor =
-            ( allRels, graphMap ) -> {
-                for ( final GraphDescription desc : graphMap.keySet() )
-                {
-                    final RelationshipGraph graph = graphMap.get( desc );
-                    final ProjectRelationshipFilter filter = desc.filter();
-
-                    final PathsTraversal paths = new PathsTraversal( filter, targets );
-                    try
-                    {
-                        graph.traverse( paths, TraversalType.depth_first );
-                    }
-                    catch ( final RelationshipGraphException ex )
-                    {
-                        throw new CartoDataException( "Failed to open / traverse the graph (for paths operation): "
-                            + ex.getMessage(), ex );
-                    }
-                    finally
-                    {
-                        CartoGraphUtils.closeGraphQuietly( graph );
-                    }
-
-                    for ( final Iterator<List<ProjectRelationship<?>>> pathIter = discoveredPaths.iterator(); pathIter.hasNext(); )
-                    {
-                        final List<ProjectRelationship<?>> path = pathIter.next();
-                        for ( final ProjectRelationship<?> rel : path )
-                        {
-                            if ( !allRels.contains( rel ) )
-                            {
-                                pathIter.remove();
-                                // continue to the next path...
-                                break;
-                            }
-                        }
-                    }
-                }
-            };
-
-        resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, ( allProjects, allRels, roots ) -> allRels.get(),
-                                     extractor );
-
-        return discoveredPaths;
     }
 
     /**

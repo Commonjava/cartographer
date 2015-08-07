@@ -55,7 +55,7 @@ public abstract class AbstractPatcherTest
     protected Map<String, Object> getContext( final ProjectVersionRef ref, final Location location )
         throws Exception
     {
-        final Transfer txfr = galleyFixture.getArtifacts()
+        final Transfer txfr = galleyFixture.getArtifactManager()
                                            .retrieve( location, ref.asPomArtifact() );
         final MavenPomView read = galleyFixture.getPomReader()
                                                .read( ref, txfr, Arrays.asList( location ) );

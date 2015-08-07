@@ -19,44 +19,49 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
+import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
+import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectCycle;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.RelationshipPathComparator;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
+import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoGraphUtils;
+import org.commonjava.maven.cartographer.dto.GraphDescription;
 import org.commonjava.maven.cartographer.dto.GraphExport;
 import org.commonjava.maven.cartographer.ops.fn.GraphFunction;
 import org.commonjava.maven.cartographer.ops.fn.MatchingProjectFunction;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
 import org.commonjava.maven.cartographer.ops.fn.ProjectCollector;
 import org.commonjava.maven.cartographer.ops.fn.ProjectProjector;
 import org.commonjava.maven.cartographer.ops.fn.ProjectSelector;
 import org.commonjava.maven.cartographer.ops.fn.ValueHolder;
+import org.commonjava.maven.cartographer.recipe.PathsRecipe;
 import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
 import org.commonjava.maven.cartographer.recipe.ProjectGraphRelationshipsRecipe;
 import org.commonjava.maven.cartographer.recipe.SingleGraphResolverRecipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO: For GAV and GAV-pattern filtering, we need to do more to handle snapshots
-@ApplicationScoped
 public class GraphOps
 {
 
@@ -102,6 +107,87 @@ public class GraphOps
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
                                                  new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
                                                                                                   consumer ) );
+        return result;
+    }
+
+    /**
+     * Lists all paths leading from roots defined in recipe to target projects for the configured graph composition.
+     *
+     * @param recipe the graph recipe
+     * @param targets the set of target projects
+     * @return the list of paths, each path is a list of project relationships
+     */
+    public Map<ProjectVersionRef, List<List<ProjectRelationship<?>>>> getPaths( final PathsRecipe recipe )
+        throws CartoDataException
+    {
+        //        Collections.sort( paths, RelationshipPathComparator.INSTANCE );
+
+        final Map<ProjectVersionRef, List<List<ProjectRelationship<?>>>> result = new HashMap<>();
+
+        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor =
+            ( allRels, graphMap ) -> {
+                for ( final GraphDescription desc : graphMap.keySet() )
+                {
+                    final RelationshipGraph graph = graphMap.get( desc );
+                    final ProjectRelationshipFilter filter = desc.filter();
+
+                    final PathsTraversal paths = new PathsTraversal( filter, recipe.getTargets() );
+                    try
+                    {
+                        graph.traverse( paths, TraversalType.depth_first );
+                    }
+                    catch ( final RelationshipGraphException ex )
+                    {
+                        throw new CartoDataException( "Failed to open / traverse the graph (for paths operation): "
+                            + ex.getMessage(), ex );
+                    }
+                    finally
+                    {
+                        CartoGraphUtils.closeGraphQuietly( graph );
+                    }
+
+                    final Set<List<ProjectRelationship<?>>> discoveredPaths = paths.getDiscoveredPaths();
+
+                    for ( final Iterator<List<ProjectRelationship<?>>> pathIter = discoveredPaths.iterator(); pathIter.hasNext(); )
+                    {
+                        final List<ProjectRelationship<?>> path = pathIter.next();
+                        if ( path == null || path.isEmpty() )
+                        {
+                            continue;
+                        }
+
+                        for ( final ProjectRelationship<?> rel : path )
+                        {
+                            if ( !allRels.contains( rel ) )
+                            {
+                                // continue to the next path...
+                                break;
+                            }
+                        }
+
+                        final ProjectVersionRef ref = path.get( 0 )
+                                                          .getDeclaring();
+                        List<List<ProjectRelationship<?>>> projectPaths = result.get( ref );
+                        if ( projectPaths == null )
+                        {
+                            projectPaths = new ArrayList<>();
+                            result.put( ref, projectPaths );
+                        }
+
+                        projectPaths.add( path );
+                    }
+                }
+            };
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe,
+                                                ( allProjects, allRels, roots ) -> allRels.get(), extractor );
+
+        for ( final ProjectVersionRef key : result.keySet() )
+        {
+            final List<List<ProjectRelationship<?>>> paths = result.get( key );
+            Collections.sort( paths, RelationshipPathComparator.INSTANCE );
+        }
+
         return result;
     }
 
