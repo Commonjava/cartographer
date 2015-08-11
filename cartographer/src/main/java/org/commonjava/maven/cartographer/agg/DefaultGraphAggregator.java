@@ -175,10 +175,7 @@ public class DefaultGraphAggregator
      * @param config Configuration for how discovery should proceed
      * @param missing The accumulated list of confirmed-missing GAVs (NOT things 
      * that have yet to be discovered)
-     * @param cycleParticipants The accumulated list of GAVs that participate in 
-     * relationship cycles. These are NOT safe to continue processing, since they 
-     * will lead to infinite looping.
-     * @param pass For diagnostic/logging purposes, the number of discovery passes 
+     * @param pass For diagnostic/logging purposes, the number of discovery passes
      * since discovery was initiated by the caller (part of the graph may have been 
      * pre-existing)
      * @return The executed set of {@link DiscoveryRunnable} instances that contain 
@@ -258,7 +255,6 @@ public class DefaultGraphAggregator
      * input GAV
      * @param nextTodos The accumulated next crop of {@link DiscoveryTodo}'s, which 
      * MAY be augmented by output from this discovery runnable 
-     * @param net The top-level dependency graph for which discovery is taking place
      * @param config Configuration for how discovery should proceed
      * @param seen 
      * @param pass For diagnostic/logging purposes, the number of discovery passes 

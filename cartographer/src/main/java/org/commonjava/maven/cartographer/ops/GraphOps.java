@@ -15,52 +15,32 @@
  */
 package org.commonjava.maven.cartographer.ops;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.inject.Inject;
-
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectCycle;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.rel.RelationshipPathComparator;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.data.CartoGraphUtils;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
-import org.commonjava.maven.cartographer.dto.GraphExport;
-import org.commonjava.maven.cartographer.ops.fn.GraphFunction;
-import org.commonjava.maven.cartographer.ops.fn.MatchingProjectFunction;
-import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
-import org.commonjava.maven.cartographer.ops.fn.ProjectCollector;
-import org.commonjava.maven.cartographer.ops.fn.ProjectProjector;
-import org.commonjava.maven.cartographer.ops.fn.ProjectSelector;
-import org.commonjava.maven.cartographer.ops.fn.ValueHolder;
-import org.commonjava.maven.cartographer.recipe.PathsRecipe;
-import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
-import org.commonjava.maven.cartographer.recipe.ProjectGraphRelationshipsRecipe;
-import org.commonjava.maven.cartographer.recipe.SingleGraphResolverRecipe;
+import org.commonjava.maven.cartographer.ops.fn.*;
+import org.commonjava.maven.cartographer.request.*;
+import org.commonjava.maven.cartographer.result.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.*;
 
 public class GraphOps
 {
@@ -68,139 +48,111 @@ public class GraphOps
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    protected RelationshipGraphFactory graphFactory;
-
-    @Inject
-    protected ResolveOps resolveOps;
-
-    @Inject
-    protected CalculationOps calcOps;
+    private ResolveOps resolveOps;
 
     protected GraphOps()
     {
     }
 
-    public GraphOps( final RelationshipGraphFactory graphFactory, final ResolveOps resolveOps,
-                     final CalculationOps calcOps )
+    public GraphOps( final ResolveOps resolveOps )
     {
-        this.graphFactory = graphFactory;
         this.resolveOps = resolveOps;
-        this.calcOps = calcOps;
     }
 
-    public List<ProjectVersionRef> listProjects( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult listProjects( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        final List<ProjectVersionRef> result = new ArrayList<>();
+        final ProjectListResult result = new ProjectListResult();
 
-        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
-            return graph.containsGraph( ref ) ? ref : null;
-        };
+        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> graph.containsGraph( ref ) ? ref : null;
 
         final ProjectCollector<ProjectVersionRef> consumer = ( unused, ref ) -> {
             if ( ref != null )
             {
-                result.add( ref );
+                result.addProject( ref );
             }
         };
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
-                                                                                                  consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
         return result;
     }
 
     /**
-     * Lists all paths leading from roots defined in recipe to target projects for the configured graph composition.
+     * Lists all paths leading from roots defined in request to target projects for the configured graph composition.
      *
-     * @param recipe the graph recipe
-     * @param targets the set of target projects
+     * @param recipe the graph request
      * @return the list of paths, each path is a list of project relationships
      */
-    public Map<ProjectVersionRef, List<List<ProjectRelationship<?>>>> getPaths( final PathsRecipe recipe )
-        throws CartoDataException
+    public ProjectPathsResult getPaths( final PathsRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         //        Collections.sort( paths, RelationshipPathComparator.INSTANCE );
 
-        final Map<ProjectVersionRef, List<List<ProjectRelationship<?>>>> result = new HashMap<>();
+        ProjectPathsResult result = new ProjectPathsResult();
 
-        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor =
-            ( allRels, graphMap ) -> {
-                for ( final GraphDescription desc : graphMap.keySet() )
+        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor = ( allRels, graphMap ) -> {
+            for ( final GraphDescription desc : graphMap.keySet() )
+            {
+                final RelationshipGraph graph = graphMap.get( desc );
+                final ProjectRelationshipFilter filter = desc.filter();
+
+                final PathsTraversal paths = new PathsTraversal( filter, recipe.getTargets() );
+                try
                 {
-                    final RelationshipGraph graph = graphMap.get( desc );
-                    final ProjectRelationshipFilter filter = desc.filter();
-
-                    final PathsTraversal paths = new PathsTraversal( filter, recipe.getTargets() );
-                    try
-                    {
-                        graph.traverse( paths, TraversalType.depth_first );
-                    }
-                    catch ( final RelationshipGraphException ex )
-                    {
-                        throw new CartoDataException( "Failed to open / traverse the graph (for paths operation): "
-                            + ex.getMessage(), ex );
-                    }
-                    finally
-                    {
-                        CartoGraphUtils.closeGraphQuietly( graph );
-                    }
-
-                    final Set<List<ProjectRelationship<?>>> discoveredPaths = paths.getDiscoveredPaths();
-
-                    for ( final Iterator<List<ProjectRelationship<?>>> pathIter = discoveredPaths.iterator(); pathIter.hasNext(); )
-                    {
-                        final List<ProjectRelationship<?>> path = pathIter.next();
-                        if ( path == null || path.isEmpty() )
-                        {
-                            continue;
-                        }
-
-                        for ( final ProjectRelationship<?> rel : path )
-                        {
-                            if ( !allRels.contains( rel ) )
-                            {
-                                // continue to the next path...
-                                break;
-                            }
-                        }
-
-                        final ProjectVersionRef ref = path.get( 0 )
-                                                          .getDeclaring();
-                        List<List<ProjectRelationship<?>>> projectPaths = result.get( ref );
-                        if ( projectPaths == null )
-                        {
-                            projectPaths = new ArrayList<>();
-                            result.put( ref, projectPaths );
-                        }
-
-                        projectPaths.add( path );
-                    }
+                    graph.traverse( paths, TraversalType.depth_first );
                 }
-            };
+                catch ( final RelationshipGraphException ex )
+                {
+                    throw new CartoDataException(
+                                    "Failed to open / traverse the graph (for paths operation): " + ex.getMessage(),
+                                    ex );
+                }
+                finally
+                {
+                    CartoGraphUtils.closeGraphQuietly( graph );
+                }
+
+                final Set<List<ProjectRelationship<?>>> discoveredPaths = paths.getDiscoveredPaths();
+
+                for ( final List<ProjectRelationship<?>> path : discoveredPaths )
+                {
+                    if ( path == null || path.isEmpty() )
+                    {
+                        continue;
+                    }
+
+                    for ( final ProjectRelationship<?> rel : path )
+                    {
+                        if ( !allRels.contains( rel ) )
+                        {
+                            // continue to the next path...
+                            break;
+                        }
+                    }
+
+                    final ProjectVersionRef ref = path.get( 0 ).getDeclaring();
+                    result.addPath( ref, new ProjectPath( path ) );
+                }
+            }
+        };
 
         resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe,
                                                 ( allProjects, allRels, roots ) -> allRels.get(), extractor );
 
-        for ( final ProjectVersionRef key : result.keySet() )
-        {
-            final List<List<ProjectRelationship<?>>> paths = result.get( key );
-            Collections.sort( paths, RelationshipPathComparator.INSTANCE );
-        }
-
         return result;
     }
 
-    public Map<ProjectVersionRef, String> getProjectErrors( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectErrors getProjectErrors( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         return getAllProjectErrors( recipe );
     }
 
-    public Map<ProjectVersionRef, String> getAllProjectErrors( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    private ProjectErrors getAllProjectErrors( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        final LinkedHashMap<ProjectVersionRef, String> result = new LinkedHashMap<>();
+        final ProjectErrors result = new ProjectErrors();
 
         final ProjectProjector<String> extractor = ( ref, graph ) -> {
             final String error = graph.getProjectError( ref );
@@ -215,18 +167,18 @@ public class GraphOps
         final ProjectCollector<String> consumer = ( ref, error ) -> {
             if ( error != null )
             {
-                result.put( ref, error );
+                result.addProject( new ProjectError( ref, error ) );
             }
         };
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<String>( recipe, extractor, consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
 
         return result;
     }
 
-    public Map<ProjectVersionRef, ProjectVersionRef> getProjectParent( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public Map<ProjectVersionRef, ProjectVersionRef> getProjectParent( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final Map<ProjectVersionRef, ProjectVersionRef> result = new HashMap<>();
 
@@ -243,29 +195,26 @@ public class GraphOps
             return null;
         };
 
-        final ProjectCollector<ProjectVersionRef> consumer = ( ref, parent ) -> {
-            result.put( ref, parent );
-        };
+        final ProjectCollector<ProjectVersionRef> consumer = result::put;
 
         resolveOps.resolveAndExtractSingleGraph( ParentFilter.EXCLUDE_TERMINAL_PARENTS, recipe,
-                                                 new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
-                                                                                                  consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
 
         return result;
     }
 
-    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsFrom( final ProjectGraphRelationshipsRecipe recipe )
-        throws CartoDataException
+    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsFrom(
+                    final ProjectGraphRelationshipsRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> result = new LinkedHashMap<>();
 
-        final ProjectProjector<Set<ProjectRelationship<?>>> extractor =
-            ( ref, graph ) -> {
-                final Set<ProjectRelationship<?>> rels =
-                    graph.findDirectRelationshipsFrom( ref, recipe.isManagedIncluded(), recipe.isConcreteIncluded(),
-                                                       recipe.toTypeArray() );
-                return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
-            };
+        final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
+            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsFrom( ref, recipe.isManagedIncluded(),
+                                                                                        recipe.isConcreteIncluded(),
+                                                                                        recipe.toTypeArray() );
+            return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
+        };
 
         final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
@@ -275,24 +224,22 @@ public class GraphOps
         };
 
         resolveOps.resolveAndExtractSingleGraph( recipe.getTypeFilter(), recipe,
-                                                 new MatchingProjectFunction<Set<ProjectRelationship<?>>>( recipe,
-                                                                                                            extractor,
-                                                                                                            consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
         return result;
     }
 
-    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsTo( final ProjectGraphRelationshipsRecipe recipe )
-        throws CartoDataException
+    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsTo(
+                    final ProjectGraphRelationshipsRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> result = new LinkedHashMap<>();
 
-        final ProjectProjector<Set<ProjectRelationship<?>>> extractor =
-            ( ref, graph ) -> {
-                final Set<ProjectRelationship<?>> rels =
-                    graph.findDirectRelationshipsTo( ref, recipe.isManagedIncluded(), recipe.isConcreteIncluded(),
-                                                     recipe.toTypeArray() );
-                return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
-            };
+        final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
+            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsTo( ref, recipe.isManagedIncluded(),
+                                                                                      recipe.isConcreteIncluded(),
+                                                                                      recipe.toTypeArray() );
+            return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
+        };
 
         final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
@@ -302,30 +249,26 @@ public class GraphOps
         };
 
         resolveOps.resolveAndExtractSingleGraph( recipe.getTypeFilter(), recipe,
-                                                 new MatchingProjectFunction<Set<ProjectRelationship<?>>>( recipe,
-                                                                                                            extractor,
-                                                                                                            consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
         return result;
     }
 
-    public List<ProjectVersionRef> reindex( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult reindex( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        return doReindex( recipe, true );
+        return doReindex( recipe );
     }
 
-    private List<ProjectVersionRef> doReindex( final ProjectGraphRecipe recipe,
-                                                            final boolean useRecipeFilters )
-        throws CartoDataException
+    private ProjectListResult doReindex( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipe.setResolve( false );
-        if ( !useRecipeFilters )
+        if ( recipe.getGraph().filter() == null )
         {
-            recipe.getGraph()
-                  .setFilter( AnyFilter.INSTANCE );
+            recipe.getGraph().setFilter( AnyFilter.INSTANCE );
         }
 
-        final List<ProjectVersionRef> result = new ArrayList<>();
+        final ProjectListResult result = new ProjectListResult();
         final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
             try
             {
@@ -343,151 +286,128 @@ public class GraphOps
         final ProjectCollector<ProjectVersionRef> consumer = ( unused, ref ) -> {
             if ( ref != null )
             {
-                result.add( ref );
+                result.addProject( ref );
             }
         };
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
-                                                                                                  consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
 
         return result;
     }
 
-    public Set<ProjectVersionRef> getIncomplete( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult getIncomplete( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        final Set<ProjectVersionRef> result = new HashSet<>();
-        final ProjectProjector<ProjectVersionRef> extractor = (ref, graph)->{
-            return ref;
-        };
-        
-        final ProjectCollector<ProjectVersionRef> consumer = (unused, ref)->{
-            result.add( ref );
-        };
-        
-        final ProjectSelector supplier = (graph)->{
-            return graph.getIncompleteSubgraphs();
-        };
+        final ProjectListResult result = new ProjectListResult();
+        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> ref;
 
-        resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor, consumer, supplier ) );
+        final ProjectCollector<ProjectVersionRef> consumer = ( unused, ref ) -> result.addProject( ref );
+
+        final ProjectSelector supplier = RelationshipGraph::getIncompleteSubgraphs;
+
+        resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer,
+                                                                                supplier ) );
         return result;
     }
 
-    public Set<ProjectVersionRef> getVariable( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult getVariable( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        final Set<ProjectVersionRef> result = new HashSet<>();
-        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
-            return ref;
+        final ProjectListResult result = new ProjectListResult();
+        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> ref;
+
+        final ProjectCollector<ProjectVersionRef> consumer = ( unused, ref ) -> result.addProject( ref );
+
+        final ProjectSelector supplier = RelationshipGraph::getVariableSubgraphs;
+
+        resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer,
+                                                                                supplier ) );
+        return result;
+    }
+
+    public MappedProjectsResult getAncestry( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
+    {
+        final MappedProjectsResult result = new MappedProjectsResult();
+        final ProjectProjector<List<ProjectVersionRef>> extractor = ( ref, graph ) -> {
+            try
+            {
+                return CartoGraphUtils.getAncestry( ref, graph );
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                logger.error( String.format( "Failed to retrieve ancestry of: %s in: %s", ref,
+                                             recipe.getWorkspaceId() ), e );
+            }
+
+            return Collections.emptyList();
         };
 
-        final ProjectCollector<ProjectVersionRef> consumer = ( unused, ref ) -> {
-            result.add( ref );
-        };
-
-        final ProjectSelector supplier = ( graph ) -> {
-            return graph.getVariableSubgraphs();
+        final ProjectCollector<List<ProjectVersionRef>> consumer = ( ref, mapped ) -> {
+            result.addProject( new MappedProjects( ref, mapped ) );
         };
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
-                                                                                                  consumer, supplier ) );
-        return result;
-    }
-
-    public Map<ProjectVersionRef, List<ProjectVersionRef>> getAncestry( final ProjectGraphRecipe recipe )
-        throws CartoDataException
-    {
-        final Map<ProjectVersionRef, List<ProjectVersionRef>> result = new LinkedHashMap<>();
-        final ProjectProjector<List<ProjectVersionRef>> extractor =
-            ( ref, graph ) -> {
-                try
-                {
-                    return CartoGraphUtils.getAncestry( ref, graph );
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    logger.error( String.format( "Failed to retrieve ancestry of: %s in: %s", ref,
-                                                 recipe.getWorkspaceId() ), e );
-                }
-
-                return Collections.emptyList();
-            };
-
-        final ProjectCollector<List<ProjectVersionRef>> consumer = ( ref, ancestry ) -> {
-            result.put( ref, ancestry );
-        };
-
-        resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<List<ProjectVersionRef>>( recipe,
-                                                                                                        extractor,
-                                                                                                        consumer ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer ) );
 
         return result;
     }
 
-    public BuildOrder getBuildOrder( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public BuildOrder getBuildOrder( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final BuildOrderTraversal traversal = new BuildOrderTraversal();
-        final ProjectProjector<ProjectVersionRef> extractor =
-            ( ref, graph ) -> {
-                try
-                {
-                    graph.traverse( ref, traversal, TraversalType.breadth_first );
-                    return ref;
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    logger.error( String.format( "Failed to traverse graph: %s to discover build order for: %s",
-                                                 recipe.getWorkspaceId(), ref ), e );
-                }
+        final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
+            try
+            {
+                graph.traverse( ref, traversal, TraversalType.breadth_first );
+                return ref;
+            }
+            catch ( final RelationshipGraphException e )
+            {
+                logger.error( String.format( "Failed to traverse graph: %s to discover build order for: %s",
+                                             recipe.getWorkspaceId(), ref ), e );
+            }
 
-                return null;
-            };
+            return null;
+        };
 
         final ProjectCollector<ProjectVersionRef> consumer = ( ref, ref2 ) -> {
         };
 
-        final ProjectSelector supplier = ( graph ) -> {
-            return graph.getRoots();
-        };
+        final ProjectSelector supplier = RelationshipGraph::getRoots;
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
-                                                 new MatchingProjectFunction<ProjectVersionRef>( recipe, extractor,
-                                                                                                  consumer, supplier ) );
+                                                 new MatchingProjectFunction<>( recipe, extractor, consumer,
+                                                                                supplier ) );
         return traversal.getBuildOrder();
     }
 
-    public GraphExport exportGraph( final SingleGraphResolverRecipe recipe )
-        throws CartoDataException
+    public GraphExport exportGraph( final SingleGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final ValueHolder<GraphExport> holder = new ValueHolder<>();
         final GraphFunction extractor = ( graph ) -> {
             final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
             final Set<ProjectVersionRef> missing = graph.getAllIncompleteSubgraphs();
             final Set<ProjectVersionRef> variable = graph.getAllVariableSubgraphs();
-
-            final Map<ProjectVersionRef, String> errors = graph.getAllProjectErrors();
-
-            final Set<List<ProjectRelationship<?>>> allCycles = new HashSet<>();
-
             final Set<EProjectCycle> cycles = graph.getCycles();
-            if ( cycles != null )
+
+            final Map<ProjectVersionRef, String> errorMap = graph.getAllProjectErrors();
+            ProjectErrors errors = new ProjectErrors();
+            for ( ProjectVersionRef key : errorMap.keySet() )
             {
-                for ( final EProjectCycle cycle : cycles )
-                {
-                    allCycles.add( new ArrayList<>( cycle.getAllRelationships() ) );
-                }
+                errors.addProject( new ProjectError( key, errorMap.get( key ) ) );
             }
 
-            holder.consumer()
-                  .accept( new GraphExport( rels, missing, variable, errors, allCycles ) );
+            holder.consumer().accept( new GraphExport( rels, missing, variable, errors, cycles ) );
         };
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, extractor );
-        return holder.getValue();
+        return holder.get();
     }
 
 }

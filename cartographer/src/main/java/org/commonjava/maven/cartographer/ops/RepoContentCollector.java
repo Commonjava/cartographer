@@ -29,8 +29,8 @@ import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.maven.cartographer.dto.ExtraCT;
-import org.commonjava.maven.cartographer.recipe.RepositoryContentRecipe;
+import org.commonjava.maven.cartographer.request.ExtraCT;
+import org.commonjava.maven.cartographer.request.RepositoryContentRequest;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -52,7 +52,7 @@ public class RepoContentCollector
 
     private final ProjectRelationshipDiscoverer discoverer;
 
-    private final RepositoryContentRecipe recipe;
+    private final RepositoryContentRequest recipe;
 
     private final Set<ArtifactRef> seen = new HashSet<ArtifactRef>();
 
@@ -81,7 +81,7 @@ public class RepoContentCollector
     private final ProjectVersionRef ref;
 
     public RepoContentCollector( final ProjectVersionRef ref, final ProjectRefCollection refs,
-                                 final RepositoryContentRecipe recipe, final Location location,
+                                 final RepositoryContentRequest recipe, final Location location,
                                  final DiscoveryConfig discoveryConfig, final ArtifactManager artifacts,
                                  final ProjectRelationshipDiscoverer discoverer, final Set<Location> excluded,
                                  final int projectCounter, final int projectSz )

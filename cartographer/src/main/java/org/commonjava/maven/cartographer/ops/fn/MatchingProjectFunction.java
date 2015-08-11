@@ -8,13 +8,15 @@ import org.codehaus.plexus.util.StringUtils;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.ProjectVersionRefComparator;
-import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
+import org.commonjava.maven.cartographer.CartoRequestException;
+import org.commonjava.maven.cartographer.data.CartoDataException;
+import org.commonjava.maven.cartographer.request.ProjectGraphRequest;
 
 public class MatchingProjectFunction<T>
     implements GraphFunction
 {
 
-    private final ProjectGraphRecipe recipe;
+    private final ProjectGraphRequest recipe;
 
     private final ProjectProjector<T> extractor;
 
@@ -22,7 +24,7 @@ public class MatchingProjectFunction<T>
 
     private ProjectSelector supplier;
 
-    public MatchingProjectFunction( final ProjectGraphRecipe recipe, final ProjectProjector<T> extractor,
+    public MatchingProjectFunction( final ProjectGraphRequest recipe, final ProjectProjector<T> extractor,
                                      final ProjectCollector<T> consumer )
     {
         this.recipe = recipe;
@@ -33,7 +35,7 @@ public class MatchingProjectFunction<T>
         };
     }
 
-    public MatchingProjectFunction( final ProjectGraphRecipe recipe, final ProjectProjector<T> extractor,
+    public MatchingProjectFunction( final ProjectGraphRequest recipe, final ProjectProjector<T> extractor,
                                      final ProjectCollector<T> consumer, final ProjectSelector supplier )
     {
         this.recipe = recipe;
@@ -44,6 +46,7 @@ public class MatchingProjectFunction<T>
 
     @Override
     public void extract( final RelationshipGraph graph )
+                    throws CartoRequestException, CartoDataException
     {
         final ProjectVersionRef ref = recipe.getProject();
         if ( ref != null )

@@ -48,6 +48,7 @@
   </properties>
 
   <modules>
+    <module>model-java</module>
     <module>cartographer</module>
     <module>tck</module>
     <module>ftests</module>
@@ -55,6 +56,20 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.commonjava.boms</groupId>
+        <artifactId>web-commons-bom</artifactId>
+        <version>17-SNAPSHOT</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.commonjava.maven.cartographer</groupId>
+        <artifactId>cartographer-model-java</artifactId>
+        <version>0.9.4-SNAPSHOT</version>
+      </dependency>
+
       <dependency>
         <groupId>org.commonjava.maven.cartographer</groupId>
         <artifactId>cartographer</artifactId>
@@ -131,14 +146,6 @@
         <artifactId>galley-test-harness-maven</artifactId>
         <version>${galleyVersion}</version>
         <scope>test</scope>
-      </dependency>
-      
-      <dependency>
-        <groupId>org.commonjava.boms</groupId>
-        <artifactId>web-commons-bom</artifactId>
-        <version>16</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
       
       <dependency>

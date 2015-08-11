@@ -17,7 +17,6 @@ package org.commonjava.maven.cartographer.ops;
 
 import static org.commonjava.maven.cartographer.agg.AggregationUtils.collectProjectVersionReferences;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +47,7 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.agg.AggregationOptions;
 import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.agg.GraphAggregator;
@@ -57,18 +57,12 @@ import org.commonjava.maven.cartographer.discover.DiscoveryConfig;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
-import org.commonjava.maven.cartographer.dto.GraphCalculation;
-import org.commonjava.maven.cartographer.dto.GraphCalculation.Type;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
+import org.commonjava.maven.cartographer.request.*;
 import org.commonjava.maven.cartographer.ops.fn.FunctionInputSelector;
 import org.commonjava.maven.cartographer.ops.fn.GraphFunction;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
-import org.commonjava.maven.cartographer.recipe.AbstractResolverRecipe;
-import org.commonjava.maven.cartographer.recipe.MultiGraphResolverRecipe;
-import org.commonjava.maven.cartographer.recipe.RecipeResolver;
-import org.commonjava.maven.cartographer.recipe.RepositoryContentRecipe;
-import org.commonjava.maven.cartographer.recipe.SingleGraphResolverRecipe;
+import org.commonjava.maven.cartographer.request.AbstractGraphRequest;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -95,7 +89,7 @@ public class ResolveOps
     protected ArtifactManager artifacts;
 
     @Inject
-    protected CalculationOps calculations;
+    protected MultiGraphCalculator calculations;
 
     @Inject
     protected RelationshipGraphFactory graphFactory;
@@ -114,11 +108,12 @@ public class ResolveOps
     {
     }
 
-    public ResolveOps( final CalculationOps calculations, final DiscoverySourceManager sourceManager,
+    public ResolveOps( final MultiGraphCalculator calculations, final DiscoverySourceManager sourceManager,
                        final ProjectRelationshipDiscoverer discoverer, final GraphAggregator aggregator,
                        final ArtifactManager artifacts, final ExecutorService executor,
                        final RelationshipGraphFactory graphFactory, final RecipeResolver dtoResolver )
     {
+        this.calculations = calculations;
         this.sourceManager = sourceManager;
         this.discoverer = discoverer;
         this.aggregator = aggregator;
@@ -129,8 +124,8 @@ public class ResolveOps
     }
 
     public void resolveAndExtractSingleGraph( final ProjectRelationshipFilter filter,
-                                              final SingleGraphResolverRecipe recipe, final GraphFunction extractor )
-        throws CartoDataException
+                                              final SingleGraphRequest recipe, final GraphFunction extractor )
+                    throws CartoDataException, CartoRequestException
     {
         if ( filter != null && filter != AnyFilter.INSTANCE )
         {
@@ -149,18 +144,15 @@ public class ResolveOps
         }
         finally
         {
-            for ( final RelationshipGraph graph : graphMap.values() )
-            {
-                IOUtils.closeQuietly( graph );
-            }
+            graphMap.values().forEach( IOUtils::closeQuietly );
         }
     }
 
     public <T> void resolveAndExtractMultiGraph( final ProjectRelationshipFilter filter,
-                                                 final MultiGraphResolverRecipe recipe,
+                                                 final MultiGraphRequest recipe,
                                                  final FunctionInputSelector<T> selector,
                                                  final MultiGraphFunction<T> extractor )
-        throws CartoDataException
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
@@ -195,22 +187,22 @@ public class ResolveOps
 
                 final RelationshipGraph graph = graphMap.get( desc );
 
-                allProjects = ( ) -> graph.getAllProjects();
-                allRels = ( ) -> graph.getAllRelationships();
-                roots = ( ) -> graph.getRoots();
+                allProjects = graph::getAllProjects;
+                allRels = graph::getAllRelationships;
+                roots = graph::getRoots;
             }
             else
             {
                 if ( comp.getGraphs()
                          .size() > 1 && comp.getCalculation() == null )
                 {
-                    comp.setCalculation( Type.ADD );
+                    comp.setCalculation( GraphCalculationType.ADD );
                 }
 
                 final GraphCalculation calcResult = calculations.calculateFromGraphMap( comp, graphMap );
-                allProjects = ( ) -> calcResult.getResultingProjects();
-                allRels = ( ) -> calcResult.getResultingRelationships();
-                roots = ( ) -> calcResult.getResultingRoots();
+                allProjects = calcResult::getResultingProjects;
+                allRels = calcResult::getResultingRelationships;
+                roots = calcResult::getResultingRoots;
             }
 
             final T result = selector.select( allProjects, allRels, roots );
@@ -218,26 +210,23 @@ public class ResolveOps
         }
         finally
         {
-            for ( final RelationshipGraph graph : graphMap.values() )
-            {
-                IOUtils.closeQuietly( graph );
-            }
+            graphMap.values().forEach( IOUtils::closeQuietly );
         }
     }
 
     /**
      * Resolve any variable versions in the specified root GAVs of the {@link GraphComposition} embeded in the 
-     * {@link AbstractResolverRecipe}. Then retrieve, and if configured, discover missing parts of the relationship
+     * {@link AbstractGraphRequest}. Then retrieve, and if configured, discover missing parts of the relationship
      * graph. Return a mapping of {@link GraphDescription} to the {@link ViewParams} used during resolution, 
-     * which might contain root GAVs different than those given in the original {@link AbstractResolverRecipe} due to
+     * which might contain root GAVs different than those given in the original {@link AbstractGraphRequest} due to
      * potential root GAV differences from resolution of variable versions.
      */
-    public LinkedHashMap<GraphDescription, ViewParams> resolveToParamMap( final AbstractResolverRecipe recipe )
-        throws CartoDataException
+    public LinkedHashMap<GraphDescription, ViewParams> resolveToParamMap( final AbstractGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
-        final LinkedHashMap<GraphDescription, ViewParams> result = new LinkedHashMap<GraphDescription, ViewParams>();
+        final LinkedHashMap<GraphDescription, ViewParams> result = new LinkedHashMap<>();
         for ( final GraphDescription desc : recipe.getGraphComposition() )
         {
             if ( recipe.isResolve() )
@@ -255,8 +244,10 @@ public class ResolveOps
                                                                                         .withSelections( recipe.getVersionSelections() )
                                                                                         .build();
                 // ensure the graph is available.
-                try (RelationshipGraph graph = graphFactory.open( params, false ))
+                RelationshipGraph graph = null;
+                try
                 {
+                    graph = graphFactory.open( params, false );
                     result.put( desc, graph.getParams() );
                 }
                 catch ( final RelationshipGraphException e )
@@ -264,9 +255,9 @@ public class ResolveOps
                     throw new CartoDataException( "Failed to open existing graph: %s. Reason: %s", e, params,
                                                   e.getMessage() );
                 }
-                catch ( final IOException e )
+                finally
                 {
-                    logger.error( String.format( "Failed to close graph: %s. Reason: %s", params, e.getMessage() ), e );
+                    IOUtils.closeQuietly( graph );
                 }
             }
         }
@@ -276,22 +267,20 @@ public class ResolveOps
 
     /**
      * Resolve any variable versions in the specified root GAVs of the {@link GraphComposition} embeded in the 
-     * {@link AbstractResolverRecipe}. Then retrieve, and if configured, discover missing parts of the relationship
+     * {@link AbstractGraphRequest}. Then retrieve, and if configured, discover missing parts of the relationship
      * graph. Return a mapping of {@link GraphDescription} to the {@link ViewParams} used during resolution, 
-     * which might contain root GAVs different than those given in the original {@link AbstractResolverRecipe} due to
+     * which might contain root GAVs different than those given in the original {@link AbstractGraphRequest} due to
      * potential root GAV differences from resolution of variable versions.
      */
-    public LinkedHashMap<GraphDescription, RelationshipGraph> resolveToGraphMap( final AbstractResolverRecipe recipe )
-        throws CartoDataException
+    public LinkedHashMap<GraphDescription, RelationshipGraph> resolveToGraphMap( final AbstractGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
         final LinkedHashMap<GraphDescription, RelationshipGraph> result = new LinkedHashMap<>();
         for ( final GraphDescription desc : recipe.getGraphComposition() )
         {
-            resolveGraph( desc, recipe, ( graph ) -> {
-                result.put( desc, graph );
-            } );
+            resolveGraph( desc, recipe, ( graph ) -> result.put( desc, graph ) );
         }
 
         return result;
@@ -299,13 +288,13 @@ public class ResolveOps
 
     /**
      * Resolve any variable versions in the specified root GAVs of the {@link GraphComposition} embeded in the 
-     * {@link AbstractResolverRecipe}. Then retrieve, and if configured, discover missing parts of the relationship
+     * {@link AbstractGraphRequest}. Then retrieve, and if configured, discover missing parts of the relationship
      * graph. Return a mapping of {@link GraphDescription} to the {@link ViewParams} used during resolution, 
-     * which might contain root GAVs different than those given in the original {@link AbstractResolverRecipe} due to
+     * which might contain root GAVs different than those given in the original {@link AbstractGraphRequest} due to
      * potential root GAV differences from resolution of variable versions.
      */
-    public void resolveGraphs( final AbstractResolverRecipe recipe, final Consumer<RelationshipGraph> consumer )
-        throws CartoDataException
+    public void resolveGraphs( final AbstractGraphRequest recipe, final Consumer<RelationshipGraph> consumer )
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
@@ -321,11 +310,11 @@ public class ResolveOps
      * potential root GAV differences due to resolution of variable versions. If autoClose parameter is false, then leave the graph open for 
      * subsequent reuse.
      * <br/>
-     * <b>NOTE:</b> This method assumes {@link RecipeResolver#resolve(AbstractResolverRecipe)} has already been called.
+     * <b>NOTE:</b> This method assumes {@link RecipeResolver#resolve(AbstractGraphRequest)} has already been called.
      */
-    private void resolveGraph( final GraphDescription desc, final AbstractResolverRecipe recipe,
+    private void resolveGraph( final GraphDescription desc, final AbstractGraphRequest recipe,
                                final Consumer<RelationshipGraph> consumer )
-        throws CartoDataException
+                    throws CartoDataException, CartoRequestException
     {
         logger.info( "Initial source location: '{}'", recipe.getSourceLocation() );
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
@@ -358,10 +347,10 @@ public class ResolveOps
             return;
         }
 
-        final AggregationOptions aggOptions = createAggregationOptions( recipe, desc.filter(), sourceUri );
+        final AggregationOptions aggOptions = createAggregationOptions( recipe, desc.filter() );
         final DiscoveryConfig discoveryConfig = recipe.getDiscoveryConfig();
 
-        final List<ProjectVersionRef> specifics = new ArrayList<ProjectVersionRef>();
+        final List<ProjectVersionRef> specifics = new ArrayList<>();
 
         for ( final ProjectVersionRef root : desc.getRoots() )
         {
@@ -425,14 +414,14 @@ public class ResolveOps
         }
     }
 
-    public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRecipe recipe )
-        throws CartoDataException
+    public Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolveRepositoryContents( final RepositoryContentRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
         if ( recipe == null || !recipe.isValid() )
         {
-            throw new CartoDataException( "Repository content recipe is invalid: {}", recipe );
+            throw new CartoDataException( "Repository content request is invalid: {}", recipe );
         }
 
         final URI sourceUri = sourceManager.createSourceURI( recipe.getSourceLocation()
@@ -443,11 +432,10 @@ public class ResolveOps
                                           recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
-        final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe, sourceUri );
-        final List<RepoContentCollector> collectors = collectContent( refMap, recipe, sourceUri );
+        final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe );
+        final List<RepoContentCollector> collectors = collectContent( refMap, recipe );
 
-        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap =
-            new HashMap<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>>();
+        final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> itemMap = new HashMap<>();
         for ( final RepoContentCollector collector : collectors )
         {
             final Map<ArtifactRef, ConcreteResource> items = collector.getItems();
@@ -480,8 +468,8 @@ public class ResolveOps
     }
 
     private List<RepoContentCollector> collectContent( final Map<ProjectVersionRef, ProjectRefCollection> refMap,
-                                                       final RepositoryContentRecipe recipe, final URI sourceUri )
-        throws CartoDataException
+                                                       final RepositoryContentRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final Location location = recipe.getSourceLocation();
         final Set<Location> excluded = recipe.getExcludedSourceLocations();
@@ -489,12 +477,12 @@ public class ResolveOps
         if ( excluded != null && excluded.contains( location ) )
         {
             // no sense in going through all the rest if everything is excluded...
-            throw new CartoDataException( "RepositoryContentRecipe is insane! Source location is among those excluded!" );
+            throw new CartoDataException( "RepositoryContentRequest is insane! Source location is among those excluded!" );
         }
 
         int projectCounter = 1;
         final int projectSz = refMap.size();
-        final List<RepoContentCollector> collectors = new ArrayList<RepoContentCollector>( projectSz );
+        final List<RepoContentCollector> collectors = new ArrayList<>( projectSz );
 
         final DiscoveryConfig dconf = recipe.getDiscoveryConfig();
 
@@ -538,19 +526,19 @@ public class ResolveOps
 
     /**
      * Discover the dependency graphs for the configured graph composition, and then traverse them to construct a mapping of GAV to set of references
-     * that can be used to render various kinds of output. If the recipe contains injectedBOMs, then read the managed dependencies from these into
+     * that can be used to render various kinds of output. If the request contains injectedBOMs, then read the managed dependencies from these into
      * a mapping of GA -> GAV that we can pass into the {@link ViewParams} we'll eventually use to discover and traverse the graph.
      * <br/>
-     * Returns null if {@link RepositoryContentRecipe#setSourceLocation(Location)} hasn't 
+     * Returns null if {@link RepositoryContentRequest#setSourceLocation(Location)} hasn't
      * been called before this method is called.
      * <br/>
-     * @throws {@link CartoDataException} if one or more of the recipe's injected BOMs cannot be resolved, if the recipe doesn't contain enough basic 
-     * info to be used (See: {@link RepositoryContentRecipe#isValid()}), if the source {@link Location} hasn't been set on the recipe, or if an 
+     * @throws {@link CartoDataException} if one or more of the request's injected BOMs cannot be resolved or if an
      * unexpected problem takes place during graph resolution or traversal.
+     * @throws {@link CartoRequestException} if the request doesn't contain enough basic
+     * info to be used (See: {@link RepositoryContentRequest#isValid()}) or if the source {@link Location} hasn't been set on the request
      */
-    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRecipe recipe,
-                                                                              final URI sourceUri )
-        throws CartoDataException
+    private Map<ProjectVersionRef, ProjectRefCollection> resolveReferenceMap( final RepositoryContentRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         logger.info( "Building repository for: {}", recipe );
 
@@ -597,9 +585,9 @@ public class ResolveOps
         return refMap;
     }
 
-    private AggregationOptions createAggregationOptions( final AbstractResolverRecipe recipe,
-                                                         final ProjectRelationshipFilter baseFilter, final URI sourceUri )
-        throws CartoDataException
+    private AggregationOptions createAggregationOptions( final AbstractGraphRequest recipe,
+                                                         final ProjectRelationshipFilter baseFilter )
+                    throws CartoDataException, CartoRequestException
     {
         final DefaultAggregatorOptions options = new DefaultAggregatorOptions();
         options.setDiscoveryEnabled( recipe.isResolve() );

@@ -38,12 +38,12 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
+import org.commonjava.maven.cartographer.request.GraphComposition;
+import org.commonjava.maven.cartographer.request.GraphDescription;
 import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilter;
-import org.commonjava.maven.cartographer.recipe.RepositoryContentRecipe;
-import org.commonjava.maven.cartographer.recipe.SingleGraphResolverRecipe;
-import org.commonjava.maven.cartographer.recipe.build.SingleGraphResolverRecipeBuilder;
+import org.commonjava.maven.cartographer.request.RepositoryContentRequest;
+import org.commonjava.maven.cartographer.request.SingleGraphRequest;
+import org.commonjava.maven.cartographer.request.build.SingleGraphRequestBuilder;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
@@ -119,7 +119,7 @@ public class ResolveOpsTest
         System.out.println( "Rejected: " + rejects );
         assertThat( rejects.isEmpty(), equalTo( true ) );
 
-        final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
+        final RepositoryContentRequest recipe = new RepositoryContentRequest();
 
         recipe.setGraphComposition( new GraphComposition(
                                                           null,
@@ -171,13 +171,13 @@ public class ResolveOpsTest
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( gc1 ) ) ),
+            new HashSet<ProjectRelationship<?>>( Collections.singletonList( new ParentRelationship( gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()
         ) );
         /* @formatter:on */
 
-        final SingleGraphResolverRecipe recipe =
-            SingleGraphResolverRecipeBuilder.newSingleGraphResolverRecipeBuilder()
+        final SingleGraphRequest recipe =
+            SingleGraphRequestBuilder.newSingleGraphResolverRecipeBuilder()
                                             .withWorkspaceId( rootlessGraph.getWorkspaceId() )
                                             .withResolve( true )
                                             .withSource( src.toString() )

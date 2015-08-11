@@ -587,7 +587,7 @@ public class MavenModelProcessor
             }
             else
             {
-                builder.withParent( new ParentRelationship( source, builder.getProjectRef() ) );
+                builder.withParent( new ParentRelationship( builder.getProjectRef() ) );
             }
         }
         catch ( final GalleyMavenException e )

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -78,7 +79,7 @@ public class DistributionPomPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
@@ -118,7 +119,7 @@ public class DistributionPomPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
@@ -157,7 +158,7 @@ public class DistributionPomPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );

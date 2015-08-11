@@ -16,7 +16,7 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.maven.model.Model;
-import org.commonjava.maven.cartographer.recipe.PomRecipe;
+import org.commonjava.maven.cartographer.request.PomRequest;
 import org.junit.Test;
 
 public class ProjectWithInheritedDepDownloadTest
@@ -37,7 +37,7 @@ public class ProjectWithInheritedDepDownloadTest
 
         aliasRepo( alias, repoResource, repoResourceTrim );
 
-        final PomRecipe recipe = readRecipe( dto, PomRecipe.class );
+        final PomRequest recipe = readRecipe( dto, PomRequest.class );
 
         final Model pom = carto.getRenderer()
                                .generatePOM( recipe );

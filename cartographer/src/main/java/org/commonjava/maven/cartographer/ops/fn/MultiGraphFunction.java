@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
+import org.commonjava.maven.cartographer.request.GraphDescription;
 
 public interface MultiGraphFunction<T>
 {

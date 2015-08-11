@@ -21,11 +21,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.ops.CalculationOps;
-import org.commonjava.maven.cartographer.ops.GraphOps;
-import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
-import org.commonjava.maven.cartographer.ops.MetadataOps;
-import org.commonjava.maven.cartographer.ops.ResolveOps;
+import org.commonjava.maven.cartographer.ops.*;
 import org.commonjava.maven.galley.maven.GalleyMaven;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,10 +52,6 @@ public class Cartographer
 
     @Inject
     protected ObjectMapper objectMapper;
-
-    protected Cartographer()
-    {
-    }
 
     public Cartographer( final GalleyMaven galleyMaven, final CalculationOps calculator, final GraphOps grapher,
                          final GraphRenderingOps renderer,
