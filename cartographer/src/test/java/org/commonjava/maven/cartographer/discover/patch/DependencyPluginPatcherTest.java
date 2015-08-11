@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -76,7 +77,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult result = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
 
@@ -115,7 +116,7 @@ public class DependencyPluginPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
@@ -152,7 +153,7 @@ public class DependencyPluginPatcherTest
 
         final URI src = new URI( "test:uri" );
         final DiscoveryResult result = new DiscoveryResult( src, pvr, new HashSet<ProjectRelationship<?>>() );
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
 
@@ -190,7 +191,7 @@ public class DependencyPluginPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
@@ -229,7 +230,7 @@ public class DependencyPluginPatcherTest
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
         final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
 
-        patcher.patch( result, Arrays.asList( location ), getContext( pvr, location ) );
+        patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
         final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );

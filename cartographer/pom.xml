@@ -29,6 +29,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.commonjava.maven.cartographer</groupId>
+      <artifactId>cartographer-model-java</artifactId>
+    </dependency>
+    
+    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>

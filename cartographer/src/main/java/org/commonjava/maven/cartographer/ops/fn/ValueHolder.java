@@ -7,12 +7,12 @@ public class ValueHolder<T>
 
     private T value;
 
-    public T getValue()
+    public T get()
     {
         return value;
     }
 
-    public void setValue( final T value )
+    public void set( final T value )
     {
         this.value = value;
     }

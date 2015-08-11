@@ -29,18 +29,22 @@ import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.DiscoverySourceManager;
 import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSupport;
-import org.commonjava.maven.cartographer.dto.MetadataCollation;
+import org.commonjava.maven.cartographer.result.MetadataCollationResult;
 import org.commonjava.maven.cartographer.ops.fn.MatchingProjectFunction;
 import org.commonjava.maven.cartographer.ops.fn.ProjectCollector;
 import org.commonjava.maven.cartographer.ops.fn.ProjectProjector;
-import org.commonjava.maven.cartographer.recipe.MetadataCollationRecipe;
-import org.commonjava.maven.cartographer.recipe.MetadataExtractionRecipe;
-import org.commonjava.maven.cartographer.recipe.MetadataUpdateRecipe;
-import org.commonjava.maven.cartographer.recipe.ProjectGraphRecipe;
-import org.commonjava.maven.cartographer.recipe.RecipeResolver;
+import org.commonjava.maven.cartographer.request.MetadataCollationRequest;
+import org.commonjava.maven.cartographer.request.MetadataExtractionRequest;
+import org.commonjava.maven.cartographer.request.MetadataUpdateRequest;
+import org.commonjava.maven.cartographer.request.ProjectGraphRequest;
+import org.commonjava.maven.cartographer.result.MetadataEntry;
+import org.commonjava.maven.cartographer.result.MetadataResult;
+import org.commonjava.maven.cartographer.result.ProjectListResult;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -100,10 +104,10 @@ public class MetadataOps
         this.recipeResolver = dtoResolver;
     }
 
-    public Map<ProjectVersionRef, Map<String, String>> getMetadata( final MetadataExtractionRecipe recipe )
-        throws CartoDataException
+    public MetadataResult getMetadata( final MetadataExtractionRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        final Map<ProjectVersionRef, Map<String, String>> result = new HashMap<>();
+        final MetadataResult result = new MetadataResult();
         final Set<String> keys = recipe.getKeys();
 
         final ProjectProjector<Map<String, String>> extractor = ( ref, graph ) -> {
@@ -111,7 +115,7 @@ public class MetadataOps
         };
 
         final ProjectCollector<Map<String, String>> consumer = ( ref, metadata ) -> {
-            result.put( ref, metadata );
+            result.addProject( new MetadataEntry( ref, metadata ) );
         };
 
         resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
@@ -120,15 +124,15 @@ public class MetadataOps
         return result;
     }
 
-    public List<ProjectVersionRef> updateMetadata( final MetadataUpdateRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult updateMetadata( final MetadataUpdateRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipe.setResolve( false );
 
         final Map<String, String> globalMetadata = recipe.getGlobalMetadata();
         final Map<ProjectVersionRef, Map<String, String>> projectMetadata = recipe.getProjectMetadata();
 
-        final List<ProjectVersionRef> result = new ArrayList<>();
+        final ProjectListResult result = new ProjectListResult();
         final ProjectProjector<ProjectVersionRef> projector =
             ( ref, graph ) -> {
                 final Map<String, String> metadata = new HashMap<>();
@@ -160,7 +164,7 @@ public class MetadataOps
         final ProjectCollector<ProjectVersionRef> collector = ( unused, ref ) -> {
             if ( ref != null )
             {
-                result.add( ref );
+                result.addProject( ref );
             }
         };
 
@@ -170,11 +174,11 @@ public class MetadataOps
         return result;
     }
 
-    public List<ProjectVersionRef> rescanMetadata( final ProjectGraphRecipe recipe )
-        throws CartoDataException
+    public ProjectListResult rescanMetadata( final ProjectGraphRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipe.setResolve( false );
-        final List<ProjectVersionRef> result = new ArrayList<>();
+        final ProjectListResult result = new ProjectListResult();
 
         recipeResolver.resolve( recipe );
         final List<? extends Location> locations = recipe.getDiscoveryConfig()
@@ -240,7 +244,7 @@ public class MetadataOps
         final ProjectCollector<ProjectVersionRef> collector = ( unused, ref ) -> {
             if ( ref != null )
             {
-                result.add( ref );
+                result.addProject( ref );
             }
         };
 
@@ -250,15 +254,15 @@ public class MetadataOps
         return result;
     }
 
-    public MetadataCollation collate( final MetadataCollationRecipe recipe )
-        throws CartoDataException
+    public MetadataCollationResult collate( final MetadataCollationRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final Map<Map<String, String>, Set<ProjectVersionRef>> result = new HashMap<>();
 
         final Set<String> keys = recipe.getKeys();
         if ( keys == null || keys.isEmpty() )
         {
-            return new MetadataCollation( result );
+            return new MetadataCollationResult( result );
         }
 
         final ProjectProjector<Map<String, String>> projector = ( ref, graph ) -> {
@@ -287,6 +291,6 @@ public class MetadataOps
         resolver.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, new MatchingProjectFunction<>( recipe,
                                                                                                           projector,
                                                                                                           collector ) );
-        return new MetadataCollation( result );
+        return new MetadataCollationResult( result );
     }
 }

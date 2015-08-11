@@ -15,345 +15,155 @@
  */
 package org.commonjava.maven.cartographer.ops;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
+import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoGraphUtils;
-import org.commonjava.maven.cartographer.dto.GraphCalculation;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
-import org.commonjava.maven.cartographer.dto.GraphDifference;
-import org.commonjava.maven.cartographer.recipe.RecipeResolver;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
+import org.commonjava.maven.cartographer.ops.fn.ValueHolder;
+import org.commonjava.maven.cartographer.request.*;
+import org.commonjava.maven.cartographer.result.GraphDifference;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 
 @ApplicationScoped
 public class CalculationOps
 {
 
     @Inject
-    protected RelationshipGraphFactory graphFactory;
+    private RelationshipGraphFactory graphFactory;
 
     @Inject
-    protected RecipeResolver dtoResolver;
+    private RecipeResolver dtoResolver;
+
+    @Inject
+    private MultiGraphCalculator graphCalculator;
+
+    @Inject
+    private ResolveOps resolveOps;
 
     protected CalculationOps()
     {
     }
 
-    public CalculationOps( final RelationshipGraphFactory graphFactory, final RecipeResolver dtoResolver )
+    public CalculationOps( final MultiGraphCalculator graphCalculator, final RelationshipGraphFactory graphFactory,
+                           final RecipeResolver dtoResolver )
     {
+        this.graphCalculator = graphCalculator;
         this.graphFactory = graphFactory;
         this.dtoResolver = dtoResolver;
     }
 
-    public GraphDifference<ProjectRelationship<?>> difference( final GraphDescription from, final GraphDescription to,
-                                                               final String workspaceId )
-        throws CartoDataException
+    public GraphDifference<ProjectRelationship<?>> difference( final GraphAnalysisRequest request )
+                    throws CartoDataException, CartoRequestException
     {
-        dtoResolver.resolvePresets( from );
-        dtoResolver.resolvePresets( to );
-
-        final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
-
-        RelationshipGraph firstWeb = null;
-        RelationshipGraph secondWeb = null;
-        final Collection<ProjectRelationship<?>> firstAll;
-        final Collection<ProjectRelationship<?>> secondAll;
-        try
+        List<MultiGraphRequest> requests = request.getGraphRequests();
+        if ( requests == null || requests.size() != 2 )
         {
-            try
-            {
-                ViewParams params = from.view();
-                if ( params == null )
-                {
-                    params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
-                }
-
-                firstWeb = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException(
-                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
-                                              e, workspaceId, from, e.getMessage() );
-            }
-            try
-            {
-                ViewParams params = to.view();
-                if ( params == null )
-                {
-                    params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
-                }
-
-                secondWeb = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException(
-                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
-                                              e, workspaceId, to, e.getMessage() );
-            }
-            firstAll = firstWeb.getAllRelationships();
-            secondAll = secondWeb.getAllRelationships();
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( firstWeb );
-            CartoGraphUtils.closeGraphQuietly( secondWeb );
+            throw new CartoRequestException( "You must specify exactly 2 graph requests to calculate a difference!" );
         }
 
-        final Set<ProjectRelationship<?>> removed = new HashSet<ProjectRelationship<?>>( firstAll );
-        removed.removeAll( secondAll );
+        MultiGraphRequest from = requests.get( 0 );
+        MultiGraphRequest to = requests.get( 1 );
 
-        final Set<ProjectRelationship<?>> added = new HashSet<ProjectRelationship<?>>( secondAll );
-        added.removeAll( firstAll );
+        ValueHolder<Set<ProjectRelationship<?>>> fromRels = new ValueHolder<>();
+        ValueHolder<Set<ProjectRelationship<?>>> toRels = new ValueHolder<>();
 
-        return new GraphDifference<ProjectRelationship<?>>( from, to, added, removed );
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, from,
+                                                ( allProjects, allRelationships, roots ) -> allRelationships.get(),
+                                                ( elements, graphs ) -> fromRels.set( elements ) );
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, to,
+                                                ( allProjects, allRelationships, roots ) -> allRelationships.get(),
+                                                ( elements, graphs ) -> toRels.set( elements ) );
+
+        final Set<ProjectRelationship<?>> removed = new HashSet<>( fromRels.get() );
+        removed.removeAll( toRels.get() );
+
+        final Set<ProjectRelationship<?>> added = new HashSet<>( toRels.get() );
+        added.removeAll( fromRels.get() );
+
+        return new GraphDifference<>( from, to, added, removed );
     }
 
-    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphDescription from,
-                                                                       final GraphDescription to,
-                                                                       final String workspaceId )
-        throws CartoDataException
+    public GraphDifference<ProjectVersionRef> intersectingTargetDrift( final GraphAnalysisRequest request )
+                    throws CartoDataException, CartoRequestException
     {
-        dtoResolver.resolvePresets( from );
-        dtoResolver.resolvePresets( to );
-
-        final ManagedDependencyMutator mutator = new ManagedDependencyMutator();
-        RelationshipGraph firstWeb = null;
-        RelationshipGraph secondWeb = null;
-
-        final Map<ProjectRef, Set<ProjectVersionRef>> firstAll;
-        final Map<ProjectRef, Set<ProjectVersionRef>> secondAll;
-        try
+        List<MultiGraphRequest> requests = request.getGraphRequests();
+        if ( requests == null || requests.size() != 2 )
         {
-            try
-            {
-                ViewParams params = from.view();
-                if ( params == null )
-                {
-                    params = new ViewParams( workspaceId, from.filter(), mutator, from.rootsArray() );
-                }
-
-                firstWeb = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException(
-                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
-                                              e, workspaceId, from, e.getMessage() );
-            }
-            try
-            {
-                ViewParams params = to.view();
-                if ( params == null )
-                {
-                    params = new ViewParams( workspaceId, to.filter(), mutator, to.rootsArray() );
-                }
-
-                secondWeb = graphFactory.open( params, false );
-            }
-            catch ( final RelationshipGraphException e )
-            {
-                throw new CartoDataException(
-                                              "Failed to retrieve graph from workspace: '{}' for description: {}. Reason: {}",
-                                              e, workspaceId, to, e.getMessage() );
-            }
-            firstAll = mapTargetsToGA( firstWeb );
-            secondAll = mapTargetsToGA( secondWeb );
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( firstWeb );
-            CartoGraphUtils.closeGraphQuietly( secondWeb );
+            throw new CartoRequestException( "You must specify exactly 2 graph requests to calculate a difference!" );
         }
 
+        MultiGraphRequest from = requests.get( 0 );
+        MultiGraphRequest to = requests.get( 1 );
+
+        ValueHolder<Map<ProjectRef, Set<ProjectVersionRef>>> fromMap = new ValueHolder<>();
+        ValueHolder<Map<ProjectRef, Set<ProjectVersionRef>>> toMap = new ValueHolder<>();
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, from,
+                                                ( allProjects, allRelationships, roots ) -> allProjects.get(),
+                                                mapTargetsToGA( fromMap ) );
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, to,
+                                                ( allProjects, allRelationships, roots ) -> allProjects.get(),
+                                                mapTargetsToGA( toMap ) );
+
+        Map<ProjectRef, Set<ProjectVersionRef>> firstAll = fromMap.get();
+        Map<ProjectRef, Set<ProjectVersionRef>> secondAll = toMap.get();
         reduceToIntersection( firstAll, secondAll );
 
-        final Set<ProjectVersionRef> removed = new HashSet<ProjectVersionRef>();
-        for ( final Set<ProjectVersionRef> refSet : firstAll.values() )
-        {
-            if ( refSet != null )
-            {
-                removed.addAll( refSet );
-            }
-        }
+        final Set<ProjectVersionRef> removed = new HashSet<>();
+        firstAll.values().stream().filter( refSet -> refSet != null ).forEach( removed::addAll );
 
-        final Set<ProjectVersionRef> added = new HashSet<ProjectVersionRef>();
-        for ( final Set<ProjectVersionRef> refSet : secondAll.values() )
-        {
-            if ( refSet != null )
-            {
-                added.addAll( refSet );
-            }
-        }
+        final Set<ProjectVersionRef> added = new HashSet<>();
+        secondAll.values().stream().filter( refSet -> refSet != null ).forEach( added::addAll );
 
-        return new GraphDifference<ProjectVersionRef>( from, to, added, removed );
+        return new GraphDifference<>( from, to, added, removed );
     }
 
     private void reduceToIntersection( final Map<ProjectRef, Set<ProjectVersionRef>> first,
                                        final Map<ProjectRef, Set<ProjectVersionRef>> second )
     {
-        for ( final ProjectRef ref : new HashSet<ProjectRef>( first.keySet() ) )
-        {
-            if ( !second.containsKey( ref ) )
-            {
-                first.remove( ref );
-            }
-        }
+        new HashSet<>( first.keySet() ).stream().filter( ref -> !second.containsKey( ref ) ).forEach( first::remove );
 
-        for ( final ProjectRef ref : new HashSet<ProjectRef>( second.keySet() ) )
-        {
-            if ( !first.containsKey( ref ) )
-            {
-                second.remove( ref );
-            }
-        }
+        new HashSet<>( second.keySet() ).stream().filter( ref -> !first.containsKey( ref ) ).forEach( second::remove );
     }
 
-    private Map<ProjectRef, Set<ProjectVersionRef>> mapTargetsToGA( final RelationshipGraph graph )
+    private MultiGraphFunction<Set<ProjectVersionRef>> mapTargetsToGA(
+                    ValueHolder<Map<ProjectRef, Set<ProjectVersionRef>>> value )
     {
-        final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<ProjectRef, Set<ProjectVersionRef>>();
-        for ( final ProjectVersionRef ref : graph.getAllProjects() )
-        {
+        final Map<ProjectRef, Set<ProjectVersionRef>> result = new HashMap<>();
+        value.set( result );
+
+        return ( elements, graph ) -> elements.forEach( ( ref ) -> {
             final ProjectRef pr = ref.asProjectRef();
 
             Set<ProjectVersionRef> pvrs = result.get( pr );
             if ( pvrs == null )
             {
-                pvrs = new HashSet<ProjectVersionRef>();
+                pvrs = new HashSet<>();
                 result.put( pr, pvrs );
             }
 
             pvrs.add( ref );
-        }
-
-        return result;
+        } );
     }
 
-    public GraphCalculation calculate( final GraphComposition composition, final String workspaceId )
-        throws CartoDataException
+    public GraphCalculation calculate( final MultiGraphRequest request )
+                    throws CartoDataException, CartoRequestException
     {
-        dtoResolver.resolvePresets( composition );
-        final Map<GraphDescription, ViewParams> paramMap = new HashMap<GraphDescription, ViewParams>();
+        Map<GraphDescription, RelationshipGraph> graphMap = resolveOps.resolveToGraphMap( request );
 
-        final GraphMutator mutator = new ManagedDependencyMutator();
-        for ( final GraphDescription desc : composition )
-        {
-            paramMap.put( desc, new ViewParams( workspaceId, desc.filter(), mutator, desc.rootsArray() ) );
-        }
-
-        return calculateFromParamMap( composition, paramMap );
-    }
-
-    public GraphCalculation calculateFromParamMap( final GraphComposition composition,
-                                                   final Map<GraphDescription, ViewParams> paramMap )
-        throws CartoDataException
-    {
-        final Map<GraphDescription, RelationshipGraph> graphMap = new HashMap<>();
-        try
-        {
-            for ( final GraphDescription desc : composition )
-            {
-                final ViewParams params = paramMap.get( desc );
-                RelationshipGraph graph;
-                try
-                {
-                    graph = graphFactory.open( params, false );
-                }
-                catch ( final RelationshipGraphException e )
-                {
-                    throw new CartoDataException( "Failed to open graph: {}. Reason: {}", e, params, e.getMessage() );
-                }
-                graphMap.put( desc, graph );
-            }
-
-            return calculateFromGraphMap( composition, graphMap );
-        }
-        finally
-        {
-            for ( final RelationshipGraph graph : graphMap.values() )
-            {
-                IOUtils.closeQuietly( graph );
-            }
-        }
-    }
-
-    public GraphCalculation calculateFromGraphMap( final GraphComposition composition,
-                                                   final Map<GraphDescription, RelationshipGraph> graphMap )
-        throws CartoDataException
-    {
-        Set<ProjectRelationship<?>> result = null;
-        Set<ProjectVersionRef> roots = null;
-
-        out: for ( final GraphDescription desc : composition.getGraphs() )
-        {
-            final RelationshipGraph graph = graphMap.get( desc );
-
-            if ( graph == null )
-            {
-                throw new CartoDataException( "Cannot retrieve web for: {}.", graph );
-            }
-
-            if ( result == null )
-            {
-                result = new HashSet<>( graph.getAllRelationships() );
-                roots = new HashSet<>( graph.getRoots() );
-            }
-            else
-            {
-                switch ( composition.getCalculation() )
-                {
-                    case SUBTRACT:
-                    {
-                        result.removeAll( graph.getAllRelationships() );
-
-                        if ( result.isEmpty() )
-                        {
-                            break out;
-                        }
-
-                        break;
-                    }
-                    case ADD:
-                    {
-                        result.addAll( graph.getAllRelationships() );
-                        roots.addAll( graph.getRoots() );
-                        break;
-                    }
-                    case INTERSECT:
-                    {
-                        result.retainAll( graph.getAllRelationships() );
-                        roots.addAll( graph.getRoots() );
-
-                        if ( result.isEmpty() )
-                        {
-                            break out;
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        return new GraphCalculation( composition.getCalculation(), composition.getGraphs(), roots, result );
+        return graphCalculator.calculateFromGraphMap( request.getGraphComposition(), graphMap );
     }
 
 }

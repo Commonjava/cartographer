@@ -7,8 +7,8 @@ import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.cartographer.Cartographer;
 import org.commonjava.maven.cartographer.CartographerBuilder;
-import org.commonjava.maven.cartographer.recipe.PomRecipe;
-import org.commonjava.maven.cartographer.recipe.build.PomRecipeBuilder;
+import org.commonjava.maven.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.request.build.PomRequestBuilder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,7 +29,7 @@ public class PomRecipeTest
     public void jsonRoundTrip_GraphCompOnly()
         throws Exception
     {
-        final PomRecipe recipe = PomRecipeBuilder.newPomRecipeBuilder()
+        final PomRequest recipe = PomRequestBuilder.newPomRecipeBuilder()
                                                  .withNewGraphComposition()
                                                  .withNewGraph()
                                                  .withRoots( new ProjectVersionRef( "org.foo", "bar", "1" ) )
@@ -41,15 +41,15 @@ public class PomRecipeTest
             new CartographerBuilder( temp.newFolder(), new FileNeo4jConnectionFactory( temp.newFolder(), false ) ).build();
 
         final ObjectMapper mapper = carto.getObjectMapper();
-        logger.debug( "Testing PomRecipe serialization with {}", mapper );
+        logger.debug( "Testing PomRequest serialization with {}", mapper );
 
-        logger.info( "recipe: {}", recipe );
+        logger.info( "request: {}", recipe );
 
         final String json = mapper.writeValueAsString( recipe );
 
         logger.info( "JSON: {}", json );
 
-        final PomRecipe result = mapper.readValue( json, PomRecipe.class );
+        final PomRequest result = mapper.readValue( json, PomRequest.class );
 
         assertThat( result.getGraphComposition(), equalTo( recipe.getGraphComposition() ) );
     }

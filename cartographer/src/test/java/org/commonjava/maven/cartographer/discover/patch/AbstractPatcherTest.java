@@ -19,12 +19,7 @@ import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstan
 import static org.commonjava.maven.cartographer.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
@@ -58,7 +53,7 @@ public abstract class AbstractPatcherTest
         final Transfer txfr = galleyFixture.getArtifactManager()
                                            .retrieve( location, ref.asPomArtifact() );
         final MavenPomView read = galleyFixture.getPomReader()
-                                               .read( ref, txfr, Arrays.asList( location ) );
+                                               .read( ref, txfr, Collections.singletonList( location ) );
 
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, read );
@@ -73,7 +68,7 @@ public abstract class AbstractPatcherTest
     {
         final Set<ProjectRelationship<?>> discovered = new HashSet<ProjectRelationship<?>>();
         final MavenPomView pomView = galleyFixture.getPomReader()
-                                                  .read( pvr, Arrays.asList( location ) );
+                                                  .read( pvr, Collections.singletonList( location ) );
         List<DependencyView> deps = pomView.getAllDirectDependencies();
         int idx = 0;
         for ( final DependencyView dep : deps )

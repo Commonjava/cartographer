@@ -54,16 +54,17 @@ import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.version.CompoundVersionSpec;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
+import org.commonjava.maven.cartographer.request.GraphDescription;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInput;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInputSelector;
 import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
-import org.commonjava.maven.cartographer.recipe.MultiGraphResolverRecipe;
-import org.commonjava.maven.cartographer.recipe.MultiRenderRecipe;
-import org.commonjava.maven.cartographer.recipe.PomRecipe;
-import org.commonjava.maven.cartographer.recipe.RecipeResolver;
+import org.commonjava.maven.cartographer.request.MultiGraphRequest;
+import org.commonjava.maven.cartographer.request.MultiRenderRequest;
+import org.commonjava.maven.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -107,16 +108,16 @@ public class GraphRenderingOps
         this.recipeResolver = dtoResolver;
     }
 
-    public void depTree( final MultiGraphResolverRecipe recipe, final boolean collapseTransitives,
+    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives,
                          final PrintWriter writer )
-        throws CartoDataException
+                    throws CartoDataException, CartoRequestException
     {
         depTree( recipe, collapseTransitives, new DependencyTreeRelationshipPrinter(), writer );
     }
 
-    public void depTree( final MultiGraphResolverRecipe recipe, final boolean collapseTransitives,
+    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives,
                          final StructureRelationshipPrinter relPrinter, final PrintWriter writer )
-        throws CartoDataException
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
@@ -180,15 +181,15 @@ public class GraphRenderingOps
         return labels;
     }
 
-    public void depList( final MultiGraphResolverRecipe recipe, final PrintWriter writer )
-        throws CartoDataException
+    public void depList( final MultiGraphRequest recipe, final PrintWriter writer )
+                    throws CartoDataException, CartoRequestException
     {
         depList( recipe, new DependencyTreeRelationshipPrinter(), writer );
     }
 
-    public void depList( final MultiGraphResolverRecipe recipe, final StructureRelationshipPrinter relPrinter,
+    public void depList( final MultiGraphRequest recipe, final StructureRelationshipPrinter relPrinter,
                          final PrintWriter writer )
-        throws CartoDataException
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
@@ -233,8 +234,8 @@ public class GraphRenderingOps
     }
 
     @SuppressWarnings( "null" )
-    public Model generatePOM( final PomRecipe recipe )
-        throws CartoDataException
+    public Model generatePOM( final PomRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         recipeResolver.resolve( recipe );
 
@@ -350,7 +351,7 @@ public class GraphRenderingOps
     }
 
     private void addDependencyTo( final Model model, final VersionlessArtifactRef artifact, final VersionSpec spec,
-                                  final ProjectRef ga, final DependencyManagement depMgmt, final PomRecipe dto )
+                                  final ProjectRef ga, final DependencyManagement depMgmt, final PomRequest dto )
     {
         final Dependency d = new Dependency();
 
@@ -401,8 +402,8 @@ public class GraphRenderingOps
         return new CompoundVersionSpec( null, versions );
     }
 
-    public String dotfile( final MultiRenderRecipe recipe )
-        throws CartoDataException
+    public String dotfile( final MultiRenderRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
         final StringBuilder sb = new StringBuilder();
         final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
