@@ -19,7 +19,7 @@ public class MultiGraphRequestBuilder<T extends MultiGraphRequestBuilder<T, O, R
         }
     }
 
-    public static StandaloneMulti newMultiGraphResolverRecipeBuilder()
+    public static StandaloneMulti newMultiGraphResolverRequestBuilder()
     {
         return new StandaloneMulti();
     }

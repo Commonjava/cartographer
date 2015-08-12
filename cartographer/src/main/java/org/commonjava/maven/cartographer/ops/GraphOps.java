@@ -177,10 +177,10 @@ public class GraphOps
         return result;
     }
 
-    public Map<ProjectVersionRef, ProjectVersionRef> getProjectParent( final ProjectGraphRequest recipe )
+    public MappedProjectResult getProjectParent( final ProjectGraphRequest recipe )
                     throws CartoDataException, CartoRequestException
     {
-        final Map<ProjectVersionRef, ProjectVersionRef> result = new HashMap<>();
+        MappedProjectResult result = new MappedProjectResult();
 
         final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
             final Set<ProjectRelationship<?>> rels = graph.getDirectRelationships( ref );
@@ -195,7 +195,7 @@ public class GraphOps
             return null;
         };
 
-        final ProjectCollector<ProjectVersionRef> consumer = result::put;
+        final ProjectCollector<ProjectVersionRef> consumer = result::addProject;
 
         resolveOps.resolveAndExtractSingleGraph( ParentFilter.EXCLUDE_TERMINAL_PARENTS, recipe,
                                                  new MatchingProjectFunction<>( recipe, extractor, consumer ) );
@@ -203,11 +203,11 @@ public class GraphOps
         return result;
     }
 
-    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsFrom(
+    public MappedProjectRelationshipsResult getDirectRelationshipsFrom(
                     final ProjectGraphRelationshipsRequest recipe )
                     throws CartoDataException, CartoRequestException
     {
-        final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> result = new LinkedHashMap<>();
+        MappedProjectRelationshipsResult result = new MappedProjectRelationshipsResult();
 
         final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
             final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsFrom( ref, recipe.isManagedIncluded(),
@@ -219,7 +219,7 @@ public class GraphOps
         final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
             {
-                result.put( ref, rels );
+                result.addProject( new MappedProjectRelationships( ref, rels ) );
             }
         };
 
@@ -228,11 +228,10 @@ public class GraphOps
         return result;
     }
 
-    public Map<ProjectVersionRef, Set<ProjectRelationship<?>>> getDirectRelationshipsTo(
-                    final ProjectGraphRelationshipsRequest recipe )
+    public MappedProjectRelationshipsResult getDirectRelationshipsTo( final ProjectGraphRelationshipsRequest recipe )
                     throws CartoDataException, CartoRequestException
     {
-        final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> result = new LinkedHashMap<>();
+        MappedProjectRelationshipsResult result = new MappedProjectRelationshipsResult();
 
         final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
             final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsTo( ref, recipe.isManagedIncluded(),
@@ -244,7 +243,7 @@ public class GraphOps
         final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
             {
-                result.put( ref, rels );
+                result.addProject( new MappedProjectRelationships( ref, rels ) );
             }
         };
 
@@ -346,9 +345,7 @@ public class GraphOps
             return Collections.emptyList();
         };
 
-        final ProjectCollector<List<ProjectVersionRef>> consumer = ( ref, mapped ) -> {
-            result.addProject( new MappedProjects( ref, mapped ) );
-        };
+        final ProjectCollector<List<ProjectVersionRef>> consumer = ( ref, mapped ) -> result.addProject( new MappedProjects( ref, mapped ) );
 
         resolveOps.resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe,
                                                  new MatchingProjectFunction<>( recipe, extractor, consumer ) );

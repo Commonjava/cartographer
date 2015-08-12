@@ -12,14 +12,19 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class GraphAnalysisRequestBuilder<T extends GraphAnalysisRequestBuilder<T>>
-    implements GraphRequestOwner<T, MultiGraphRequest>
+                implements GraphRequestOwner<T, MultiGraphRequest>
 {
 
     private List<MultiGraphRequest> graphRequests = new ArrayList<>();
 
-    public MultiGraphRequestBuilder newGraphRequestBuilder()
+    public static final class StandaloneAnalysisBuilder
+                    extends GraphAnalysisRequestBuilder<StandaloneAnalysisBuilder>
     {
-        return new MultiGraphRequestBuilder( this );
+    }
+
+    public static StandaloneAnalysisBuilder newAnalysisRequestBuilder()
+    {
+        return new StandaloneAnalysisBuilder();
     }
 
     @Override
@@ -31,7 +36,7 @@ public class GraphAnalysisRequestBuilder<T extends GraphAnalysisRequestBuilder<T
 
     public GraphAnalysisRequest build()
     {
-        return new GraphAnalysisRequest(graphRequests);
+        return new GraphAnalysisRequest( graphRequests );
     }
 
 }

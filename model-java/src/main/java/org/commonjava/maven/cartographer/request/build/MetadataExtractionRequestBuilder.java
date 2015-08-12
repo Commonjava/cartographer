@@ -8,7 +8,7 @@ public class MetadataExtractionRequestBuilder<T extends MetadataExtractionReques
 {
 
     public static final class StandaloneMeta
-        extends ProjectGraphRequestBuilder<StandaloneMeta, StandaloneRequestOwner<MetadataExtractionRequest>, MetadataExtractionRequest>
+        extends MetadataExtractionRequestBuilder<StandaloneMeta, StandaloneRequestOwner<MetadataExtractionRequest>, MetadataExtractionRequest>
     {
         public StandaloneMeta()
         {
@@ -21,8 +21,6 @@ public class MetadataExtractionRequestBuilder<T extends MetadataExtractionReques
         return new StandaloneMeta();
     }
 
-    private GraphDescription graph;
-
     public MetadataExtractionRequestBuilder( final O owner )
     {
         super( owner );
@@ -33,23 +31,9 @@ public class MetadataExtractionRequestBuilder<T extends MetadataExtractionReques
     public R build()
     {
         final MetadataExtractionRequest recipe = new MetadataExtractionRequest();
-        recipe.setGraph( graph );
+        configureGraph( recipe );
         configure( recipe );
 
         return (R) recipe;
     }
-
-    @Override
-    public GraphDescriptionBuilder<T> withNewGraph()
-    {
-        return new GraphDescriptionBuilder<>( self );
-    }
-
-    @Override
-    public T withGraph( final GraphDescription graph )
-    {
-        this.graph = graph;
-        return self;
-    }
-
 }

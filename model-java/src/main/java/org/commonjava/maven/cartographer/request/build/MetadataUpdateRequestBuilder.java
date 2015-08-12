@@ -8,7 +8,7 @@ public class MetadataUpdateRequestBuilder<T extends MetadataUpdateRequestBuilder
 {
 
     public static final class StandaloneMeta
-        extends ProjectGraphRequestBuilder<StandaloneMeta, StandaloneRequestOwner<MetadataUpdateRequest>, MetadataUpdateRequest>
+        extends MetadataUpdateRequestBuilder<StandaloneMeta, StandaloneRequestOwner<MetadataUpdateRequest>, MetadataUpdateRequest>
     {
         public StandaloneMeta()
         {
@@ -21,8 +21,6 @@ public class MetadataUpdateRequestBuilder<T extends MetadataUpdateRequestBuilder
         return new StandaloneMeta();
     }
 
-    private GraphDescription graph;
-
     public MetadataUpdateRequestBuilder( final O owner )
     {
         super( owner );
@@ -33,23 +31,9 @@ public class MetadataUpdateRequestBuilder<T extends MetadataUpdateRequestBuilder
     public R build()
     {
         final MetadataUpdateRequest recipe = new MetadataUpdateRequest();
-        recipe.setGraph( graph );
+        configureGraph( recipe );
         configure( recipe );
 
         return (R) recipe;
     }
-
-    @Override
-    public GraphDescriptionBuilder<T> withNewGraph()
-    {
-        return new GraphDescriptionBuilder<>( self );
-    }
-
-    @Override
-    public T withGraph( final GraphDescription graph )
-    {
-        this.graph = graph;
-        return self;
-    }
-
 }

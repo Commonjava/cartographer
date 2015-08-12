@@ -18,7 +18,7 @@ public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, 
 
     }
 
-    public static StandaloneProject newProjectGraphRecipeBuilder()
+    public static StandaloneProject newProjectGraphRequestBuilder()
     {
         return new StandaloneProject();
     }
@@ -35,10 +35,15 @@ public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, 
     public R build()
     {
         final ProjectGraphRequest recipe = new ProjectGraphRequest();
-        recipe.setGraph( graph );
+        configureGraph( recipe );
         configure( recipe );
 
         return (R) recipe;
+    }
+
+    protected void configureGraph( ProjectGraphRequest recipe )
+    {
+        recipe.setGraph( graph );
     }
 
     public T withProjectVersionRef( final ProjectVersionRef ref )

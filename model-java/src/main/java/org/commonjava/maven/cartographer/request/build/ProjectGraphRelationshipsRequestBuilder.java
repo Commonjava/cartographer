@@ -8,7 +8,7 @@ public class ProjectGraphRelationshipsRequestBuilder<T extends ProjectGraphRelat
 {
 
     public static final class StandaloneProjectRels
-        extends ProjectGraphRequestBuilder<StandaloneProjectRels, StandaloneRequestOwner<ProjectGraphRelationshipsRequest>, ProjectGraphRelationshipsRequest>
+        extends ProjectGraphRelationshipsRequestBuilder<StandaloneProjectRels, StandaloneRequestOwner<ProjectGraphRelationshipsRequest>, ProjectGraphRelationshipsRequest>
     {
         public StandaloneProjectRels()
         {
@@ -16,7 +16,7 @@ public class ProjectGraphRelationshipsRequestBuilder<T extends ProjectGraphRelat
         }
     }
 
-    public static StandaloneProjectRels newProjectGraphRelationshipsRecipeBuilder()
+    public static StandaloneProjectRels newProjectGraphRelationshipsRequestBuilder()
     {
         return new StandaloneProjectRels();
     }

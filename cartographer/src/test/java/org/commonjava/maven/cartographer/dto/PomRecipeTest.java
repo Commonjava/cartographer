@@ -29,7 +29,7 @@ public class PomRecipeTest
     public void jsonRoundTrip_GraphCompOnly()
         throws Exception
     {
-        final PomRequest recipe = PomRequestBuilder.newPomRecipeBuilder()
+        final PomRequest recipe = PomRequestBuilder.newPomRequestBuilder()
                                                  .withNewGraphComposition()
                                                  .withNewGraph()
                                                  .withRoots( new ProjectVersionRef( "org.foo", "bar", "1" ) )

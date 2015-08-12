@@ -16,7 +16,7 @@ public class PomRequestBuilder<T extends PomRequestBuilder<T, O, R>, O extends G
         }
     }
 
-    public static StandalonePRB newPomRecipeBuilder()
+    public static StandalonePRB newPomRequestBuilder()
     {
         return new StandalonePRB();
     }
