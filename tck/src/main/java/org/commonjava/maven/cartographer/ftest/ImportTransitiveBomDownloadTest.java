@@ -16,7 +16,7 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.maven.model.Model;
-import org.commonjava.maven.cartographer.dto.PomRecipe;
+import org.commonjava.maven.cartographer.request.PomRequest;
 import org.junit.Test;
 
 
@@ -63,7 +63,7 @@ public class ImportTransitiveBomDownloadTest
 
         aliasRepo( alias, repoResource, repoResourceTrim );
 
-        final PomRecipe recipe = readRecipe( dto, PomRecipe.class );
+        final PomRequest recipe = readRecipe( dto, PomRequest.class );
 
         final Model pom = carto.getRenderer()
                                .generatePOM( recipe );

@@ -15,15 +15,10 @@
  */
 package org.commonjava.maven.cartographer;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
@@ -42,19 +37,11 @@ import org.commonjava.maven.cartographer.discover.post.meta.MetadataScannerSuppo
 import org.commonjava.maven.cartographer.discover.post.meta.ScmUrlScanner;
 import org.commonjava.maven.cartographer.discover.post.patch.DepgraphPatcher;
 import org.commonjava.maven.cartographer.discover.post.patch.PatcherSupport;
-import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
 import org.commonjava.maven.cartographer.event.NoOpCartoEventManager;
-import org.commonjava.maven.cartographer.ops.CalculationOps;
-import org.commonjava.maven.cartographer.ops.GraphOps;
-import org.commonjava.maven.cartographer.ops.GraphRenderingOps;
-import org.commonjava.maven.cartographer.ops.MetadataOps;
-import org.commonjava.maven.cartographer.ops.ResolveOps;
-import org.commonjava.maven.cartographer.preset.BuildRequirementProjectsFilterFactory;
-import org.commonjava.maven.cartographer.preset.PresetFactory;
-import org.commonjava.maven.cartographer.preset.PresetSelector;
-import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilterFactory;
-import org.commonjava.maven.cartographer.preset.ScopedProjectFilterFactory;
+import org.commonjava.maven.cartographer.ops.*;
+import org.commonjava.maven.cartographer.preset.*;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
@@ -89,8 +76,14 @@ import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class CartographerBuilder
 {
@@ -130,7 +123,7 @@ public class CartographerBuilder
 
     private MavenModelProcessor mavenModelProcessor;
 
-    private DTOResolver dtoResolver;
+    private RecipeResolver dtoResolver;
 
     private final GalleyMavenBuilder mavenBuilder;
 
@@ -142,15 +135,16 @@ public class CartographerBuilder
 
     public CartographerBuilder( final GalleyMaven galleyMaven,
                                 final RelationshipGraphConnectionFactory connectionFactory )
-        throws CartoDataException
+                    throws CartoDataException
     {
         this.maven = galleyMaven;
         this.mavenBuilder = null;
         this.connectionFactory = connectionFactory;
     }
 
-    public CartographerBuilder( final File resolverCacheDir, final RelationshipGraphConnectionFactory connectionFactory )
-        throws CartoDataException
+    public CartographerBuilder( final File resolverCacheDir,
+                                final RelationshipGraphConnectionFactory connectionFactory )
+                    throws CartoDataException
     {
         this.maven = null;
         this.mavenBuilder = new GalleyMavenBuilder( resolverCacheDir );
@@ -158,7 +152,7 @@ public class CartographerBuilder
     }
 
     public CartographerBuilder( final CacheProvider cache, final RelationshipGraphConnectionFactory connectionFactory )
-        throws CartoDataException
+                    throws CartoDataException
     {
         this.maven = null;
         this.mavenBuilder = new GalleyMavenBuilder( cache );
@@ -218,8 +212,17 @@ public class CartographerBuilder
     }
 
     public Cartographer build()
-        throws CartoDataException
+                    throws CartoDataException
     {
+        // this has implications on how the maven components are built, below...so it has to happen first.
+        if ( this.sourceManager == null )
+        {
+            final SourceManagerImpl smi = new SourceManagerImpl();
+            this.sourceManager = smi;
+            withLocationExpander( smi );
+            withLocationResolver( smi );
+        }
+
         if ( maven == null )
         {
             final List<Transport> transports = mavenBuilder.getEnabledTransports();
@@ -244,33 +247,28 @@ public class CartographerBuilder
             events = new NoOpCartoEventManager();
         }
 
-        if ( this.sourceManager == null )
-        {
-            this.sourceManager = new SourceManagerImpl();
-        }
-
         aggregatorThreads = aggregatorThreads < 2 ? 2 : aggregatorThreads;
 
         if ( aggregatorExecutor == null )
         {
-            aggregatorExecutor =
-                Executors.newScheduledThreadPool( aggregatorThreads, new NamedThreadFactory( "carto-aggregator", true,
-                                                                                             8 ) );
+            aggregatorExecutor = Executors.newScheduledThreadPool( aggregatorThreads,
+                                                                   new NamedThreadFactory( "carto-aggregator", true,
+                                                                                           8 ) );
         }
 
         resolverThreads = resolverThreads < aggregatorThreads ? 5 * aggregatorThreads : resolverThreads;
 
         if ( resolveExecutor == null )
         {
-            resolveExecutor =
-                Executors.newScheduledThreadPool( resolverThreads, new NamedThreadFactory( "carto-resolve", true, 8 ) );
+            resolveExecutor = Executors.newScheduledThreadPool( resolverThreads,
+                                                                new NamedThreadFactory( "carto-resolve", true, 8 ) );
         }
 
         if ( this.metadataScanners == null )
         {
-            this.metadataScanners =
-                new ArrayList<MetadataScanner>( Arrays.asList( new LicenseScanner( getPomReader() ),
-                                                               new ScmUrlScanner( getPomReader() ) ) );
+            this.metadataScanners = new ArrayList<MetadataScanner>( Arrays.asList( new LicenseScanner( getPomReader() ),
+                                                                                   new ScmUrlScanner(
+                                                                                                   getPomReader() ) ) );
         }
 
         // TODO: Add some scanners.
@@ -286,8 +284,8 @@ public class CartographerBuilder
 
         if ( patcherSupport == null )
         {
-            this.patcherSupport =
-                new PatcherSupport( this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
+            this.patcherSupport = new PatcherSupport(
+                            this.depgraphPatchers.toArray( new DepgraphPatcher[this.depgraphPatchers.size()] ) );
         }
 
         if ( mavenModelProcessor == null )
@@ -297,9 +295,8 @@ public class CartographerBuilder
 
         if ( this.discoverer == null )
         {
-            this.discoverer =
-                new DiscovererImpl( mavenModelProcessor, getPomReader(), getArtifactManager(), patcherSupport,
-                                    scannerSupport );
+            this.discoverer = new DiscovererImpl( mavenModelProcessor, getPomReader(), getArtifactManager(),
+                                                  patcherSupport, scannerSupport );
         }
 
         if ( aggregator == null )
@@ -309,39 +306,41 @@ public class CartographerBuilder
 
         if ( presetSelector == null )
         {
-            presetSelector =
-                new PresetSelector( Arrays.<PresetFactory> asList( new BuildRequirementProjectsFilterFactory(),
-                                                                   new ScopeWithEmbeddedProjectsFilterFactory(),
-                                                                   new ScopedProjectFilterFactory() ) );
+            presetSelector = new PresetSelector(
+                            Arrays.<PresetFactory>asList( new BuildRequirementProjectsFilterFactory(),
+                                                          new ScopeWithEmbeddedProjectsFilterFactory(),
+                                                          new ScopedProjectFilterFactory() ) );
         }
 
         if ( dtoResolver == null )
         {
-            dtoResolver = new DTOResolver( getLocationResolver(), presetSelector );
+            dtoResolver = new RecipeResolver( getLocationResolver(), getLocationExpander(), sourceManager,
+                                              getPomReader(), presetSelector );
         }
 
-        if ( objectMapper == null )
-        {
-            objectMapper = new ObjectMapper();
-            withStandardObjectMapperModules();
-        }
+        withStandardObjectMapperModules();
+
+        logger.debug( "Object mapper: {}", objectMapper );
 
         final RelationshipGraphFactory graphFactory = new RelationshipGraphFactory( connectionFactory );
 
-        final CalculationOps calculationOps = new CalculationOps( graphFactory, dtoResolver );
+        MultiGraphCalculator calculator = new MultiGraphCalculator( graphFactory );
+
+        final CalculationOps calculationOps = new CalculationOps( calculator, graphFactory, dtoResolver );
 
         final ResolveOps resolveOps =
-            new ResolveOps( calculationOps, sourceManager, discoverer, aggregator, getArtifactManager(),
-                            resolveExecutor, graphFactory, dtoResolver );
+                        new ResolveOps( calculator, sourceManager, discoverer, aggregator, getArtifactManager(),
+                                        resolveExecutor, graphFactory, dtoResolver );
 
-        final GraphOps graphOps = new GraphOps( graphFactory );
+        final GraphOps graphOps = new GraphOps( resolveOps );
 
         final GraphRenderingOps graphRenderingOps =
-            new GraphRenderingOps( calculationOps, resolveOps, graphFactory, getLocationExpander(), dtoResolver );
+                        new GraphRenderingOps( calculationOps, resolveOps, graphFactory, getLocationExpander(),
+                                               dtoResolver );
 
         final MetadataOps metadataOps =
-            new MetadataOps( getArtifactManager(), getPomReader(), scannerSupport, sourceManager, resolveOps,
-                             calculationOps, graphFactory, dtoResolver );
+                        new MetadataOps( getArtifactManager(), getPomReader(), scannerSupport, sourceManager,
+                                         resolveOps, calculationOps, graphFactory, dtoResolver );
 
         try
         {
@@ -356,23 +355,35 @@ public class CartographerBuilder
 
     public CartographerBuilder withStandardObjectMapperModules()
     {
-        if ( objectMapper == null )
-        {
-            objectMapper = new ObjectMapper();
-        }
+        initDefaultObjectMapper();
 
+        logger.debug( "{} adding standard modules", objectMapper );
         objectMapper.registerModules( new ProjectVersionRefSerializerModule(),
                                       new ProjectRelationshipSerializerModule() );
         return this;
     }
 
-    public CartographerBuilder withObjectMapperModules( final Module... modules )
+    public CartographerBuilder initDefaultObjectMapper()
     {
         if ( objectMapper == null )
         {
+            logger.debug( "initializing object mapper" );
             objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion( Include.NON_NULL );
+            objectMapper.enable( SerializationFeature.INDENT_OUTPUT );
+            objectMapper.disable( SerializationFeature.WRITE_NULL_MAP_VALUES );
+            objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
+            objectMapper.enable( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS );
         }
 
+        return this;
+    }
+
+    public CartographerBuilder withObjectMapperModules( final Module... modules )
+    {
+        initDefaultObjectMapper();
+
+        logger.debug( "{} adding custom modules", objectMapper );
         objectMapper.registerModules( modules );
         return this;
     }
@@ -439,6 +450,16 @@ public class CartographerBuilder
     public CartographerBuilder withSourceManager( final DiscoverySourceManager sourceManager )
     {
         this.sourceManager = sourceManager;
+        if ( sourceManager instanceof LocationResolver )
+        {
+            withLocationResolver( (LocationResolver) sourceManager );
+        }
+
+        if ( sourceManager instanceof LocationExpander )
+        {
+            withLocationExpander( (LocationExpander) sourceManager );
+        }
+
         return this;
     }
 
@@ -846,12 +867,12 @@ public class CartographerBuilder
         return this;
     }
 
-    public DTOResolver getDtoResolver()
+    public RecipeResolver getDtoResolver()
     {
         return dtoResolver;
     }
 
-    public CartographerBuilder withDtoResolver( final DTOResolver dtoResolver )
+    public CartographerBuilder withDtoResolver( final RecipeResolver dtoResolver )
     {
         this.dtoResolver = dtoResolver;
         return this;

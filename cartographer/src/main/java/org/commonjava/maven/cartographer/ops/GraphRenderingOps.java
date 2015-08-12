@@ -37,9 +37,8 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Repository;
 import org.apache.maven.model.RepositoryPolicy;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.traverse.print.DependencyTreeRelationshipPrinter;
@@ -55,13 +54,17 @@ import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.version.CompoundVersionSpec;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
+import org.commonjava.maven.cartographer.CartoRequestException;
 import org.commonjava.maven.cartographer.agg.ProjectRefCollection;
 import org.commonjava.maven.cartographer.data.CartoDataException;
-import org.commonjava.maven.cartographer.data.CartoGraphUtils;
-import org.commonjava.maven.cartographer.dto.GraphCalculation;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.PomRecipe;
-import org.commonjava.maven.cartographer.dto.resolve.DTOResolver;
+import org.commonjava.maven.cartographer.request.GraphDescription;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInput;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphAllInputSelector;
+import org.commonjava.maven.cartographer.ops.fn.MultiGraphFunction;
+import org.commonjava.maven.cartographer.request.MultiGraphRequest;
+import org.commonjava.maven.cartographer.request.MultiRenderRequest;
+import org.commonjava.maven.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.util.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -88,7 +91,7 @@ public class GraphRenderingOps
     protected RelationshipGraphFactory graphFactory;
 
     @Inject
-    protected DTOResolver dtoResolver;
+    protected RecipeResolver recipeResolver;
 
     protected GraphRenderingOps()
     {
@@ -96,109 +99,68 @@ public class GraphRenderingOps
 
     public GraphRenderingOps( final CalculationOps calcOps, final ResolveOps resolveOps,
                               final RelationshipGraphFactory graphFactory, final LocationExpander locationExpander,
-                              final DTOResolver dtoResolver )
+                              final RecipeResolver dtoResolver )
     {
         this.calcOps = calcOps;
         this.resolveOps = resolveOps;
         this.graphFactory = graphFactory;
         this.locationExpander = locationExpander;
-        this.dtoResolver = dtoResolver;
+        this.recipeResolver = dtoResolver;
     }
 
-    public void depTree( final RelationshipGraph graph, final boolean collapseTransitives,
-                         final Map<String, Set<ProjectVersionRef>> labels, final PrintWriter writer )
-    {
-        depTree( graph, collapseTransitives, null, writer );
-    }
-
-    public void depTree( final RelationshipGraph graph, final boolean collapseTransitives,
-                         Map<String, Set<ProjectVersionRef>> labels, StructureRelationshipPrinter relPrinter,
+    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives,
                          final PrintWriter writer )
+                    throws CartoDataException, CartoRequestException
     {
-        if ( graph != null )
-        {
-            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
-                RelationshipUtils.mapByDeclaring( rels );
-
-            if ( relPrinter == null )
-            {
-                relPrinter = new DependencyTreeRelationshipPrinter();
-            }
-
-            // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
-            final TreePrinter printer = new TreePrinter( relPrinter/*, collapseTransitives*/);
-
-            final Set<ProjectVersionRef> roots = graph.getParams()
-                                                      .getRoots();
-            labels = getLabels( graph, roots, labels );
-            for ( final ProjectVersionRef root : roots )
-            {
-                printer.printStructure( root, byDeclaring, labels, writer );
-            }
-
-        }
+        depTree( recipe, collapseTransitives, new DependencyTreeRelationshipPrinter(), writer );
     }
 
-    public void depTree( final String workspaceId, final GraphComposition comp, final boolean collapseTransitives,
-                         final PrintWriter writer )
-        throws CartoDataException
+    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives,
+                         final StructureRelationshipPrinter relPrinter, final PrintWriter writer )
+                    throws CartoDataException, CartoRequestException
     {
-        depTree( workspaceId, comp, collapseTransitives, new DependencyTreeRelationshipPrinter(), writer );
-    }
+        recipeResolver.resolve( recipe );
 
-    public void depTree( final String workspaceId, final GraphComposition comp, final boolean collapseTransitives,
-                         StructureRelationshipPrinter relPrinter, final PrintWriter writer )
-        throws CartoDataException
-    {
-        final GraphCalculation calculated = calcOps.calculate( comp, workspaceId );
-        if ( calculated != null )
+        if ( recipe == null )
         {
-            final Set<ProjectRelationship<?>> rels = calculated.getResult();
-
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
-                RelationshipUtils.mapByDeclaring( rels );
-
-            if ( relPrinter == null )
-            {
-                relPrinter = new DependencyTreeRelationshipPrinter();
-            }
-
-            final Set<ProjectVersionRef> roots = calculated.getResultingRoots();
-
-            final Map<String, Set<ProjectVersionRef>> labels = getLabels( workspaceId, roots );
-
-            // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
-            final TreePrinter printer = new TreePrinter( relPrinter );
-            for ( final ProjectVersionRef root : calculated.getResultingRoots() )
-            {
-                writer.printf( "Dependency tree for '%s':\n" );
-                printer.printStructure( root, byDeclaring, labels, writer );
-                writer.println();
-            }
+            return;
         }
-    }
 
-    private Map<String, Set<ProjectVersionRef>> getLabels( final String workspaceId, final Set<ProjectVersionRef> roots )
-        throws CartoDataException
-    {
-        RelationshipGraph allWs = null;
-        try
-        {
-            allWs = graphFactory.open( new ViewParams( workspaceId ), false );
+        final MultiGraphFunction<MultiGraphAllInput> extractor =
+            ( input, graphMap ) -> {
+                final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+                    RelationshipUtils.mapByDeclaring( input.getAllRelationships() );
 
-            return getLabels( allWs, roots, null );
-        }
-        catch ( final RelationshipGraphException e )
-        {
-            throw new CartoDataException(
-                                          "Cannot open root-less graph in workspace: '{}' for tree labeling. Reason: {}",
-                                          e, workspaceId, e.getMessage() );
-        }
-        finally
-        {
-            CartoGraphUtils.closeGraphQuietly( allWs );
-        }
+                final Map<String, Set<ProjectVersionRef>> labels = new HashMap<String, Set<ProjectVersionRef>>();
+                for ( final GraphDescription desc : graphMap.keySet() )
+                {
+                    final RelationshipGraph graph = graphMap.get( desc );
+                    final Map<String, Set<ProjectVersionRef>> graphLabels =
+                        getLabels( graph, input.getRoots(), new HashMap<>() );
+                    for ( final String label : graphLabels.keySet() )
+                    {
+                        Set<ProjectVersionRef> allProjects = labels.get( label );
+                        if ( allProjects == null )
+                        {
+                            allProjects = new HashSet<>();
+                            labels.put( label, allProjects );
+                        }
+
+                        allProjects.addAll( graphLabels.get( label ) );
+                    }
+                }
+
+                // TODO: Reinstate transitive collapse IF we can find a way to make output consistent.
+                final TreePrinter printer = new TreePrinter( relPrinter );
+                for ( final ProjectVersionRef root : input.getRoots() )
+                {
+                    writer.printf( "Dependency tree for '%s':\n" );
+                    printer.printStructure( root, byDeclaring, labels, writer );
+                    writer.println();
+                }
+            };
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
     }
 
     private Map<String, Set<ProjectVersionRef>> getLabels( final RelationshipGraph allWs,
@@ -219,63 +181,75 @@ public class GraphRenderingOps
         return labels;
     }
 
-    public void depList( final RelationshipGraph graph, final Map<String, Set<ProjectVersionRef>> labels,
-                         final PrintWriter writer )
-        throws CartoDataException
+    public void depList( final MultiGraphRequest recipe, final PrintWriter writer )
+                    throws CartoDataException, CartoRequestException
     {
-        depList( graph, labels, null, writer );
+        depList( recipe, new DependencyTreeRelationshipPrinter(), writer );
     }
 
-    public void depList( final RelationshipGraph graph, Map<String, Set<ProjectVersionRef>> labels,
-                         StructureRelationshipPrinter relPrinter, final PrintWriter writer )
-        throws CartoDataException
+    public void depList( final MultiGraphRequest recipe, final StructureRelationshipPrinter relPrinter,
+                         final PrintWriter writer )
+                    throws CartoDataException, CartoRequestException
     {
-        final Set<ProjectVersionRef> roots = graph.getParams()
-                                                  .getRoots();
-        if ( roots == null || roots.isEmpty() )
+        recipeResolver.resolve( recipe );
+
+        if ( recipe == null )
         {
-            throw new CartoDataException( "Cannot list dependencies of graph with no roots! (graph: {})", graph );
+            return;
         }
 
-        labels = getLabels( graph, roots, labels );
+        final MultiGraphFunction<MultiGraphAllInput> extractor =
+            ( input, graphMap ) -> {
+                final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+                    RelationshipUtils.mapByDeclaring( input.getAllRelationships() );
 
-        if ( graph != null )
-        {
-            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
-                RelationshipUtils.mapByDeclaring( rels );
+                final Map<String, Set<ProjectVersionRef>> labels = new HashMap<String, Set<ProjectVersionRef>>();
+                for ( final GraphDescription desc : graphMap.keySet() )
+                {
+                    final RelationshipGraph graph = graphMap.get( desc );
+                    final Map<String, Set<ProjectVersionRef>> graphLabels =
+                        getLabels( graph, input.getRoots(), new HashMap<>() );
+                    for ( final String label : graphLabels.keySet() )
+                    {
+                        Set<ProjectVersionRef> allProjects = labels.get( label );
+                        if ( allProjects == null )
+                        {
+                            allProjects = new HashSet<>();
+                            labels.put( label, allProjects );
+                        }
 
-            if ( relPrinter == null )
-            {
-                relPrinter = new DependencyTreeRelationshipPrinter();
-            }
+                        allProjects.addAll( graphLabels.get( label ) );
+                    }
+                }
 
-            final ListPrinter listPrinter = new ListPrinter( relPrinter );
-            for ( final ProjectVersionRef root : roots )
-            {
-                writer.printf( "Dependency list for '%s':\n" );
-                listPrinter.printStructure( root, byDeclaring, labels, writer );
-            }
-        }
+                final ListPrinter listPrinter = new ListPrinter( relPrinter );
+                for ( final ProjectVersionRef root : input.getRoots() )
+                {
+                    writer.printf( "Dependency list for '%s':\n" );
+                    listPrinter.printStructure( root, byDeclaring, labels, writer );
+                }
+            };
+
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
     }
 
     @SuppressWarnings( "null" )
-    public Model generatePOM( final PomRecipe dto )
-        throws CartoDataException
+    public Model generatePOM( final PomRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        dtoResolver.resolve( dto );
+        recipeResolver.resolve( recipe );
 
-        if ( dto == null )
+        if ( recipe == null )
         {
             return null;
         }
 
         final Map<ProjectVersionRef, Map<ArtifactRef, ConcreteResource>> resolved =
-            resolveOps.resolveRepositoryContents( dto );
+            resolveOps.resolveRepositoryContents( recipe );
 
         final Map<ProjectRef, ProjectRefCollection> projects = collectProjectReferences( resolved );
 
-        final ProjectVersionRef pomCoord = dto.getOutput();
+        final ProjectVersionRef pomCoord = recipe.getOutput();
 
         final Model model = new Model();
         model.setModelVersion( "4.0.0" );
@@ -286,7 +260,7 @@ public class GraphRenderingOps
         model.setDescription( "Generated by Cartographer at " + new Date() );
 
         final DependencyManagement dm;
-        if ( dto.isGraphToManagedDeps() )
+        if ( recipe.isGraphToManagedDeps() )
         {
             model.setName( pomCoord.getArtifactId() + ":: Bill of Materials" );
             dm = new DependencyManagement();
@@ -304,7 +278,7 @@ public class GraphRenderingOps
             final ProjectRefCollection prc = entry.getValue();
 
             // TODO: This will reset the version for ALL referenced artifacts, regardless of actual references. This is not how Maven works...
-            final VersionSpec spec = generateVersionSpec( prc.getVersionRefs(), dto.isGenerateVersionRanges() );
+            final VersionSpec spec = generateVersionSpec( prc.getVersionRefs(), recipe.isGenerateVersionRanges() );
             final Set<VersionlessArtifactRef> arts = prc.getVersionlessArtifactRefs();
             if ( arts == null )
             {
@@ -326,7 +300,7 @@ public class GraphRenderingOps
                     logger.debug( "Including non-POM artifact: {}", artifact );
                     nonPomSeen = true;
                     logger.debug( "Adding dependency: {}", artifact );
-                    addDependencyTo( model, artifact, spec, r, dm, dto );
+                    addDependencyTo( model, artifact, spec, r, dm, recipe );
                 }
             }
 
@@ -339,12 +313,12 @@ public class GraphRenderingOps
                 }
 
                 logger.debug( "Adding POM artifact to output, since non-POM was NOT encountered: {}", pomArtifact );
-                addDependencyTo( model, pomArtifact, spec, r, dm, dto );
+                addDependencyTo( model, pomArtifact, spec, r, dm, recipe );
             }
         }
 
         List<Location> expLocations;
-        final Location srcLocation = dto.getSourceLocation();
+        final Location srcLocation = recipe.getSourceLocation();
         try
         {
             expLocations = locationExpander.expand( srcLocation );
@@ -377,7 +351,7 @@ public class GraphRenderingOps
     }
 
     private void addDependencyTo( final Model model, final VersionlessArtifactRef artifact, final VersionSpec spec,
-                                  final ProjectRef ga, final DependencyManagement depMgmt, final PomRecipe dto )
+                                  final ProjectRef ga, final DependencyManagement depMgmt, final PomRequest dto )
     {
         final Dependency d = new Dependency();
 
@@ -428,23 +402,18 @@ public class GraphRenderingOps
         return new CompoundVersionSpec( null, versions );
     }
 
-    public String dotfile( final ProjectVersionRef coord, final RelationshipGraph graph )
-        throws CartoDataException
+    public String dotfile( final MultiRenderRequest recipe )
+                    throws CartoDataException, CartoRequestException
     {
-        if ( graph != null )
-        {
-            final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>( graph.getAllProjects() );
-            final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
+        final StringBuilder sb = new StringBuilder();
+        final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
+            final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>( input.getAllProjects() );
+            final Collection<ProjectRelationship<?>> rels = input.getAllRelationships();
 
             final Map<ProjectVersionRef, String> aliases = new HashMap<ProjectVersionRef, String>();
 
-            final StringBuilder sb = new StringBuilder();
             sb.append( "digraph " )
-              .append( cleanDotName( coord.getGroupId() ) )
-              .append( '_' )
-              .append( cleanDotName( coord.getArtifactId() ) )
-              .append( '_' )
-              .append( cleanDotName( ( (SingleVersion) coord.getVersionSpec() ).renderStandard() ) )
+              .append( cleanDotName( recipe.getRenderParamWithPrecedingDefault( "Unknown Graph", "name", "coord" ) ) )
               .append( " {" );
 
             sb.append( "\nsize=\"300,20\"; resolution=72;\n" );
@@ -487,10 +456,10 @@ public class GraphRenderingOps
             }
 
             sb.append( "\n\n}\n" );
-            return sb.toString();
-        }
+        };
 
-        return null;
+        resolveOps.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, recipe, new MultiGraphAllInputSelector(), extractor );
+        return sb.toString();
     }
 
     private String cleanDotName( final String src )

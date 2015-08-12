@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.cartographer.data;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,9 +28,7 @@ import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
-import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
-import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.slf4j.LoggerFactory;
@@ -147,7 +146,7 @@ public final class CartoGraphUtils
             {
                 graph.close();
             }
-            catch ( final RelationshipGraphException e )
+            catch ( final IOException e )
             {
 
                 LoggerFactory.getLogger( CartoGraphUtils.class )
@@ -157,20 +156,4 @@ public final class CartoGraphUtils
         }
     }
 
-    public static BuildOrder getBuildOrder( final ProjectVersionRef ref, final RelationshipGraph graph )
-        throws CartoDataException
-    {
-        final BuildOrderTraversal traversal = new BuildOrderTraversal();
-        try
-        {
-            graph.traverse( ref, traversal, TraversalType.breadth_first );
-        }
-        catch ( final RelationshipGraphException e )
-        {
-            throw new CartoDataException( "Traversal to capture build order failed for: {} in graph: {}. Reason: {}",
-                                          e, ref, graph, e.getMessage() );
-        }
-
-        return traversal.getBuildOrder();
-    }
 }

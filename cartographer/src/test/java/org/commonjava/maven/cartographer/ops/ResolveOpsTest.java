@@ -30,18 +30,20 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.cartographer.agg.DefaultAggregatorOptions;
 import org.commonjava.maven.cartographer.discover.DiscoveryResult;
-import org.commonjava.maven.cartographer.dto.GraphComposition;
-import org.commonjava.maven.cartographer.dto.GraphDescription;
-import org.commonjava.maven.cartographer.dto.RepositoryContentRecipe;
+import org.commonjava.maven.cartographer.request.GraphComposition;
+import org.commonjava.maven.cartographer.request.GraphDescription;
 import org.commonjava.maven.cartographer.preset.ScopeWithEmbeddedProjectsFilter;
+import org.commonjava.maven.cartographer.request.RepositoryContentRequest;
+import org.commonjava.maven.cartographer.request.SingleGraphRequest;
+import org.commonjava.maven.cartographer.request.build.SingleGraphRequestBuilder;
 import org.commonjava.maven.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.cartographer.testutil.GroupIdFilter;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
@@ -49,7 +51,7 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,13 +64,6 @@ public class ResolveOpsTest
 
     @Rule
     public CartoFixture fixture = new CartoFixture();
-
-    @Before
-    public void setup()
-        throws Exception
-    {
-        fixture.initMissingComponents();
-    }
 
     @Test
     public void resolveRepoContent_NoExtras_RuntimePreset_PreResolved_IncludeDirectAncestry()
@@ -114,7 +109,7 @@ public class ResolveOpsTest
             last = ref;
         }
 
-        rels.add( new ParentRelationship( src, lineage.getLast() ) );
+        rels.add( new ParentRelationship( lineage.getLast() ) );
 
         final RelationshipGraph rootlessGraph =
             fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
@@ -124,7 +119,7 @@ public class ResolveOpsTest
         System.out.println( "Rejected: " + rejects );
         assertThat( rejects.isEmpty(), equalTo( true ) );
 
-        final RepositoryContentRecipe recipe = new RepositoryContentRecipe();
+        final RepositoryContentRequest recipe = new RepositoryContentRequest();
 
         recipe.setGraphComposition( new GraphComposition(
                                                           null,
@@ -176,50 +171,73 @@ public class ResolveOpsTest
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?>>( Collections.singletonList( new ParentRelationship( gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()
         ) );
         /* @formatter:on */
 
-        final DefaultAggregatorOptions options = new DefaultAggregatorOptions().setDiscoveryEnabled( true )
-                                                                               .setDiscoverySource( src )
-                                                                               .setFilter( new GroupIdFilter( baseG ) )
-                                                                               .setProcessIncompleteSubgraphs( true )
-                                                                               .setProcessVariableSubgraphs( true )
-                                                                               .setDiscoveryTimeoutMillis( 10 );
+        final SingleGraphRequest recipe =
+            SingleGraphRequestBuilder.newSingleGraphResolverRecipeBuilder()
+                                            .withWorkspaceId( rootlessGraph.getWorkspaceId() )
+                                            .withResolve( true )
+                                            .withSource( src.toString() )
+                                            .withNewGraph()
+                                            .withFilter( new GroupIdFilter( baseG ) )
+                                            .withRoots( root )
+                                            .finishGraph()
+                                            .build();
 
-        final ViewParams params = fixture.getResolveOps()
-                                         .resolve( rootlessGraph.getWorkspaceId(), options, root );
+        fixture.getResolveOps()
+               .resolveAndExtractSingleGraph( AnyFilter.INSTANCE,
+                                              recipe,
+                                              ( graph ) -> {
 
-        Set<ProjectVersionRef> resolved = params.getRoots();
-        assertThat( resolved.contains( root ), equalTo( true ) );
+                                                  Set<ProjectVersionRef> resolved = graph.getRoots();
+                                                  assertThat( resolved.contains( root ), equalTo( true ) );
 
-        assertThat( fixture.getDiscoverer()
-                           .sawDiscovery( gc1 ), equalTo( true ) );
-        assertThat( fixture.getDiscoverer()
-                           .sawDiscovery( c2 ), equalTo( false ) );
+                                                  assertThat( fixture.getDiscoverer()
+                                                                     .sawDiscovery( gc1 ), equalTo( true ) );
+                                                  assertThat( fixture.getDiscoverer()
+                                                                     .sawDiscovery( c2 ), equalTo( false ) );
 
-        logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
+                                                  logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
-        final RelationshipGraph graph = fixture.openGraph( params, false );
+                                                  try
+                                                  {
+                                                      graph.storeRelationships( Arrays.<ProjectRelationship<?>> asList( new DependencyRelationship(
+                                                                                                                                                    src,
+                                                                                                                                                    c3,
+                                                                                                                                                    gc3.asArtifactRef( "jar",
+                                                                                                                                                                       null ),
+                                                                                                                                                    DependencyScope.compile,
+                                                                                                                                                    0,
+                                                                                                                                                    false ),
+                                                                                                                        new DependencyRelationship(
+                                                                                                                                                    src,
+                                                                                                                                                    gc3,
+                                                                                                                                                    ggc3.asArtifactRef( "jar",
+                                                                                                                                                                        null ),
+                                                                                                                                                    DependencyScope.compile,
+                                                                                                                                                    0,
+                                                                                                                                                    false ) ) );
+                                                  }
+                                                  catch ( final Exception e )
+                                                  {
+                                                      e.printStackTrace();
+                                                      Assert.fail( "Failed to store new graph relationships." );
+                                                  }
 
-        /* @formatter:off */
-        graph.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
-            new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
-        ) );
-        /* @formatter:on */
+                                                  resolved = graph.getRoots();
 
-        resolved = graph.getRoots();
+                                                  assertThat( resolved.contains( root ), equalTo( true ) );
 
-        assertThat( resolved.contains( root ), equalTo( true ) );
-
-        assertThat( fixture.getDiscoverer()
-                           .sawDiscovery( gc1 ), equalTo( true ) );
-        assertThat( fixture.getDiscoverer()
-                           .sawDiscovery( c2 ), equalTo( false ) );
-        assertThat( fixture.getDiscoverer()
-                           .sawDiscovery( gc3 ), equalTo( false ) );
+                                                  assertThat( fixture.getDiscoverer()
+                                                                     .sawDiscovery( gc1 ), equalTo( true ) );
+                                                  assertThat( fixture.getDiscoverer()
+                                                                     .sawDiscovery( c2 ), equalTo( false ) );
+                                                  assertThat( fixture.getDiscoverer()
+                                                                     .sawDiscovery( gc3 ), equalTo( false ) );
+                                              } );
     }
 
 }

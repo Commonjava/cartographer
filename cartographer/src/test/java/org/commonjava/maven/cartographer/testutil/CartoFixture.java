@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.cartographer.testutil;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
@@ -29,11 +30,16 @@ import org.commonjava.maven.cartographer.data.CartoDataException;
 import org.commonjava.maven.cartographer.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.cartographer.ops.ResolveOps;
 import org.commonjava.maven.cartographer.util.MavenModelProcessor;
-import org.commonjava.maven.galley.maven.GalleyMaven;
-import org.commonjava.maven.galley.testing.maven.GalleyMavenFixture;
+import org.commonjava.maven.galley.maven.ArtifactManager;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
+import org.commonjava.maven.galley.testing.core.transport.TestTransport;
+import org.junit.Assert;
+import org.junit.rules.ExternalResource;
+import org.junit.rules.TemporaryFolder;
 
 public class CartoFixture
-    extends GalleyMavenFixture
+    extends ExternalResource
 {
 
     private CartographerBuilder builder;
@@ -42,9 +48,35 @@ public class CartoFixture
 
     private boolean graphAggregatorSet;
 
+    private final TestTransport testTransport;
+
+    private final TemporaryFolder temp;
+
     public CartoFixture()
     {
-        super();
+        this.temp = new TemporaryFolder();
+        try
+        {
+            temp.create();
+        }
+        catch ( final IOException e )
+        {
+            e.printStackTrace();
+            Assert.fail( "Failed to intialize temp folder manager for CartoFixture: " + e.getMessage() );
+        }
+
+        testTransport = new TestTransport();
+    }
+
+    public CartoFixture( final TemporaryFolder temp )
+    {
+        this.temp = temp;
+        testTransport = new TestTransport();
+    }
+
+    public TemporaryFolder getTemp()
+    {
+        return temp;
     }
 
     protected void initCartographer()
@@ -52,16 +84,13 @@ public class CartoFixture
     {
         if ( builder == null )
         {
-            super.initMissingComponents();
-
             final RelationshipGraphConnectionFactory connectionFactory =
                 new FileNeo4jConnectionFactory( getTemp().newFolder( "graph.", ".db" ), false );
 
-            final GalleyMaven galleyMaven = getGalleyMaven();
-            System.out.println( "Initialized galley-maven components: " + galleyMaven );
-            builder = new CartographerBuilder( galleyMaven, connectionFactory );
+            builder =
+                new CartographerBuilder( temp.newFolder( "cache" ), connectionFactory ).withTransports( testTransport )
+                                                                                     .withDiscoverer( new TestAggregatorDiscoverer() );
 
-            builder.withDiscoverer( new TestAggregatorDiscoverer() );
             if ( !graphAggregatorSet )
             {
                 builder.withGraphAggregator( newGraphAggregator( builder.getDiscoverer() ) );
@@ -72,14 +101,6 @@ public class CartoFixture
     private GraphAggregator newGraphAggregator( final ProjectRelationshipDiscoverer discoverer )
     {
         return new DefaultGraphAggregator( discoverer, Executors.newFixedThreadPool( 1 ) );
-    }
-
-    @Override
-    public void initMissingComponents()
-        throws Exception
-    {
-        super.initMissingComponents();
-        initCartographer();
     }
 
     public TestAggregatorDiscoverer getDiscoverer()
@@ -150,7 +171,6 @@ public class CartoFixture
     {
         if ( cartographer == null )
         {
-            initMissingComponents();
             initCartographer();
             cartographer = builder.build();
         }
@@ -168,6 +188,32 @@ public class CartoFixture
     public MavenModelProcessor getModelProcessor()
     {
         return new MavenModelProcessor();
+    }
+
+    public TestTransport getTransport()
+    {
+        return testTransport;
+    }
+
+    public TypeMapper getMapper()
+        throws Exception
+    {
+        return cartographer().getGalley()
+                             .getTypeMapper();
+    }
+
+    public ArtifactManager getArtifacts()
+        throws Exception
+    {
+        return cartographer().getGalley()
+                             .getArtifactManager();
+    }
+
+    public MavenPomReader getPomReader()
+        throws Exception
+    {
+        return cartographer().getGalley()
+                             .getPomReader();
     }
 
 }

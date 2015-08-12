@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
@@ -84,7 +85,7 @@ public class DefaultGraphAggregatorTest
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Arrays.asList( new ParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?>>( Collections.singletonList( new ParentRelationship( src, gc1 ) ) ),
             new HashSet<ProjectRelationship<?>>()
         ) );
         /* @formatter:on */
