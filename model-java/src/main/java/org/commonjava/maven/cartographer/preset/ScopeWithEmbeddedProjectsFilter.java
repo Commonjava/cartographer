@@ -66,9 +66,9 @@ public class ScopeWithEmbeddedProjectsFilter
         DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
         this.filter =
-            new OrFilter( new DependencyFilter( filterScope, ScopeTransitivity.maven, false, true, true, null ),
-                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, false, true, true,
-                                                null ) );
+            new OrFilter( new DependencyFilter( filterScope, ScopeTransitivity.maven, acceptManaged, true, true, null ),
+                          new DependencyFilter( DependencyScope.embedded, ScopeTransitivity.maven, acceptManaged, true,
+                                                true, null ) );
         this.excludes = exc;
     }
 
