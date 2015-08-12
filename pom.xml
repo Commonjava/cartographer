@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>9</version>
+    <version>10</version>
   </parent>
 
   <groupId>org.commonjava.maven.cartographer</groupId>
@@ -42,8 +42,8 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <atlasVersion>0.14.2-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.9.2</galleyVersion>
+    <atlasVersion>0.14.2</atlasVersion>
+    <galleyVersion>0.9.3</galleyVersion>
     <javaVersion>1.8</javaVersion>
   </properties>
 
@@ -59,7 +59,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>17-SNAPSHOT</version>
+        <version>17</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
