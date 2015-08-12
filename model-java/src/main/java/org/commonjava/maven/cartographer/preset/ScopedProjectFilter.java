@@ -67,7 +67,7 @@ public class ScopedProjectFilter
     {
         DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
-        this.filter = new DependencyFilter( filterScope, ScopeTransitivity.maven, false, true, true, null );
+        this.filter = new DependencyFilter( filterScope, ScopeTransitivity.maven, acceptManaged, true, true, null );
         this.excludes = excludes;
     }
 
