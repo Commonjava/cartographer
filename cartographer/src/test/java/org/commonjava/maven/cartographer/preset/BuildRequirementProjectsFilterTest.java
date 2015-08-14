@@ -23,13 +23,14 @@ import static org.commonjava.maven.atlas.ident.DependencyScope.embedded;
 import static org.commonjava.maven.atlas.ident.DependencyScope.provided;
 import static org.commonjava.maven.atlas.ident.DependencyScope.runtime;
 import static org.commonjava.maven.atlas.ident.DependencyScope.test;
-import static org.commonjava.maven.cartographer.testutil.PresetAssertions.assertConcreteAcceptance;
-import static org.commonjava.maven.cartographer.testutil.PresetAssertions.assertRejectsAllManaged;
+import static org.commonjava.cartographer.testutil.PresetAssertions.assertConcreteAcceptance;
+import static org.commonjava.cartographer.testutil.PresetAssertions.assertRejectsAllManaged;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;

@@ -16,9 +16,9 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
-import org.commonjava.maven.cartographer.Cartographer;
-import org.commonjava.maven.cartographer.CartographerBuilder;
-import org.commonjava.maven.cartographer.discover.SourceManagerImpl;
+import org.commonjava.cartographer.Cartographer;
+import org.commonjava.cartographer.CartographerCoreBuilder;
+import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.filearc.FileTransport;
@@ -58,7 +58,7 @@ public class StandaloneTCKDriver
 
         connectionFactory = new FileNeo4jConnectionFactory( temp.newFolder( "db" ), false );
 
-        carto = new CartographerBuilder( cache, connectionFactory ).withTransferDecorator( decorator )
+        carto = new CartographerCoreBuilder( cache, connectionFactory ).withTransferDecorator( decorator )
                                                                    .withFileEvents( fileEvents )
                                                                    .withTransports( fileTransport, zipTransport )
                                                                    .withSourceManager( sourceManager )

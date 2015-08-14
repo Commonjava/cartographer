@@ -16,7 +16,7 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.maven.model.Model;
-import org.commonjava.maven.cartographer.request.PomRequest;
+import org.commonjava.cartographer.request.PomRequest;
 import org.junit.Test;
 
 /**

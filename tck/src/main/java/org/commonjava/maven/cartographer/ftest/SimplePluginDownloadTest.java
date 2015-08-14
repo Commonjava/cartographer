@@ -1,7 +1,8 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.maven.model.Model;
-import org.commonjava.maven.cartographer.request.PomRequest;
+import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
+import org.commonjava.cartographer.request.PomRequest;
 import org.junit.Test;
 
 
@@ -21,7 +22,7 @@ import org.junit.Test;
  * </pre>
  *
  * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
- * {@link org.commonjava.maven.cartographer.preset.BuildRequirementProjectsFilter}. Consumer pom and plugin's
+ * {@link BuildRequirementProjectsFilter}. Consumer pom and plugin's
  * maven-plugin are expected to be in the result.
  */
 public class SimplePluginDownloadTest

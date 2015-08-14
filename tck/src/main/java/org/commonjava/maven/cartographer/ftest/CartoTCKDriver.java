@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.cartographer.ftest;
 
-import org.commonjava.maven.cartographer.Cartographer;
+import org.commonjava.cartographer.Cartographer;
 import org.junit.rules.TemporaryFolder;
 
 public interface CartoTCKDriver

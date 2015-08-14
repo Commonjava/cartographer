@@ -33,7 +33,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.cartographer.Cartographer;
+import org.commonjava.cartographer.Cartographer;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.junit.After;
 import org.junit.Before;
