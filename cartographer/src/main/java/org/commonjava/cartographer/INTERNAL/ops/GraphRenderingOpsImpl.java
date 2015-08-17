@@ -15,26 +15,21 @@
  */
 package org.commonjava.cartographer.INTERNAL.ops;
 
-import static org.commonjava.cartographer.INTERNAL.graph.agg.AggregationUtils.collectProjectReferences;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Repository;
-import org.apache.maven.model.RepositoryPolicy;
+import org.apache.maven.model.*;
+import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.CartoRequestException;
+import org.commonjava.cartographer.graph.GraphResolver;
+import org.commonjava.cartographer.graph.RecipeResolver;
+import org.commonjava.cartographer.graph.agg.ProjectRefCollection;
+import org.commonjava.cartographer.graph.fn.MultiGraphAllInput;
+import org.commonjava.cartographer.graph.fn.MultiGraphAllInputSelector;
+import org.commonjava.cartographer.graph.fn.MultiGraphFunction;
+import org.commonjava.cartographer.ops.GraphRenderingOps;
+import org.commonjava.cartographer.ops.ResolveOps;
+import org.commonjava.cartographer.request.GraphDescription;
+import org.commonjava.cartographer.request.MultiRenderRequest;
+import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.cartographer.request.RepositoryContentRequest;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
@@ -44,33 +39,21 @@ import org.commonjava.maven.atlas.graph.traverse.print.ListPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.maven.atlas.graph.traverse.print.TreePrinter;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.*;
 import org.commonjava.maven.atlas.ident.version.CompoundVersionSpec;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
-import org.commonjava.cartographer.CartoRequestException;
-import org.commonjava.cartographer.graph.GraphResolver;
-import org.commonjava.cartographer.graph.agg.ProjectRefCollection;
-import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.cartographer.ops.GraphRenderingOps;
-import org.commonjava.cartographer.ops.ResolveOps;
-import org.commonjava.cartographer.request.GraphDescription;
-import org.commonjava.cartographer.graph.fn.MultiGraphAllInput;
-import org.commonjava.cartographer.graph.fn.MultiGraphAllInputSelector;
-import org.commonjava.cartographer.graph.fn.MultiGraphFunction;
-import org.commonjava.cartographer.request.MultiGraphRequest;
-import org.commonjava.cartographer.request.MultiRenderRequest;
-import org.commonjava.cartographer.request.PomRequest;
-import org.commonjava.cartographer.graph.RecipeResolver;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.PrintWriter;
+import java.util.*;
+
+import static org.commonjava.cartographer.INTERNAL.graph.agg.AggregationUtils.collectProjectReferences;
 
 public class GraphRenderingOpsImpl
                 implements GraphRenderingOps
@@ -104,14 +87,14 @@ public class GraphRenderingOpsImpl
     }
 
     @Override
-    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives, final PrintWriter writer )
+    public void depTree( final RepositoryContentRequest recipe, final boolean collapseTransitives, final PrintWriter writer )
                     throws CartoDataException, CartoRequestException
     {
         depTree( recipe, collapseTransitives, new DependencyTreeRelationshipPrinter(), writer );
     }
 
     @Override
-    public void depTree( final MultiGraphRequest recipe, final boolean collapseTransitives,
+    public void depTree( final RepositoryContentRequest recipe, final boolean collapseTransitives,
                          final StructureRelationshipPrinter relPrinter, final PrintWriter writer )
                     throws CartoDataException, CartoRequestException
     {
@@ -177,14 +160,14 @@ public class GraphRenderingOpsImpl
     }
 
     @Override
-    public void depList( final MultiGraphRequest recipe, final PrintWriter writer )
+    public void depList( final RepositoryContentRequest recipe, final PrintWriter writer )
                     throws CartoDataException, CartoRequestException
     {
         depList( recipe, new DependencyTreeRelationshipPrinter(), writer );
     }
 
     @Override
-    public void depList( final MultiGraphRequest recipe, final StructureRelationshipPrinter relPrinter,
+    public void depList( final RepositoryContentRequest recipe, final StructureRelationshipPrinter relPrinter,
                          final PrintWriter writer )
                     throws CartoDataException, CartoRequestException
     {
