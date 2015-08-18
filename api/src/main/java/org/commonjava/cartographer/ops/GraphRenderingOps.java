@@ -2,6 +2,7 @@ package org.commonjava.cartographer.ops;
 
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.request.RepositoryContentRequest;
 import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.cartographer.CartoRequestException;
 import org.commonjava.cartographer.request.MultiGraphRequest;
@@ -15,17 +16,17 @@ import java.io.PrintWriter;
  */
 public interface GraphRenderingOps
 {
-    void depTree( MultiGraphRequest recipe, boolean collapseTransitives, PrintWriter writer )
+    void depTree( RepositoryContentRequest recipe, boolean collapseTransitives, PrintWriter writer )
                     throws CartoDataException, CartoRequestException;
 
-    void depTree( MultiGraphRequest recipe, boolean collapseTransitives, StructureRelationshipPrinter relPrinter,
+    void depTree( RepositoryContentRequest recipe, boolean collapseTransitives, StructureRelationshipPrinter relPrinter,
                   PrintWriter writer )
                     throws CartoDataException, CartoRequestException;
 
-    void depList( MultiGraphRequest recipe, PrintWriter writer )
+    void depList( RepositoryContentRequest recipe, PrintWriter writer )
                     throws CartoDataException, CartoRequestException;
 
-    void depList( MultiGraphRequest recipe, StructureRelationshipPrinter relPrinter, PrintWriter writer )
+    void depList( RepositoryContentRequest recipe, StructureRelationshipPrinter relPrinter, PrintWriter writer )
                     throws CartoDataException, CartoRequestException;
 
     @SuppressWarnings( "null" )
