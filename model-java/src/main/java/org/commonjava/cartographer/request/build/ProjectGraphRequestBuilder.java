@@ -1,21 +1,22 @@
 package org.commonjava.cartographer.request.build;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.GraphDescription;
 import org.commonjava.cartographer.request.ProjectGraphRequest;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.model.Location;
 
-public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, O, R>, O extends GraphRequestOwner<O, R>, R extends ProjectGraphRequest>
-    extends SingleGraphRequestBuilder<T, O, R>
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, R>, R extends ProjectGraphRequest>
+    extends SingleGraphRequestBuilder<T, R>
 {
 
     public static final class StandaloneProject
-        extends ProjectGraphRequestBuilder<StandaloneProject, StandaloneRequestOwner<ProjectGraphRequest>, ProjectGraphRequest>
+        extends ProjectGraphRequestBuilder<StandaloneProject, ProjectGraphRequest>
     {
-        public StandaloneProject()
-        {
-            super( new StandaloneRequestOwner<>() );
-        }
-
     }
 
     public static StandaloneProject newProjectGraphRequestBuilder()
@@ -23,46 +24,78 @@ public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, 
         return new StandaloneProject();
     }
 
-    private GraphDescription graph;
-
-    public ProjectGraphRequestBuilder( final O owner )
-    {
-        super( owner );
-    }
-
     @SuppressWarnings( "unchecked" )
     @Override
     public R build()
     {
-        final ProjectGraphRequest recipe = new ProjectGraphRequest();
-        configureGraph( recipe );
+        final R recipe = (R) new ProjectGraphRequest();
         configure( recipe );
 
-        return (R) recipe;
-    }
-
-    protected void configureGraph( ProjectGraphRequest recipe )
-    {
-        recipe.setGraph( graph );
+        return recipe;
     }
 
     public T withProjectVersionRef( final ProjectVersionRef ref )
     {
-        return withNewGraph().withRoots( ref )
-                             .finishGraph();
+        return withGraph( GraphDescriptionBuilder.newGraphDescriptionBuilder().withRoots( ref ).build() );
     }
 
     @Override
-    public GraphDescriptionBuilder<T> withNewGraph()
+    public T withGraph( GraphDescription graph )
     {
-        return new GraphDescriptionBuilder<>( self );
+        return super.withGraph( graph );
     }
 
     @Override
-    public T withGraph( final GraphDescription graph )
+    public T withSource( String source )
     {
-        this.graph = graph;
-        return self;
+        return super.withSource( source );
     }
 
+    @Override
+    public T withWorkspaceId( String workspaceId )
+    {
+        return super.withWorkspaceId( workspaceId );
+    }
+
+    @Override
+    public T withSourceLocation( Location source )
+    {
+        return super.withSourceLocation( source );
+    }
+
+    @Override
+    public T withTimeoutSecs( Integer timeoutSecs )
+    {
+        return super.withTimeoutSecs( timeoutSecs );
+    }
+
+    @Override
+    public T withPatcherIds( Collection<String> patcherIds )
+    {
+        return super.withPatcherIds( patcherIds );
+    }
+
+    @Override
+    public T withResolve( boolean resolve )
+    {
+        return super.withResolve( resolve );
+    }
+
+    @Override
+    public T withInjectedBOMs( List<ProjectVersionRef> injectedBOMs )
+    {
+        return super.withInjectedBOMs( injectedBOMs );
+    }
+
+    @Override
+    public T withExcludedSubgraphs( Collection<ProjectVersionRef> excludedSubgraphs )
+    {
+        return super.withExcludedSubgraphs( excludedSubgraphs );
+    }
+
+    @Override
+    public T withVersionSelections( Map<ProjectRef, ProjectVersionRef> versionSelections )
+    {
+        return super.withVersionSelections( versionSelections );
+    }
 }

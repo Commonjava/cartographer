@@ -30,7 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.commonjava.cartographer.spi.graph.discover.patch.DepgraphPatcher;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -78,17 +77,24 @@ public class PatcherSupport
         }
     }
 
-    public DiscoveryResult patch( final DiscoveryResult orig, final Collection<String> patcherIds,
+    public DiscoveryResult patch( final DiscoveryResult orig, final Collection<String> patchers,
                                   final List<? extends Location> locations, final MavenPomView pomView,
                                   final Transfer transfer )
     {
-        if ( patcherIds == null || patcherIds.isEmpty() )
+        if ( patchers == null || patchers.isEmpty() )
         {
             return orig;
         }
 
+        Set<String> patcherIds = new HashSet<>( patchers );
+        if ( patcherIds.contains(DepgraphPatcherConstants.ALL))
+        {
+            patcherIds.addAll(this.patchers.keySet());
+        }
+
         logger.debug( "Running enabled patchers: {} (available patchers: {})",
-                      new JoinString( ", ", patchers.keySet() ), new JoinString( ", ", patcherIds ) );
+                      new JoinString( ", ", this.patchers.keySet() ), new JoinString( ", ", patcherIds ) );
+
         final DiscoveryResult result = orig;
         final Map<String, Object> ctx = new HashMap<String, Object>();
         ctx.put( POM_VIEW_CTX_KEY, pomView );
@@ -102,7 +108,7 @@ public class PatcherSupport
                 continue;
             }
 
-            final DepgraphPatcher patcher = patchers.get( patcherId );
+            final DepgraphPatcher patcher = this.patchers.get( patcherId );
             if ( patcher == null )
             {
                 logger.warn( "No such dependency-graph patcher: '{}'", patcherId );

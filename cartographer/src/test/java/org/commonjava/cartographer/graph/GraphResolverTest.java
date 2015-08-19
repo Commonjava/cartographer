@@ -15,6 +15,7 @@
  */
 package org.commonjava.cartographer.graph;
 
+import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
@@ -50,7 +51,7 @@ public class GraphResolverTest
 
     @Test
     public void connectIncompleteWithDiscovery_Idempotency_DepsOnly()
-        throws Exception
+            throws Exception
     {
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
         final String baseG = "org.foo";
@@ -64,7 +65,7 @@ public class GraphResolverTest
         final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
         final RelationshipGraph rootlessGraph =
-            fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
+                fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
 
         /* @formatter:off */
         rootlessGraph.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
@@ -82,68 +83,51 @@ public class GraphResolverTest
         ) );
         /* @formatter:on */
 
-        final SingleGraphRequest recipe =
-            SingleGraphRequestBuilder.newSingleGraphResolverRecipeBuilder()
-                                            .withWorkspaceId( rootlessGraph.getWorkspaceId() )
-                                            .withResolve( true )
-                                            .withSource( src.toString() )
-                                            .withNewGraph()
-                                            .withFilter( new GroupIdFilter( baseG ) )
-                                            .withRoots( root )
-                                            .finishGraph()
-                                            .build();
+        final SingleGraphRequest recipe = SingleGraphRequestBuilder.newSingleGraphResolverRecipeBuilder()
+                                                                   .withWorkspaceId( rootlessGraph.getWorkspaceId() )
+                                                                   .withResolve( true )
+                                                                   .withSource( src.toString() )
+                                                                   .withGraph(
+                                                                           GraphDescriptionBuilder.newGraphDescriptionBuilder()
+                                                                                                  .withFilter(
+                                                                                                          new GroupIdFilter(
+                                                                                                                  baseG ) )
+                                                                                                  .withRoots( root )
+                                                                                                  .build() )
+                                                                   .build();
 
-        fixture.getGraphResolver()
-               .resolveAndExtractSingleGraph( AnyFilter.INSTANCE,
-                                              recipe,
-                                              ( graph ) -> {
+        fixture.getGraphResolver().resolveAndExtractSingleGraph( AnyFilter.INSTANCE, recipe, ( graph ) -> {
 
-                                                  Set<ProjectVersionRef> resolved = graph.getRoots();
-                                                  assertThat( resolved.contains( root ), equalTo( true ) );
+            Set<ProjectVersionRef> resolved = graph.getRoots();
+            assertThat( resolved.contains( root ), equalTo( true ) );
 
-                                                  assertThat( fixture.getDiscoverer()
-                                                                     .sawDiscovery( gc1 ), equalTo( true ) );
-                                                  assertThat( fixture.getDiscoverer()
-                                                                     .sawDiscovery( c2 ), equalTo( false ) );
+            assertThat( fixture.getDiscoverer().sawDiscovery( gc1 ), equalTo( true ) );
+            assertThat( fixture.getDiscoverer().sawDiscovery( c2 ), equalTo( false ) );
 
-                                                  logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
+            logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
-                                                  try
-                                                  {
-                                                      graph.storeRelationships( Arrays.<ProjectRelationship<?>> asList( new DependencyRelationship(
-                                                                                                                                                    src,
-                                                                                                                                                    c3,
-                                                                                                                                                    gc3.asArtifactRef( "jar",
-                                                                                                                                                                       null ),
-                                                                                                                                                    DependencyScope.compile,
-                                                                                                                                                    0,
-                                                                                                                                                    false ),
-                                                                                                                        new DependencyRelationship(
-                                                                                                                                                    src,
-                                                                                                                                                    gc3,
-                                                                                                                                                    ggc3.asArtifactRef( "jar",
-                                                                                                                                                                        null ),
-                                                                                                                                                    DependencyScope.compile,
-                                                                                                                                                    0,
-                                                                                                                                                    false ) ) );
-                                                  }
-                                                  catch ( final Exception e )
-                                                  {
-                                                      e.printStackTrace();
-                                                      Assert.fail( "Failed to store new graph relationships." );
-                                                  }
+            try
+            {
+                graph.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
+                        new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile,
+                                                    0, false ),
+                        new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ),
+                                                    DependencyScope.compile, 0, false ) ) );
+            }
+            catch ( final Exception e )
+            {
+                e.printStackTrace();
+                Assert.fail( "Failed to store new graph relationships." );
+            }
 
-                                                  resolved = graph.getRoots();
+            resolved = graph.getRoots();
 
-                                                  assertThat( resolved.contains( root ), equalTo( true ) );
+            assertThat( resolved.contains( root ), equalTo( true ) );
 
-                                                  assertThat( fixture.getDiscoverer()
-                                                                     .sawDiscovery( gc1 ), equalTo( true ) );
-                                                  assertThat( fixture.getDiscoverer()
-                                                                     .sawDiscovery( c2 ), equalTo( false ) );
-                                                  assertThat( fixture.getDiscoverer()
-                                                                     .sawDiscovery( gc3 ), equalTo( false ) );
-                                              } );
+            assertThat( fixture.getDiscoverer().sawDiscovery( gc1 ), equalTo( true ) );
+            assertThat( fixture.getDiscoverer().sawDiscovery( c2 ), equalTo( false ) );
+            assertThat( fixture.getDiscoverer().sawDiscovery( gc3 ), equalTo( false ) );
+        } );
     }
 
 }

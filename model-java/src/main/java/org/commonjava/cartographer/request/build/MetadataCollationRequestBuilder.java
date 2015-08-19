@@ -1,20 +1,21 @@
 package org.commonjava.cartographer.request.build;
 
+import org.commonjava.cartographer.request.GraphDescription;
 import org.commonjava.cartographer.request.MetadataCollationRequest;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.model.Location;
 
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
-public class MetadataCollationRequestBuilder<T extends MetadataCollationRequestBuilder<T, O, R>, O extends GraphRequestOwner<O, R>, R extends MetadataCollationRequest>
-    extends ProjectGraphRequestBuilder<T, O, R>
+public class MetadataCollationRequestBuilder<T extends MetadataCollationRequestBuilder<T, R>, R extends MetadataCollationRequest>
+    extends ProjectGraphRequestBuilder<T, R>
 {
 
     public static final class StandaloneMeta
-        extends MetadataCollationRequestBuilder<StandaloneMeta, StandaloneRequestOwner<MetadataCollationRequest>, MetadataCollationRequest>
+        extends MetadataCollationRequestBuilder<StandaloneMeta, MetadataCollationRequest>
     {
-        public StandaloneMeta()
-        {
-            super( new StandaloneRequestOwner<>() );
-        }
     }
 
     public static StandaloneMeta newMetadataRecipeBuilder()
@@ -22,14 +23,9 @@ public class MetadataCollationRequestBuilder<T extends MetadataCollationRequestB
         return new StandaloneMeta();
     }
 
-    private Set<String> keys;
+    private Collection<String> keys;
 
-    public MetadataCollationRequestBuilder( final O owner )
-    {
-        super( owner );
-    }
-
-    public T withKeys(Set<String> keys)
+    public T withKeys( Collection<String> keys )
     {
         this.keys = keys;
         return self;
@@ -39,16 +35,84 @@ public class MetadataCollationRequestBuilder<T extends MetadataCollationRequestB
     @Override
     public R build()
     {
-        final MetadataCollationRequest recipe = new MetadataCollationRequest();
-        configureGraph( recipe );
-        configureKeys( recipe );
+        final R recipe = (R) new MetadataCollationRequest();
         configure( recipe );
 
-        return (R) recipe;
+        return recipe;
     }
 
-    protected void configureKeys( MetadataCollationRequest recipe )
+    protected void configure( R recipe )
     {
+        if ( keys != null )
+        {
+            recipe.setKeys( new HashSet<>( keys ) );
+        }
+        super.configure( recipe );
+    }
 
+    @Override
+    public T withProjectVersionRef( ProjectVersionRef ref )
+    {
+        return super.withProjectVersionRef( ref );
+    }
+
+    @Override
+    public T withGraph( GraphDescription graph )
+    {
+        return super.withGraph( graph );
+    }
+
+    @Override
+    public T withSource( String source )
+    {
+        return super.withSource( source );
+    }
+
+    @Override
+    public T withWorkspaceId( String workspaceId )
+    {
+        return super.withWorkspaceId( workspaceId );
+    }
+
+    @Override
+    public T withSourceLocation( Location source )
+    {
+        return super.withSourceLocation( source );
+    }
+
+    @Override
+    public T withTimeoutSecs( Integer timeoutSecs )
+    {
+        return super.withTimeoutSecs( timeoutSecs );
+    }
+
+    @Override
+    public T withPatcherIds( Collection<String> patcherIds )
+    {
+        return super.withPatcherIds( patcherIds );
+    }
+
+    @Override
+    public T withResolve( boolean resolve )
+    {
+        return super.withResolve( resolve );
+    }
+
+    @Override
+    public T withInjectedBOMs( List<ProjectVersionRef> injectedBOMs )
+    {
+        return super.withInjectedBOMs( injectedBOMs );
+    }
+
+    @Override
+    public T withExcludedSubgraphs( Collection<ProjectVersionRef> excludedSubgraphs )
+    {
+        return super.withExcludedSubgraphs( excludedSubgraphs );
+    }
+
+    @Override
+    public T withVersionSelections( Map<ProjectRef, ProjectVersionRef> versionSelections )
+    {
+        return super.withVersionSelections( versionSelections );
     }
 }

@@ -9,74 +9,50 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GraphDescriptionBuilder<T extends GraphDescriptionOwner<T>>
+public class GraphDescriptionBuilder
 {
 
-    public static final class StandaloneDescriptionOwner
-        implements GraphDescriptionOwner<StandaloneDescriptionOwner>
+    public static GraphDescriptionBuilder newGraphDescriptionBuilder()
     {
-        private GraphDescription graph;
-
-        @Override
-        public StandaloneDescriptionOwner withGraph( final GraphDescription graph )
-        {
-            this.graph = graph;
-            return this;
-        }
-
-        public GraphDescription getGraph()
-        {
-            return graph;
-        }
-    }
-
-    public static GraphDescriptionBuilder<StandaloneDescriptionOwner> newGraphDescriptionBuilder()
-    {
-        return new GraphDescriptionBuilder<>( new StandaloneDescriptionOwner() );
+        return new GraphDescriptionBuilder();
     }
 
     Set<ProjectVersionRef> roots;
 
     private ProjectRelationshipFilter filter;
 
-    private final T compBuilder;
+    private String preset;
 
-    public GraphDescriptionBuilder( final T compBuilder )
-    {
-        this.compBuilder = compBuilder;
-    }
-
-    public GraphDescriptionBuilder<T> withRoots( final ProjectVersionRef... refs )
+    public GraphDescriptionBuilder withRoots( final ProjectVersionRef... refs )
     {
         this.roots = new HashSet<>( Arrays.asList( refs ) );
         return this;
     }
 
-    public GraphDescriptionBuilder<T> withRoots( final Collection<ProjectVersionRef> refs )
+    public GraphDescriptionBuilder withRoots( final Collection<ProjectVersionRef> refs )
     {
         this.roots = new HashSet<>( refs );
         return this;
     }
 
-    public GraphDescriptionBuilder<T> withFilter( final ProjectRelationshipFilter filter )
+    public GraphDescriptionBuilder withFilter( final ProjectRelationshipFilter filter )
     {
         this.filter = filter;
         return this;
     }
 
-    public T finishGraph()
+    public GraphDescriptionBuilder withPreset( String preset )
     {
-        if ( compBuilder != null )
-        {
-            return compBuilder.withGraph( build() );
-        }
-
-        return null;
+        this.preset = preset;
+        return this;
     }
 
     public GraphDescription build()
     {
-        return new GraphDescription( filter, roots );
+        GraphDescription desc = new GraphDescription( filter, roots );
+        desc.setPreset( preset );
+
+        return desc;
     }
 
 }

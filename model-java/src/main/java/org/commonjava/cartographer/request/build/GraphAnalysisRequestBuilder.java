@@ -6,7 +6,6 @@ import org.commonjava.cartographer.request.MultiGraphRequest;
 import java.util.*;
 
 public class GraphAnalysisRequestBuilder<T extends GraphAnalysisRequestBuilder<T>>
-                implements GraphRequestOwner<T, MultiGraphRequest>
 {
 
     private List<MultiGraphRequest> graphRequests = new ArrayList<>();
@@ -21,7 +20,6 @@ public class GraphAnalysisRequestBuilder<T extends GraphAnalysisRequestBuilder<T
         return new StandaloneAnalysisBuilder();
     }
 
-    @Override
     public T withGraphRequest( MultiGraphRequest request )
     {
         graphRequests.add( request );

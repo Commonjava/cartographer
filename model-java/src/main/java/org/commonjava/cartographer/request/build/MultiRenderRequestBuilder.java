@@ -5,8 +5,8 @@ import org.commonjava.cartographer.request.MultiRenderRequest;
 
 import java.util.Map;
 
-public class MultiRenderRequestBuilder<T extends MultiRenderRequestBuilder<T, O, R>, O extends GraphRequestOwner<O, R>, R extends MultiRenderRequest>
-    extends MultiGraphRequestBuilder<T, O, R>
+public class MultiRenderRequestBuilder<T extends MultiRenderRequestBuilder<T, R>, R extends MultiRenderRequest>
+    extends MultiGraphRequestBuilder<T, R>
 {
 
     protected GraphComposition graphs;
@@ -14,22 +14,13 @@ public class MultiRenderRequestBuilder<T extends MultiRenderRequestBuilder<T, O,
     private Map<String, String> params;
 
     public static final class StandaloneMR
-        extends MultiRenderRequestBuilder<StandaloneMR, StandaloneRequestOwner<MultiRenderRequest>, MultiRenderRequest>
+        extends MultiRenderRequestBuilder<StandaloneMR, MultiRenderRequest>
     {
-        public StandaloneMR()
-        {
-            super( new StandaloneRequestOwner<>() );
-        }
     }
 
     public static StandaloneMR newMultiRenderRecipeBuilder()
     {
         return new StandaloneMR();
-    }
-
-    public MultiRenderRequestBuilder( final O owner )
-    {
-        super( owner );
     }
 
     public T withRenderParameters( final Map<String, String> params )
@@ -42,17 +33,16 @@ public class MultiRenderRequestBuilder<T extends MultiRenderRequestBuilder<T, O,
     @Override
     public R build()
     {
-        final MultiRenderRequest recipe = new MultiRenderRequest();
+        final R recipe = (R) new MultiRenderRequest();
         configure( recipe );
-        configureMultiGraphs( recipe );
-        configureRender( recipe );
 
-        return (R) recipe;
+        return recipe;
     }
 
-    protected void configureRender( final MultiRenderRequest recipe )
+    protected void configure( final R recipe )
     {
         recipe.setRenderParams( params );
+        super.configure( recipe );
     }
 
 }

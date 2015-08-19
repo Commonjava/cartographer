@@ -2,21 +2,24 @@ package org.commonjava.cartographer.request.build;
 
 import org.commonjava.cartographer.request.GraphComposition;
 import org.commonjava.cartographer.request.MultiGraphRequest;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.model.Location;
 
-public class MultiGraphRequestBuilder<T extends MultiGraphRequestBuilder<T, O, R>, O extends GraphRequestOwner<O, R>, R extends MultiGraphRequest>
-    extends AbstractGraphRequestBuilder<O, T, R>
-    implements GraphCompositionOwner<T>
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+public class MultiGraphRequestBuilder<T extends MultiGraphRequestBuilder<T, R>, R extends MultiGraphRequest>
+    extends AbstractGraphRequestBuilder<T, R>
 {
 
     protected GraphComposition graphs;
 
     public static final class StandaloneMulti
-        extends MultiGraphRequestBuilder<StandaloneMulti, StandaloneRequestOwner<MultiGraphRequest>, MultiGraphRequest>
+        extends MultiGraphRequestBuilder<StandaloneMulti, MultiGraphRequest>
     {
-        public StandaloneMulti()
-        {
-            super( new StandaloneRequestOwner<>() );
-        }
     }
 
     public static StandaloneMulti newMultiGraphResolverRequestBuilder()
@@ -24,18 +27,7 @@ public class MultiGraphRequestBuilder<T extends MultiGraphRequestBuilder<T, O, R
         return new StandaloneMulti();
     }
 
-    public MultiGraphRequestBuilder( final O owner )
-    {
-        super( owner );
-    }
-
-    public GraphCompositionBuilder<T> withNewGraphComposition()
-    {
-        return new GraphCompositionBuilder<>( self );
-    }
-
     @SuppressWarnings( "unchecked" )
-    @Override
     public T withGraphs( final GraphComposition graphs )
     {
         this.graphs = graphs;
@@ -46,16 +38,70 @@ public class MultiGraphRequestBuilder<T extends MultiGraphRequestBuilder<T, O, R
     @Override
     public R build()
     {
-        final MultiGraphRequest recipe = new MultiGraphRequest();
+        final R recipe = (R) new MultiGraphRequest();
         configure( recipe );
-        configureMultiGraphs( recipe );
 
-        return (R) recipe;
+        return recipe;
     }
 
-    protected void configureMultiGraphs( final MultiGraphRequest recipe )
+    protected void configure( final R recipe )
     {
         recipe.setGraphComposition( graphs );
+        super.configure( recipe );
+    }
+
+    @Override
+    public T withSource( String source )
+    {
+        return super.withSource( source );
+    }
+
+    @Override
+    public T withWorkspaceId( String workspaceId )
+    {
+        return super.withWorkspaceId( workspaceId );
+    }
+
+    @Override
+    public T withSourceLocation( Location source )
+    {
+        return super.withSourceLocation( source );
+    }
+
+    @Override
+    public T withTimeoutSecs( Integer timeoutSecs )
+    {
+        return super.withTimeoutSecs( timeoutSecs );
+    }
+
+    @Override
+    public T withPatcherIds( Collection<String> patcherIds )
+    {
+        return super.withPatcherIds( patcherIds );
+    }
+
+    @Override
+    public T withResolve( boolean resolve )
+    {
+        return super.withResolve( resolve );
+    }
+
+    @Override
+    public T withInjectedBOMs( List<ProjectVersionRef> injectedBOMs )
+    {
+        return super.withInjectedBOMs( injectedBOMs );
+    }
+
+    @Override
+    public T withExcludedSubgraphs( Collection<ProjectVersionRef> excludedSubgraphs )
+    {
+        return super.withExcludedSubgraphs( excludedSubgraphs );
+    }
+
+    @Override
+    public T withVersionSelections( Map<ProjectRef, ProjectVersionRef> versionSelections )
+    {
+        return super.withVersionSelections( versionSelections );
     }
 
 }

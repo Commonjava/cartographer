@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.commonjava.cartographer.graph.discover.patch.DepgraphPatcherConstants;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.AbstractGraphRequest;
@@ -13,33 +14,12 @@ import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractGraphRequestBuilder<O extends GraphRequestOwner<O, R>, T extends AbstractGraphRequestBuilder<O, T, R>, R extends AbstractGraphRequest>
+public abstract class AbstractGraphRequestBuilder<T extends AbstractGraphRequestBuilder<T, R>, R extends AbstractGraphRequest>
 {
-
-    public static class StandaloneRequestOwner<R extends AbstractGraphRequest>
-        implements GraphRequestOwner<StandaloneRequestOwner<R>, R>
-    {
-        private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-        private R recipe;
-
-        @Override
-        public StandaloneRequestOwner<R> withGraphRequest( final R recipe )
-        {
-            logger.debug( "Got request: {}", recipe );
-            this.recipe = recipe;
-            return this;
-        }
-
-        public R getRecipe()
-        {
-            return recipe;
-        }
-    }
 
     protected String workspaceId;
 
-    protected List<String> patcherIds;
+    protected Collection<String> patcherIds;
 
     protected Integer timeoutSecs;
 
@@ -57,13 +37,12 @@ public abstract class AbstractGraphRequestBuilder<O extends GraphRequestOwner<O,
 
     protected final T self;
 
-    protected final O owner;
-
     @SuppressWarnings( "unchecked" )
-    public AbstractGraphRequestBuilder( final O owner )
+    public AbstractGraphRequestBuilder()
     {
-        this.owner = owner;
-        self = (T) this;
+        this.patcherIds = DepgraphPatcherConstants.ALL_PATCHERS;
+        this.resolve = true;
+        this.self = (T) this;
     }
 
     public abstract R build();
@@ -113,7 +92,7 @@ public abstract class AbstractGraphRequestBuilder<O extends GraphRequestOwner<O,
         return self;
     }
 
-    public List<String> getPatcherIds()
+    public Collection<String> getPatcherIds()
     {
         return patcherIds;
     }
@@ -175,7 +154,7 @@ public abstract class AbstractGraphRequestBuilder<O extends GraphRequestOwner<O,
         return self;
     }
 
-    protected void configure( final AbstractGraphRequest recipe )
+    protected void configure( final R recipe )
     {
         recipe.setExcludedSubgraphs( excludedSubgraphs );
         recipe.setInjectedBOMs( injectedBOMs );
@@ -186,16 +165,6 @@ public abstract class AbstractGraphRequestBuilder<O extends GraphRequestOwner<O,
         recipe.setTimeoutSecs( timeoutSecs );
         recipe.setVersionSelections( versionSelections );
         recipe.setWorkspaceId( workspaceId );
-    }
-
-    public O finishRecipe()
-    {
-        if ( owner != null )
-        {
-            return owner.withGraphRequest( build() );
-        }
-
-        return null;
     }
 
 }

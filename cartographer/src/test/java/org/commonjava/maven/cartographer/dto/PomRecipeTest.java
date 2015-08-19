@@ -3,6 +3,8 @@ package org.commonjava.maven.cartographer.dto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.CartographerCoreBuilder;
+import org.commonjava.cartographer.request.build.GraphCompositionBuilder;
+import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.PomRequest;
@@ -26,18 +28,24 @@ public class PomRecipeTest
 
     @Test
     public void jsonRoundTrip_GraphCompOnly()
-        throws Exception
+            throws Exception
     {
         final PomRequest recipe = PomRequestBuilder.newPomRequestBuilder()
-                                                 .withNewGraphComposition()
-                                                 .withNewGraph()
-                                                 .withRoots( new ProjectVersionRef( "org.foo", "bar", "1" ) )
-                                                 .finishGraph()
-                                                 .finishGraphComposition()
-                                                 .build();
+                                                   .withGraphs( GraphCompositionBuilder.newGraphCompositionBuilder()
+                                                                                       .withGraph(
+                                                                                               GraphDescriptionBuilder.newGraphDescriptionBuilder()
+                                                                                                                      .withRoots(
+                                                                                                                              new ProjectVersionRef(
+                                                                                                                                      "org.foo",
+                                                                                                                                      "bar",
+                                                                                                                                      "1" ) )
+                                                                                                                      .build() )
+                                                                                       .build() )
+                                                   .build();
 
-        final Cartographer carto =
-            new CartographerCoreBuilder( temp.newFolder(), new FileNeo4jConnectionFactory( temp.newFolder(), false ) ).build();
+        final Cartographer carto = new CartographerCoreBuilder( temp.newFolder(),
+                                                                new FileNeo4jConnectionFactory( temp.newFolder(),
+                                                                                                false ) ).build();
 
         final ObjectMapper mapper = carto.getObjectMapper();
         logger.debug( "Testing PomRequest serialization with {}", mapper );

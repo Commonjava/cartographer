@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.cartographer.spi.graph.discover.patch;
+package org.commonjava.cartographer.graph.discover.meta;
 
 import java.util.List;
 import java.util.Map;
 
-import org.commonjava.cartographer.graph.discover.DiscoveryResult;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 
-public interface DepgraphPatcher
+public interface MetadataScanner
 {
 
-    void patch( DiscoveryResult result, List<? extends Location> locations, Map<String, Object> context );
-
-    String getId();
+    Map<String, String> scan( ProjectVersionRef ref, List<? extends Location> locations, Map<String, Object> context );
 
 }

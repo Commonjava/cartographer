@@ -20,7 +20,6 @@ import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.commonjava.cartographer.spi.graph.discover.meta.MetadataScanner;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 
 @ApplicationScoped
