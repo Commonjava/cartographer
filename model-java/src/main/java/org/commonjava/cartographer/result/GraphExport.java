@@ -32,7 +32,9 @@ public class GraphExport
 
     private ProjectErrors errors;
 
-    private final Set<EProjectCycle> cycles;
+    private Set<EProjectCycle> cycles;
+
+    public GraphExport(){}
 
     public GraphExport( final Set<ProjectRelationship<?>> relationships,
                         final Set<ProjectVersionRef> missingProjects,
@@ -92,4 +94,8 @@ public class GraphExport
         return cycles;
     }
 
+    public void setCycles( Set<EProjectCycle> cycles )
+    {
+        this.cycles = cycles;
+    }
 }
