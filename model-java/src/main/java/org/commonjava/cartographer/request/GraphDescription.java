@@ -35,7 +35,7 @@ public class GraphDescription
 
     private String preset;
 
-    private Map<String, ?> presetParams = new TreeMap<String, Object>();
+    private Map<String, Object> presetParams = new TreeMap<String, Object>();
 
     private transient ProjectRelationshipFilter filter;
 
@@ -55,7 +55,7 @@ public class GraphDescription
         this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
-    public GraphDescription( final String preset, final Map<String, Object> presetParams,
+    public GraphDescription( final String preset, final Map<String, ?> presetParams,
                              final ProjectVersionRef... roots )
     {
         this( preset, presetParams, Arrays.asList( roots ) );
@@ -124,7 +124,7 @@ public class GraphDescription
         }
     }
 
-    public Map<String, ?> getPresetParams()
+    public Map<String, Object> getPresetParams()
     {
         return presetParams;
     }
