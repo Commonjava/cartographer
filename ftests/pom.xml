@@ -29,6 +29,7 @@
 
   <properties>
     <test-forkCount>1C</test-forkCount>
+    <test-redirectOutput>true</test-redirectOutput>
   </properties>
 
   <dependencies>
