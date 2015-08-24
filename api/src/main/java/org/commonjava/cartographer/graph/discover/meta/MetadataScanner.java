@@ -15,11 +15,11 @@
  */
 package org.commonjava.cartographer.graph.discover.meta;
 
-import java.util.List;
-import java.util.Map;
-
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
+
+import java.util.List;
+import java.util.Map;
 
 public interface MetadataScanner
 {

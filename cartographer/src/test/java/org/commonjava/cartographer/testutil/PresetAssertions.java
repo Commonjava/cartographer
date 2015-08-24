@@ -44,8 +44,8 @@ import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 
 public final class PresetAssertions
 {
@@ -71,7 +71,7 @@ public final class PresetAssertions
                     equalTo( accepted.contains( PLUGIN ) ) );
 
         final PluginDependencyRelationship pdep =
-            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
+            new PluginDependencyRelationship( from, src, new SimpleProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
                                               false );
         assertThat( "Plugin-dependency acceptance does not match expectations", filter.accept( pdep ),
                     equalTo( accepted.contains( PLUGIN_DEP ) ) );
@@ -114,7 +114,7 @@ public final class PresetAssertions
         assertThat( "Managed Plugin not rejected", filter.accept( managedPlugin ), equalTo( false ) );
 
         final PluginDependencyRelationship managedPdep =
-            new PluginDependencyRelationship( from, src, new ProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
+            new PluginDependencyRelationship( from, src, new SimpleProjectRef( "plugin.group", "plugin-artifact" ), tgt, 0,
                                               true );
         assertThat( "Managed Plugin-dependency not rejected", filter.accept( managedPdep ), equalTo( false ) );
 

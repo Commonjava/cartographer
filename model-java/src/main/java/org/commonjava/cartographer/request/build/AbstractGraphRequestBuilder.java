@@ -25,9 +25,9 @@ import org.commonjava.cartographer.graph.discover.patch.DepgraphPatcherConstants
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.AbstractGraphRequest;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractGraphRequestBuilder<T extends AbstractGraphRequestBuilder<T, R>, R extends AbstractGraphRequest>
 {

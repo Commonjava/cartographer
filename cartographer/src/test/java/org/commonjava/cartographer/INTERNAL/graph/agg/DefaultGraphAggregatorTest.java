@@ -35,6 +35,7 @@ import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.graph.agg.AggregationOptions;
 import org.commonjava.cartographer.testutil.CartoFixture;
 import org.commonjava.cartographer.testutil.GroupIdFilter;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,14 +63,14 @@ public class DefaultGraphAggregatorTest
         final URI src = new URI( "test:source" );
         final String baseG = "org.foo";
 
-        final ProjectVersionRef root = new ProjectVersionRef( baseG, "root", "1" );
-        final ProjectVersionRef c1 = new ProjectVersionRef( baseG, "child-1", "1.0" );
+        final ProjectVersionRef root = new SimpleProjectVersionRef( baseG, "root", "1" );
+        final ProjectVersionRef c1 = new SimpleProjectVersionRef( baseG, "child-1", "1.0" );
         //        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG + ".child", "grandchild-1", "1.0" );
-        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG, "grandchild-1", "1.0" );
-        final ProjectVersionRef c2 = new ProjectVersionRef( "org.bar", "child-2", "1.0" );
-        final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
-        final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
-        final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
+        final ProjectVersionRef gc1 = new SimpleProjectVersionRef( baseG, "grandchild-1", "1.0" );
+        final ProjectVersionRef c2 = new SimpleProjectVersionRef( "org.bar", "child-2", "1.0" );
+        final ProjectVersionRef c3 = new SimpleProjectVersionRef( baseG, "child-3", "1.0" );
+        final ProjectVersionRef gc3 = new SimpleProjectVersionRef( baseG, "grandchild-3", "1.0" );
+        final ProjectVersionRef ggc3 = new SimpleProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
         final RelationshipGraph rootless =
             fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );

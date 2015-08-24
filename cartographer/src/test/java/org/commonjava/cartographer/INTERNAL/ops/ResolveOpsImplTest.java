@@ -27,6 +27,7 @@ import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.GraphComposition;
 import org.commonjava.cartographer.request.GraphDescription;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -58,12 +59,12 @@ public class ResolveOpsImplTest
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
 
         final LinkedList<ProjectVersionRef> lineage = new LinkedList<ProjectVersionRef>();
-        lineage.add( new ProjectVersionRef( "group.id", "my-project", "1.0" ) );
-        lineage.add( new ProjectVersionRef( "group.id", "parent-level1", "1" ) );
-        lineage.add( new ProjectVersionRef( "group.id", "parent-level2", "1" ) );
-        lineage.add( new ProjectVersionRef( "group.id", "parent-level3", "1" ) );
-        lineage.add( new ProjectVersionRef( "group.id", "parent-level4", "1" ) );
-        lineage.add( new ProjectVersionRef( "group.id", "root", "1" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "my-project", "1.0" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "parent-level1", "1" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "parent-level2", "1" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "parent-level3", "1" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "parent-level4", "1" ) );
+        lineage.add( new SimpleProjectVersionRef( "group.id", "root", "1" ) );
 
         final ProjectVersionRef recipeRoot = lineage.getFirst();
 

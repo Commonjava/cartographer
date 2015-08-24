@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleVersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 
 public class ProjectRefCollection
@@ -55,7 +56,7 @@ public class ProjectRefCollection
         final Set<VersionlessArtifactRef> result = new HashSet<>();
         for ( final ArtifactRef ref : artifactRefs )
         {
-            result.add( new VersionlessArtifactRef( ref ) );
+            result.add( new SimpleVersionlessArtifactRef( ref ) );
         }
 
         return result;

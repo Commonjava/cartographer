@@ -21,9 +21,9 @@ import org.commonjava.cartographer.CartographerCoreBuilder;
 import org.commonjava.cartographer.request.build.GraphCompositionBuilder;
 import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.PomRequest;
 import org.commonjava.cartographer.request.build.PomRequestBuilder;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -50,7 +50,7 @@ public class PomRecipeTest
                                                                                        .withGraph(
                                                                                                GraphDescriptionBuilder.newGraphDescriptionBuilder()
                                                                                                                       .withRoots(
-                                                                                                                              new ProjectVersionRef(
+                                                                                                                              new SimpleProjectVersionRef(
                                                                                                                                       "org.foo",
                                                                                                                                       "bar",
                                                                                                                                       "1" ) )

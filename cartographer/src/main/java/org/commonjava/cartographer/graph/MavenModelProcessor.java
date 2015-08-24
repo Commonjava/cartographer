@@ -21,10 +21,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships.Builder;
 import org.commonjava.maven.atlas.graph.rel.*;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.*;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
@@ -364,7 +361,7 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef =
-                        new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
@@ -513,7 +510,7 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef =
-                        new ArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();

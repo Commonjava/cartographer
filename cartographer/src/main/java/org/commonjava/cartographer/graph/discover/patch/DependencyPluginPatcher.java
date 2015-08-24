@@ -15,32 +15,25 @@
  */
 package org.commonjava.cartographer.graph.discover.patch;
 
-import static org.apache.commons.lang.StringUtils.join;
-import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.*;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
-import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.*;
+
+import static org.apache.commons.lang.StringUtils.join;
+import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 
 public class DependencyPluginPatcher
     implements DepgraphPatcher
@@ -88,7 +81,7 @@ public class DependencyPluginPatcher
             {
                 if ( rel instanceof DependencyRelationship && !rel.isManaged() )
                 {
-                    final VersionlessArtifactRef key = new VersionlessArtifactRef( rel.getTargetArtifact() );
+                    final VersionlessArtifactRef key = new SimpleVersionlessArtifactRef( rel.getTargetArtifact() );
                     logger.debug( "Mapping existing dependency via key: {}", key );
                     concreteDeps.put( key, (DependencyRelationship) rel );
                 }

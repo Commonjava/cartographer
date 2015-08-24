@@ -27,8 +27,9 @@ import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -60,7 +61,7 @@ public class DistributionPomPatcherTest
         throws Exception
     {
         final Location location = new SimpleLocation( "test-repo", "http://www.nowhere.com/path/to/repo" );
-        final ProjectVersionRef pvr = new ProjectVersionRef( "group.id", "artifact-id", "1" );
+        final ProjectVersionRef pvr = new SimpleProjectVersionRef( "group.id", "artifact-id", "1" );
 
         final String pom = BASE + "existing-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
@@ -100,7 +101,7 @@ public class DistributionPomPatcherTest
         throws Exception
     {
         final Location location = new SimpleLocation( "test-repo", "http://www.nowhere.com/path/to/repo" );
-        final ProjectVersionRef pvr = new ProjectVersionRef( "group.id", "artifact-id", "1" );
+        final ProjectVersionRef pvr = new SimpleProjectVersionRef( "group.id", "artifact-id", "1" );
 
         final String pom = BASE + "in-profile-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );
@@ -139,7 +140,7 @@ public class DistributionPomPatcherTest
         throws Exception
     {
         final Location location = new SimpleLocation( "test-repo", "http://www.nowhere.com/path/to/repo" );
-        final ProjectVersionRef pvr = new ProjectVersionRef( "group.id", "artifact-id", "1" );
+        final ProjectVersionRef pvr = new SimpleProjectVersionRef( "group.id", "artifact-id", "1" );
 
         final String pom = BASE + "in-profile-root-provided-dep.pom.xml";
         final TestDownload download = new TestDownload( pom );

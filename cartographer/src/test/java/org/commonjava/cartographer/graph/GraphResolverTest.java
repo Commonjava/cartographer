@@ -29,6 +29,7 @@ import org.commonjava.cartographer.request.SingleGraphRequest;
 import org.commonjava.cartographer.request.build.SingleGraphRequestBuilder;
 import org.commonjava.cartographer.testutil.CartoFixture;
 import org.commonjava.cartographer.testutil.GroupIdFilter;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,13 +57,13 @@ public class GraphResolverTest
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
         final String baseG = "org.foo";
 
-        final ProjectVersionRef root = new ProjectVersionRef( baseG, "root", "1" );
-        final ProjectVersionRef c1 = new ProjectVersionRef( baseG, "child-1", "1.0" );
-        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG, "grandchild-1", "1.0" );
-        final ProjectVersionRef c2 = new ProjectVersionRef( "org.bar", "child-2", "1.0" );
-        final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
-        final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
-        final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
+        final ProjectVersionRef root = new SimpleProjectVersionRef( baseG, "root", "1" );
+        final ProjectVersionRef c1 = new SimpleProjectVersionRef( baseG, "child-1", "1.0" );
+        final ProjectVersionRef gc1 = new SimpleProjectVersionRef( baseG, "grandchild-1", "1.0" );
+        final ProjectVersionRef c2 = new SimpleProjectVersionRef( "org.bar", "child-2", "1.0" );
+        final ProjectVersionRef c3 = new SimpleProjectVersionRef( baseG, "child-3", "1.0" );
+        final ProjectVersionRef gc3 = new SimpleProjectVersionRef( baseG, "grandchild-3", "1.0" );
+        final ProjectVersionRef ggc3 = new SimpleProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
         final RelationshipGraph rootlessGraph =
                 fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );

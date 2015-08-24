@@ -19,12 +19,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.commonjava.cartographer.result.ProjectPath;
-import org.commonjava.cartographer.result.ProjectPathsResult;
 import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +42,10 @@ public class ProjectPathsResultTest
                     throws Exception
     {
         ProjectPathsResult in = new ProjectPathsResult();
-        ProjectVersionRef ref = new ProjectVersionRef( "org.foo", "bar", "1" );
+        ProjectVersionRef ref = new SimpleProjectVersionRef( "org.foo", "bar", "1" );
         in.addPath( ref, new ProjectPath( Collections.singletonList(
                         new ParentRelationship( URI.create( "http://nowhere.com" ), ref,
-                                                new ProjectVersionRef( "org.dep", "project", "1.1" ) ) ) ) );
+                                                new SimpleProjectVersionRef( "org.dep", "project", "1.1" ) ) ) ) );
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModules( new ProjectVersionRefSerializerModule(), new ProjectRelationshipSerializerModule() );

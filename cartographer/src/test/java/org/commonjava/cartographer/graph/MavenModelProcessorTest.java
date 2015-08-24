@@ -20,6 +20,7 @@ import org.commonjava.cartographer.testutil.CartoFixture;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -68,11 +69,11 @@ public class MavenModelProcessorTest
     {
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
 
-        final ProjectVersionRef childRef = new ProjectVersionRef( "org.test", "test-child", "1.0" );
+        final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-child", "1.0" );
 
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "child.pom.xml" );
-        lineage.put( new ProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
+        lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
 
@@ -144,11 +145,11 @@ public class MavenModelProcessorTest
     {
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
 
-        final ProjectVersionRef childRef = new ProjectVersionRef( "org.test", "test-child", "1.0" );
+        final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-child", "1.0" );
 
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "child.pom.xml" );
-        lineage.put( new ProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
+        lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
 
@@ -228,7 +229,7 @@ public class MavenModelProcessorTest
         final URI src = new URI( "http://nowhere.com/path/to/repo" );
 
         final ProjectVersionRef childRef =
-            new ProjectVersionRef( "org.test", "test-pom", "1.0" );
+            new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
 
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );

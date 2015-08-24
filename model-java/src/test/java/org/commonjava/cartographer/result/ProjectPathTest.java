@@ -17,11 +17,11 @@ package org.commonjava.cartographer.result;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.commonjava.cartographer.result.ProjectPath;
 import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Test;
 
 import java.net.URI;
@@ -36,10 +36,10 @@ public class ProjectPathTest
     public void jsonRoundTrip()
                     throws Exception
     {
-        ProjectVersionRef ref = new ProjectVersionRef( "org.foo", "bar", "1" );
+        ProjectVersionRef ref = new SimpleProjectVersionRef( "org.foo", "bar", "1" );
         ProjectPath in = new ProjectPath( Collections.singletonList(
                         new ParentRelationship( URI.create( "http://nowhere.com" ), ref,
-                                                new ProjectVersionRef( "org.dep", "project", "1.1" ) ) ) );
+                                                new SimpleProjectVersionRef( "org.dep", "project", "1.1" ) ) ) );
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModules( new ProjectVersionRefSerializerModule(), new ProjectRelationshipSerializerModule() );

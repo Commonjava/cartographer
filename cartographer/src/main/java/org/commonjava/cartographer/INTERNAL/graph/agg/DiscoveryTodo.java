@@ -15,13 +15,13 @@
  */
 package org.commonjava.cartographer.INTERNAL.graph.agg;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+
+import java.util.HashMap;
+import java.util.Map;
 
 final class DiscoveryTodo
 {

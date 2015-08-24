@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 
 public final class DiscoveryResult

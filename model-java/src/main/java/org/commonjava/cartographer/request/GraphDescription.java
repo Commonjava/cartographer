@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 
 // TODO: Allow configuration of mutator too...
 public class GraphDescription

@@ -19,6 +19,7 @@ import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.agg.ProjectRefCollection;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
@@ -163,7 +164,7 @@ public class RepoContentCollector
             }
 
             ar =
-                new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
+                new SimpleArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
                                  ar.getClassifier(), ar.isOptional() );
         }
 
@@ -261,7 +262,7 @@ public class RepoContentCollector
 
                         if ( extra.matches( tc ) )
                         {
-                            final ArtifactRef extAR = new ArtifactRef( ar, tc, false );
+                            final ArtifactRef extAR = new SimpleArtifactRef( ar, tc, false );
                             logger.debug( "{}/{} {}/{} {}/{}. Attempting to graph classifier/type artifact from listing: {}",
                                           projectCounter, projectSz, artifactCounter, artifactSz, extCounter,
                                           tcs.size() + extOffset, extAR );
@@ -297,7 +298,7 @@ public class RepoContentCollector
                     }
 
                     final ArtifactRef extAR =
-                        new ArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
+                        new SimpleArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
                                          extraCT.getClassifier(), false );
 
                     logger.debug( "{}/{} {}/{} {}/{}. Attempting to graph specifically listed classifier/type artifact: {}",

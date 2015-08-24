@@ -27,6 +27,7 @@ import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

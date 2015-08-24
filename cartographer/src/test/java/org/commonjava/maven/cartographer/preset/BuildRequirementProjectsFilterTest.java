@@ -40,6 +40,8 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,9 +64,9 @@ public class BuildRequirementProjectsFilterTest
     {
         filter = new BuildRequirementProjectsFilter();
         from = new URI( "test:source" );
-        root = new ProjectVersionRef( "group", "root", "1" );
-        src = new ProjectVersionRef( "group.id", "artifact-id", "1.0" );
-        tgt = new ArtifactRef( "other.group", "other-artifact", "2.0", "jar", null, false );
+        root = new SimpleProjectVersionRef( "group", "root", "1" );
+        src = new SimpleProjectVersionRef( "group.id", "artifact-id", "1.0" );
+        tgt = new SimpleArtifactRef( "other.group", "other-artifact", "2.0", "jar", null, false );
     }
 
     @Test
@@ -118,7 +120,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), test, 0, false );
+            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -134,7 +136,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), provided, 0, false );
+            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -150,7 +152,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), runtime, 0, false );
+            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -169,7 +171,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new ArtifactRef( src, "jar", null, false ), compile, 0, false );
+            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 

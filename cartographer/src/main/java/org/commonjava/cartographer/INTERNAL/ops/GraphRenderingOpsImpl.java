@@ -288,7 +288,7 @@ public class GraphRenderingOpsImpl
             {
                 if ( pomArtifact == null )
                 {
-                    pomArtifact = new VersionlessArtifactRef( r, new TypeAndClassifier( "pom" ), false );
+                    pomArtifact = new SimpleVersionlessArtifactRef( r, new SimpleTypeAndClassifier( "pom" ), false );
                     logger.debug( "No artifacts found for: {}; created POM artifact for inclusion: {}", r,
                                   pomArtifact );
                 }

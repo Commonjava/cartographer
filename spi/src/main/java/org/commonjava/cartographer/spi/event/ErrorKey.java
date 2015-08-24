@@ -16,6 +16,7 @@
 package org.commonjava.cartographer.spi.event;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 
 public final class ErrorKey
@@ -47,7 +48,7 @@ public final class ErrorKey
     public ProjectVersionRef toProjectVersionRef()
         throws InvalidVersionSpecificationException
     {
-        return new ProjectVersionRef( groupId, artifactId, version );
+        return new SimpleProjectVersionRef( groupId, artifactId, version );
     }
 
     @Override
