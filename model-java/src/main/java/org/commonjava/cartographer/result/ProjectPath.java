@@ -24,21 +24,21 @@ import java.util.List;
  */
 public class ProjectPath
 {
-    private List<ProjectRelationship<?>> pathParts;
+    private List<ProjectRelationship<?, ?>> pathParts;
 
     public ProjectPath(){}
 
-    public ProjectPath(List<ProjectRelationship<?>> path )
+    public ProjectPath(List<ProjectRelationship<?, ?>> path )
     {
         this.pathParts = path;
     }
 
-    public List<ProjectRelationship<?>> getPathParts()
+    public List<ProjectRelationship<?, ?>> getPathParts()
     {
         return pathParts;
     }
 
-    public void setPathParts( List<ProjectRelationship<?>> pathParts )
+    public void setPathParts( List<ProjectRelationship<?, ?>> pathParts )
     {
         this.pathParts = pathParts;
     }

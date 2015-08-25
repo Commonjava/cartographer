@@ -113,12 +113,12 @@ public class MavenModelProcessorTest
         final DiscoveryResult result = fixture.getModelProcessor()
                                               .readRelationships( pomView, src, discoveryConfig );
 
-        final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> rels = result.getAcceptedRelationships();
 
         logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
 
         boolean seen = false;
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             if ( rel.getType() == RelationshipType.PLUGIN && !rel.isManaged() )
             {
@@ -196,12 +196,12 @@ public class MavenModelProcessorTest
 
         final DiscoveryResult result = fixture.getModelProcessor()
                                               .readRelationships( pomView, src, discoveryConfig );
-        final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> rels = result.getAcceptedRelationships();
 
         logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
 
         boolean seen = false;
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             if ( rel.getType() == RelationshipType.PLUGIN_DEP && !rel.isManaged() )
             {
@@ -272,12 +272,12 @@ public class MavenModelProcessorTest
         final DiscoveryResult result = fixture.getModelProcessor()
                                               .readRelationships( pomView, src, discoveryConfig );
 
-        final Set<ProjectRelationship<?>> rels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> rels = result.getAcceptedRelationships();
 
         logger.info( "Found {} relationships:\n\n  {}", rels.size(), new JoinString( "\n  ", rels ) );
 
         boolean seen = false;
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             if ( rel.getType() == RelationshipType.PLUGIN && !rel.isManaged() )
             {

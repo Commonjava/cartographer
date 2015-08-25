@@ -123,7 +123,7 @@ public class MavenModelProcessor
                 // force the InvalidVersionSpecificationException.
                 ref.getVersionSpec();
 
-                builder.withExtensions( new ExtensionRelationship( source, projectRef, ref,
+                builder.withExtensions( new SimpleExtensionRelationship( source, projectRef, ref,
                                                                    builder.getNextExtensionIndex() ) );
             }
             catch ( final InvalidRefException e )
@@ -286,7 +286,7 @@ public class MavenModelProcessor
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
-                    builder.withPlugins( new PluginRelationship( source, location, projectRef, pluginRef,
+                    builder.withPlugins( new SimplePluginRelationship( source, location, projectRef, pluginRef,
                                                                  builder.getNextPluginDependencyIndex( projectRef,
                                                                                                        managed ),
                                                                  managed ) );
@@ -366,7 +366,7 @@ public class MavenModelProcessor
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
 
-                    builder.withPluginDependencies( new PluginDependencyRelationship(
+                    builder.withPluginDependencies( new SimplePluginDependencyRelationship(
                                                                                       source,
                                                                                       location,
                                                                                       projectRef,
@@ -426,7 +426,7 @@ public class MavenModelProcessor
             final DependencyView bomView = boms.get( i );
             try
             {
-                builder.withBoms( new BomRelationship( source, projectRef, bomView.asProjectVersionRef(), i ) );
+                builder.withBoms( new SimpleBomRelationship( source, projectRef, bomView.asProjectVersionRef(), i ) );
             }
             catch ( final InvalidRefException e )
             {
@@ -532,7 +532,7 @@ public class MavenModelProcessor
                         excludes = new ProjectRef[0];
                     }
 
-                    builder.withDependencies( new DependencyRelationship( source, location, projectRef, artifactRef,
+                    builder.withDependencies( new SimpleDependencyRelationship( source, location, projectRef, artifactRef,
                                                                           dep.getScope(),
                                                                           builder.getNextDependencyIndex( managed ),
                                                                           managed, excludes ) );
@@ -568,11 +568,11 @@ public class MavenModelProcessor
                 // force the InvalidVersionSpecificationException.
                 ref.getVersionSpec();
 
-                builder.withParent( new ParentRelationship( source, builder.getProjectRef(), ref ) );
+                builder.withParent( new SimpleParentRelationship( source, builder.getProjectRef(), ref ) );
             }
             else
             {
-                builder.withParent( new ParentRelationship( builder.getProjectRef() ) );
+                builder.withParent( new SimpleParentRelationship( builder.getProjectRef() ) );
             }
         }
         catch ( final GalleyMavenException e )

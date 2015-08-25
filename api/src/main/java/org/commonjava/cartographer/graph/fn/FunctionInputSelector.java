@@ -25,7 +25,7 @@ public interface FunctionInputSelector<T>
 {
 
     T select( Supplier<Set<ProjectVersionRef>> allProjects,
-                   Supplier<Set<ProjectRelationship<?>>> allRelationships,
+                   Supplier<Set<ProjectRelationship<?, ?>>> allRelationships,
                Supplier<Set<ProjectVersionRef>> roots );
 
 }

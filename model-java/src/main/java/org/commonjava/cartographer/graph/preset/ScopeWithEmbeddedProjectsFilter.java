@@ -82,7 +82,7 @@ public class ScopeWithEmbeddedProjectsFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         boolean result;
         if ( rel.getType() == PARENT )
@@ -118,7 +118,7 @@ public class ScopeWithEmbeddedProjectsFilter
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {

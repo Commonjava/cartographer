@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
@@ -44,7 +44,7 @@ public class ProjectPathsResultTest
         ProjectPathsResult in = new ProjectPathsResult();
         ProjectVersionRef ref = new SimpleProjectVersionRef( "org.foo", "bar", "1" );
         in.addPath( ref, new ProjectPath( Collections.singletonList(
-                        new ParentRelationship( URI.create( "http://nowhere.com" ), ref,
+                        new SimpleParentRelationship( URI.create( "http://nowhere.com" ), ref,
                                                 new SimpleProjectVersionRef( "org.dep", "project", "1.1" ) ) ) ) );
 
         ObjectMapper mapper = new ObjectMapper();

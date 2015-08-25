@@ -151,7 +151,7 @@ public class DiscovererImpl
 
             if ( discoveryConfig.isStoreRelationships() )
             {
-                final Set<ProjectRelationship<?>> rejected;
+                final Set<ProjectRelationship<?, ?>> rejected;
                 try
                 {
                     rejected = graph.storeRelationships( result.getAcceptedRelationships() );

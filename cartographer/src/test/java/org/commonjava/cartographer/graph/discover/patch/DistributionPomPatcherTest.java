@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
@@ -76,19 +77,19 @@ public class DistributionPomPatcherTest
         final URI src = new URI( "test:uri" );
         final DiscoveryResult result =
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
-        final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );
 
-        for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
+        for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in pom root!", rel.getPomLocation(),
@@ -116,19 +117,19 @@ public class DistributionPomPatcherTest
         final URI src = new URI( "test:uri" );
         final DiscoveryResult result =
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
-        final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );
 
-        for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
+        for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the profile!", rel.getPomLocation(), equalTo( profileLoc ) );
@@ -155,19 +156,19 @@ public class DistributionPomPatcherTest
         final URI src = new URI( "test:uri" );
         final DiscoveryResult result =
             new DiscoveryResult( src, pvr, parseDependencyRelationships( pom, pvr, location, src ) );
-        final Set<ProjectRelationship<?>> oldRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> oldRels = result.getAcceptedRelationships();
 
         patcher.patch( result, Collections.singletonList( location ), getContext( pvr, location ) );
 
-        final Set<ProjectRelationship<?>> newRels = result.getAcceptedRelationships();
+        final Set<ProjectRelationship<?, ?>> newRels = result.getAcceptedRelationships();
         newRels.removeAll( oldRels );
 
         assertThat( newRels, notNullValue() );
         assertThat( newRels.size(), equalTo( 0 ) );
 
-        for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
+        for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the pom root!", rel.getPomLocation(),

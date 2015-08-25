@@ -26,9 +26,9 @@ import java.util.HashSet;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
@@ -77,18 +77,18 @@ public class DefaultGraphAggregatorTest
         rootless.addActiveSource( src );
 
         /* @formatter:off */
-        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
-            new DependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
+            new SimpleDependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Collections.singletonList( new ParentRelationship( src, gc1 ) ) ),
-            new HashSet<ProjectRelationship<?>>()
+            new HashSet<ProjectRelationship<?, ?>>( Collections.singletonList( new SimpleParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?, ?>>()
         ) );
         /* @formatter:on */
 
@@ -117,9 +117,9 @@ public class DefaultGraphAggregatorTest
         logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
         /* @formatter:off */
-        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
-            new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
+            new SimpleDependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         /* @formatter:on */
 

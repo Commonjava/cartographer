@@ -27,7 +27,7 @@ public class MultiGraphAllInputSelector
 
     @Override
     public MultiGraphAllInput select( final Supplier<Set<ProjectVersionRef>> allProjects,
-                                      final Supplier<Set<ProjectRelationship<?>>> allRelationships,
+                                      final Supplier<Set<ProjectRelationship<?, ?>>> allRelationships,
                                       final Supplier<Set<ProjectVersionRef>> roots )
     {
         return new MultiGraphAllInput( allProjects, allRelationships, roots );

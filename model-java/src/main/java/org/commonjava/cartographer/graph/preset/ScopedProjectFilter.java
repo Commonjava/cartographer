@@ -81,7 +81,7 @@ public class ScopedProjectFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         boolean result = false;
 
@@ -114,7 +114,7 @@ public class ScopedProjectFilter
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {

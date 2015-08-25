@@ -29,7 +29,7 @@ import org.commonjava.cartographer.result.GraphDifference;
  */
 public interface CalculationOps
 {
-    GraphDifference<ProjectRelationship<?>> difference( GraphAnalysisRequest request )
+    GraphDifference<ProjectRelationship<?, ?>> difference( GraphAnalysisRequest request )
                     throws CartoDataException, CartoRequestException;
 
     GraphDifference<ProjectVersionRef> intersectingTargetDrift( GraphAnalysisRequest request )

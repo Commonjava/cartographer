@@ -31,11 +31,7 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
-import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
-import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
-import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.graph.rel.*;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -139,22 +135,22 @@ public abstract class AbstractCartoGraphUtilsTest
         int idx = 0;
         int pidx = 0;
         final DependencyRelationship papi =
-            new DependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
+            new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
                                         idx++, false );
         final DependencyRelationship art =
-            new DependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
+            new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
                                         idx++, false );
         final PluginRelationship jarp =
-            new PluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
+            new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-jar-plugin", "2.2" ), pidx++, false );
         final PluginRelationship comp =
-            new PluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
+            new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-compiler-plugin", "2.3.2" ), pidx++,
                                     false );
         final ExtensionRelationship wag =
-            new ExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
+            new SimpleExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
                                                                             "wagon-provider-webdav", "1.0" ), 0 );
 
         prb.withParent( parent );
@@ -169,7 +165,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> resulting =
+        final Set<ProjectRelationship<?, ?>> resulting =
             graph.findDirectRelationshipsFrom( rels.getProjectRef(), false, RelationshipType.values() );
 
         final Set<ProjectVersionRef> targets = RelationshipUtils.targets( resulting );
@@ -198,22 +194,22 @@ public abstract class AbstractCartoGraphUtilsTest
         int idx = 0;
         int pidx = 0;
         final DependencyRelationship papi =
-            new DependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
+            new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
                                         idx++, false );
         final DependencyRelationship art =
-            new DependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
+            new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
                                         idx++, false );
         final PluginRelationship jarp =
-            new PluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
+            new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-jar-plugin", "2.2" ), pidx++, false );
         final PluginRelationship comp =
-            new PluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
+            new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-compiler-plugin", "2.3.2" ), pidx++,
                                     false );
         final ExtensionRelationship wag =
-            new ExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
+            new SimpleExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
                                                                             "wagon-provider-webdav", "1.0" ), 0 );
 
         prb.withParent( parent );
@@ -225,11 +221,11 @@ public abstract class AbstractCartoGraphUtilsTest
 
         final EProjectDirectRelationships rels = prb.build();
 
-        final Set<ProjectRelationship<?>> rejected = graph.storeRelationships( rels.getExactAllRelationships() );
+        final Set<ProjectRelationship<?, ?>> rejected = graph.storeRelationships( rels.getExactAllRelationships() );
         System.out.println( "Rejects: " + rejected );
 
-        final Map<ProjectVersionRef, Set<ProjectRelationship<?>>> byTarget =
-            new HashMap<ProjectVersionRef, Set<ProjectRelationship<?>>>()
+        final Map<ProjectVersionRef, Set<ProjectRelationship<?, ?>>> byTarget =
+            new HashMap<ProjectVersionRef, Set<ProjectRelationship<?, ?>>>()
             {
                 private static final long serialVersionUID = 1L;
 
@@ -248,7 +244,7 @@ public abstract class AbstractCartoGraphUtilsTest
                 }
             };
 
-        for ( final Map.Entry<ProjectVersionRef, Set<ProjectRelationship<?>>> entry : byTarget.entrySet() )
+        for ( final Map.Entry<ProjectVersionRef, Set<ProjectRelationship<?, ?>>> entry : byTarget.entrySet() )
         {
             System.out.printf( "\n\n\nFor key: %s, dependencies:\n  %s\n\n\n", entry.getKey(),
                                formatWithClassname( entry.getValue(), "\n  " ) );
@@ -333,7 +329,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> dependents =
+        final Set<ProjectRelationship<?, ?>> dependents =
             graph.findDirectRelationshipsTo( rels.getDependencies()
                                                  .get( 0 )
                                                  .getTarget(), false, RelationshipType.DEPENDENCY );
@@ -358,7 +354,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
+        final Set<ProjectRelationship<?, ?>> storedRels =
             graph.findDirectRelationshipsFrom( p, false, RelationshipType.DEPENDENCY );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
@@ -384,7 +380,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
+        final Set<ProjectRelationship<?, ?>> storedRels =
             graph.findDirectRelationshipsFrom( project, false, RelationshipType.PLUGIN );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
@@ -410,7 +406,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> storedRels =
+        final Set<ProjectRelationship<?, ?>> storedRels =
             graph.findDirectRelationshipsTo( plugin, false, RelationshipType.PLUGIN );
 
         assertThat( storedRels.size(), equalTo( 1 ) );
@@ -435,7 +431,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts =
+        final Set<ProjectRelationship<?, ?>> exts =
             graph.findDirectRelationshipsFrom( project, false, RelationshipType.EXTENSION );
         assertThat( exts.size(), equalTo( 1 ) );
         assertThat( exts.iterator()
@@ -456,7 +452,7 @@ public abstract class AbstractCartoGraphUtilsTest
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
-        final Set<ProjectRelationship<?>> exts =
+        final Set<ProjectRelationship<?, ?>> exts =
             graph.findDirectRelationshipsTo( ext, false, RelationshipType.EXTENSION );
 
         assertThat( exts.size(), equalTo( 1 ) );

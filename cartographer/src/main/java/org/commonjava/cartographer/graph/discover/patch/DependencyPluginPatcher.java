@@ -18,6 +18,7 @@ package org.commonjava.cartographer.graph.discover.patch;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.*;
@@ -72,14 +73,14 @@ public class DependencyPluginPatcher
                 return;
             }
 
-            final Set<ProjectRelationship<?>> accepted =
-                new HashSet<ProjectRelationship<?>>( result.getAcceptedRelationships() );
+            final Set<ProjectRelationship<?, ?>> accepted =
+                new HashSet<ProjectRelationship<?, ?>>( result.getAcceptedRelationships() );
 
             final Map<VersionlessArtifactRef, DependencyRelationship> concreteDeps =
                 new HashMap<VersionlessArtifactRef, DependencyRelationship>();
-            for ( final ProjectRelationship<?> rel : accepted )
+            for ( final ProjectRelationship<?, ?> rel : accepted )
             {
-                if ( rel instanceof DependencyRelationship && !rel.isManaged() )
+                if ( rel instanceof SimpleDependencyRelationship && !rel.isManaged() )
                 {
                     final VersionlessArtifactRef key = new SimpleVersionlessArtifactRef( rel.getTargetArtifact() );
                     logger.debug( "Mapping existing dependency via key: {}", key );
@@ -144,7 +145,7 @@ public class DependencyPluginPatcher
                                                 : excludes.toArray( new ProjectRef[excludes.size()] );
 
                             final DependencyRelationship replacement =
-                                new DependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(),
+                                new SimpleDependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(),
                                                             DependencyScope.embedded, dep.getIndex(), false,
                                                             excludedRefs );
 
@@ -158,7 +159,7 @@ public class DependencyPluginPatcher
                     {
                         logger.debug( "Injecting new dep: {}", depView.asArtifactRef() );
                         final DependencyRelationship injected =
-                            new DependencyRelationship( source,
+                            new SimpleDependencyRelationship( source,
                                                         RelationshipUtils.profileLocation( depView.getProfileId() ),
                                                         ref, depView.asArtifactRef(), DependencyScope.embedded,
                                                         concreteDeps.size(), false );

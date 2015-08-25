@@ -230,7 +230,7 @@ public class ResolveOpsImpl
         recipeResolver.resolve( recipe );
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = new HashMap<>();
-        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor = ( allRels, graphMap ) -> {
+        final MultiGraphFunction<Set<ProjectRelationship<?, ?>>> extractor = ( allRels, graphMap ) -> {
             try
             {
                 refMap.putAll( collectProjectVersionReferences( allRels ) );

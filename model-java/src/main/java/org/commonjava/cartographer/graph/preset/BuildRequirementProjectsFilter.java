@@ -66,7 +66,7 @@ public class BuildRequirementProjectsFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         boolean result = false;
 
@@ -100,7 +100,7 @@ public class BuildRequirementProjectsFilter
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {

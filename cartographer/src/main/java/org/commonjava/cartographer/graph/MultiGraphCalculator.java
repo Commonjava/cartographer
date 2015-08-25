@@ -86,7 +86,7 @@ public class MultiGraphCalculator
                                                    final Map<GraphDescription, RelationshipGraph> graphMap )
                     throws CartoDataException
     {
-        Set<ProjectRelationship<?>> result = null;
+        Set<ProjectRelationship<?, ?>> result = null;
         Set<ProjectVersionRef> roots = null;
 
         out: for ( final GraphDescription desc : composition.getGraphs() )

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -74,9 +75,9 @@ public class DistributionPomPatcher
             logger.debug( "Detected pom-packaging project with an assembly that produces artifacts without classifiers..."
                 + "Need to flip provided-scope deps to compile scope here." );
 
-            for ( final ProjectRelationship<?> rel : result.getAcceptedRelationships() )
+            for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
             {
-                if ( !rel.isManaged() && rel instanceof DependencyRelationship
+                if ( !rel.isManaged() && rel instanceof SimpleDependencyRelationship
                     && ( (DependencyRelationship) rel ).getScope() == DependencyScope.provided )
                 {
                     // flip provided scope to compile scope...is this dangerous??
@@ -93,7 +94,7 @@ public class DistributionPomPatcher
                         excludes == null ? new ProjectRef[0] : excludes.toArray( new ProjectRef[excludes.size()] );
 
                     final DependencyRelationship replacement =
-                        new DependencyRelationship( dep.getSources(), dep.getPomLocation(), ref,
+                        new SimpleDependencyRelationship( dep.getSources(), dep.getPomLocation(), ref,
                                                     dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
                                                     false, excludedRefs );
 

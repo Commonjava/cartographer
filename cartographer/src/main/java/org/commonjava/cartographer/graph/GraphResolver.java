@@ -152,7 +152,7 @@ public class GraphResolver
         try
         {
             Supplier<Set<ProjectVersionRef>> allProjects;
-            Supplier<Set<ProjectRelationship<?>>> allRels;
+            Supplier<Set<ProjectRelationship<?, ?>>> allRels;
             Supplier<Set<ProjectVersionRef>> roots;
 
             final GraphComposition comp = recipe.getGraphComposition();

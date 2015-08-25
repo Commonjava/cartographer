@@ -34,11 +34,7 @@ import java.util.HashSet;
 
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.rel.BomRelationship;
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
-import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
-import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
+import org.commonjava.maven.atlas.graph.rel.*;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -90,7 +86,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
     public void acceptNothingAfterTraversingPlugin()
         throws Exception
     {
-        final PluginRelationship plugin = new PluginRelationship( from, root, src, 0, false );
+        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
@@ -102,7 +98,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
     public void acceptNothingAfterTraversingExtension()
         throws Exception
     {
-        final ExtensionRelationship plugin = new ExtensionRelationship( from, root, src, 0 );
+        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0 );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
@@ -115,7 +111,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -129,7 +125,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -143,7 +139,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -159,7 +155,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -174,7 +170,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
     public void acceptAllEmbeddedAndRuntimeAndCompileDependenciesWithParentsAndBomsAfterTraversingParent()
         throws Exception
     {
-        final ParentRelationship parent = new ParentRelationship( from, src, root );
+        final ParentRelationship parent = new SimpleParentRelationship( from, src, root );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
@@ -190,14 +186,14 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final ProjectVersionRef parentRef = new SimpleProjectVersionRef( "group.id", "intermediate-parent", "2" );
-        final ParentRelationship parent = new ParentRelationship( from, src, parentRef );
+        final ParentRelationship parent = new SimpleParentRelationship( from, src, parentRef );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 
-        final ParentRelationship gparent = new ParentRelationship( from, parentRef, root );
+        final ParentRelationship gparent = new SimpleParentRelationship( from, parentRef, root );
         assertThat( child.accept( gparent ), equalTo( true ) );
 
-        final BomRelationship bom = new BomRelationship( from, parentRef, root, 0 );
+        final BomRelationship bom = new SimpleBomRelationship( from, parentRef, root, 0 );
         assertThat( child.accept( bom ), equalTo( true ) );
     }
 

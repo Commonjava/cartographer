@@ -32,11 +32,7 @@ import java.util.HashSet;
 
 import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
-import org.commonjava.maven.atlas.graph.rel.ExtensionRelationship;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
-import org.commonjava.maven.atlas.graph.rel.PluginRelationship;
-import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.graph.rel.*;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -91,7 +87,7 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingPlugin()
         throws Exception
     {
-        final PluginRelationship plugin = new PluginRelationship( from, root, src, 0, false );
+        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
@@ -105,7 +101,7 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingExtension()
         throws Exception
     {
-        final ExtensionRelationship plugin = new ExtensionRelationship( from, root, src, 0 );
+        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0 );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
@@ -120,7 +116,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -136,7 +132,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -152,7 +148,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -171,7 +167,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new DependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -189,7 +185,7 @@ public class BuildRequirementProjectsFilterTest
     public void acceptAllConcreteRelationshipsAfterTraversingParent()
         throws Exception
     {
-        final ParentRelationship parent = new ParentRelationship( from, root, src );
+        final ParentRelationship parent = new SimpleParentRelationship( from, root, src );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( parent );
 

@@ -28,13 +28,13 @@ public class MappedProjectRelationships
 
     private ProjectVersionRef project;
 
-    private Set<ProjectRelationship<?>> relationships;
+    private Set<ProjectRelationship<?, ?>> relationships;
 
     public MappedProjectRelationships()
     {
     }
 
-    public MappedProjectRelationships( ProjectVersionRef project, Set<ProjectRelationship<?>> relationships )
+    public MappedProjectRelationships( ProjectVersionRef project, Set<ProjectRelationship<?, ?>> relationships )
     {
         this.project = project;
         this.relationships = relationships;
@@ -51,12 +51,12 @@ public class MappedProjectRelationships
         this.project = project;
     }
 
-    public Set<ProjectRelationship<?>> getRelationships()
+    public Set<ProjectRelationship<?, ?>> getRelationships()
     {
         return relationships;
     }
 
-    public void setRelationships( Set<ProjectRelationship<?>> relationships )
+    public void setRelationships( Set<ProjectRelationship<?, ?>> relationships )
     {
         this.relationships = relationships;
     }
