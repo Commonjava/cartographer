@@ -77,7 +77,7 @@ public class DistributionPomPatcher
 
             for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
             {
-                if ( !rel.isManaged() && rel instanceof SimpleDependencyRelationship
+                if ( !rel.isManaged() && rel instanceof DependencyRelationship
                     && ( (DependencyRelationship) rel ).getScope() == DependencyScope.provided )
                 {
                     // flip provided scope to compile scope...is this dangerous??

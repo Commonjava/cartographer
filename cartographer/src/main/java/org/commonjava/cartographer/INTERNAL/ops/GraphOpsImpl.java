@@ -24,8 +24,8 @@ import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ParentFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.model.EProjectCycle;
+import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionException;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
@@ -187,7 +187,7 @@ public class GraphOpsImpl
             final Set<ProjectRelationship<?, ?>> rels = graph.getDirectRelationships( ref );
             for ( final ProjectRelationship<?, ?> rel : rels )
             {
-                if ( rel instanceof SimpleParentRelationship )
+                if ( rel instanceof ParentRelationship )
                 {
                     return rel.getTarget();
                 }

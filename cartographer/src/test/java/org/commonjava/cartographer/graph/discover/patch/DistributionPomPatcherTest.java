@@ -89,7 +89,7 @@ public class DistributionPomPatcherTest
 
         for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in pom root!", rel.getPomLocation(),
@@ -129,7 +129,7 @@ public class DistributionPomPatcherTest
 
         for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the profile!", rel.getPomLocation(), equalTo( profileLoc ) );
@@ -168,7 +168,7 @@ public class DistributionPomPatcherTest
 
         for ( final ProjectRelationship<?, ?> rel : result.getAcceptedRelationships() )
         {
-            assertThat( rel + " is not a dependency!", rel instanceof SimpleDependencyRelationship, equalTo( true ) );
+            assertThat( rel + " is not a dependency!", rel instanceof DependencyRelationship, equalTo( true ) );
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the pom root!", rel.getPomLocation(),

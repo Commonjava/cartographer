@@ -80,7 +80,7 @@ public class DependencyPluginPatcher
                 new HashMap<VersionlessArtifactRef, DependencyRelationship>();
             for ( final ProjectRelationship<?, ?> rel : accepted )
             {
-                if ( rel instanceof SimpleDependencyRelationship && !rel.isManaged() )
+                if ( rel instanceof DependencyRelationship && !rel.isManaged() )
                 {
                     final VersionlessArtifactRef key = new SimpleVersionlessArtifactRef( rel.getTargetArtifact() );
                     logger.debug( "Mapping existing dependency via key: {}", key );
