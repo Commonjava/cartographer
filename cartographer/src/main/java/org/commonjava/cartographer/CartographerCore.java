@@ -28,6 +28,8 @@ import org.commonjava.maven.galley.maven.GalleyMaven;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+
 public class CartographerCore
                 implements Cartographer
 {
@@ -134,7 +136,7 @@ public class CartographerCore
         {
             graphFactory.close();
         }
-        catch ( final RelationshipGraphException e )
+        catch ( final IOException e )
         {
             throw new CartoDataException( "Failed to close graph factory. Reason: {}", e, e.getMessage() );
         }

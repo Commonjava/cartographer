@@ -15,13 +15,7 @@
  */
 package org.commonjava.cartographer.request;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
@@ -36,11 +30,9 @@ public class GraphDescription
 
     private String preset;
 
-    private Map<String, Object> presetParams = new TreeMap<String, Object>();
+    private Map<String, Object> presetParams;
 
     private transient ProjectRelationshipFilter filter;
-
-    private transient ViewParams view;
 
     protected transient String defaultPreset;
 
@@ -52,7 +44,7 @@ public class GraphDescription
                              final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
-        this.presetParams = new TreeMap<>( presetParams );
+        this.presetParams = presetParams == null ? new TreeMap<>() : new TreeMap<>( presetParams );
         this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
@@ -111,7 +103,7 @@ public class GraphDescription
     @Override
     public String toString()
     {
-        return String.format( "GraphDescription [roots=%s, preset=%s, filter=%s]", roots, preset, filter );
+        return String.format( "GraphDescription [roots=%s, preset=%s, filter=%s, presetParams=%s]", roots, preset, filter, presetParams );
     }
 
     public void normalize()
@@ -127,18 +119,7 @@ public class GraphDescription
 
     public Map<String, Object> getPresetParams()
     {
-        return presetParams;
-    }
-
-    public void setGraphParams( final ViewParams view )
-    {
-        this.view = view;
-        this.roots = new TreeSet<>( view.getRoots() );
-    }
-
-    public ViewParams view()
-    {
-        return view;
+        return presetParams == null ? new HashMap<>() : presetParams;
     }
 
     @Override
@@ -168,6 +149,17 @@ public class GraphDescription
             return false;
         }
         final GraphDescription other = (GraphDescription) obj;
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
         if ( preset == null )
         {
             if ( other.preset != null )
@@ -179,14 +171,17 @@ public class GraphDescription
         {
             return false;
         }
+
+        Map<String, Object> presetParams = getPresetParams();
+        Map<String, Object> otherPresetParams = other.getPresetParams();
         if ( presetParams == null )
         {
-            if ( other.presetParams != null )
+            if ( otherPresetParams != null )
             {
                 return false;
             }
         }
-        else if ( !presetParams.equals( other.presetParams ) )
+        else if ( !presetParams.equals( otherPresetParams ) )
         {
             return false;
         }
