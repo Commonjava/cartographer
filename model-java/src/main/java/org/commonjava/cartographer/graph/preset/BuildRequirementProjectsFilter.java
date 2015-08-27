@@ -31,6 +31,7 @@ import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 
 //TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...
@@ -65,7 +66,7 @@ public class BuildRequirementProjectsFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         boolean result = false;
 
@@ -99,7 +100,7 @@ public class BuildRequirementProjectsFilter
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {

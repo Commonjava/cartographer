@@ -49,19 +49,19 @@ public class CartoEventManagerImpl
     public void fireStorageEvent( final RelationshipStorageEvent evt )
     {
         final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
-        final Collection<? extends ProjectRelationship<?>> stored = evt.getStored();
+        final Collection<? extends ProjectRelationship<?, ?>> stored = evt.getStored();
         if ( stored != null )
         {
-            for ( final ProjectRelationship<?> rel : stored )
+            for ( final ProjectRelationship<?, ?> rel : stored )
             {
                 refs.add( rel.getDeclaring().asProjectVersionRef() );
             }
         }
 
-        final Collection<ProjectRelationship<?>> rejected = evt.getRejected();
+        final Collection<ProjectRelationship<?, ?>> rejected = evt.getRejected();
         if ( rejected != null )
         {
-            for ( final ProjectRelationship<?> rel : rejected )
+            for ( final ProjectRelationship<?, ?> rel : rejected )
             {
                 refs.add( rel.getDeclaring().asProjectVersionRef() );
             }

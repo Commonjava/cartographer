@@ -17,15 +17,15 @@ package org.commonjava.cartographer.INTERNAL.graph.discover;
 
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.MavenModelProcessor;
+import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
-import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.cartographer.graph.discover.meta.MetadataScannerSupport;
 import org.commonjava.cartographer.graph.discover.patch.PatcherSupport;
+import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -151,7 +151,7 @@ public class DiscovererImpl
 
             if ( discoveryConfig.isStoreRelationships() )
             {
-                final Set<ProjectRelationship<?>> rejected;
+                final Set<ProjectRelationship<?, ?>> rejected;
                 try
                 {
                     rejected = graph.storeRelationships( result.getAcceptedRelationships() );

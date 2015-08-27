@@ -15,26 +15,20 @@
  */
 package org.commonjava.cartographer.graph.discover.meta;
 
-import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
-import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+import java.util.*;
+
+import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
 public class MetadataScannerSupport
 {

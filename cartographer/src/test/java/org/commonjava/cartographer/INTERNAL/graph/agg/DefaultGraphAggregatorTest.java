@@ -26,15 +26,16 @@ import java.util.HashSet;
 
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.graph.agg.AggregationOptions;
 import org.commonjava.cartographer.testutil.CartoFixture;
 import org.commonjava.cartographer.testutil.GroupIdFilter;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,32 +63,32 @@ public class DefaultGraphAggregatorTest
         final URI src = new URI( "test:source" );
         final String baseG = "org.foo";
 
-        final ProjectVersionRef root = new ProjectVersionRef( baseG, "root", "1" );
-        final ProjectVersionRef c1 = new ProjectVersionRef( baseG, "child-1", "1.0" );
+        final ProjectVersionRef root = new SimpleProjectVersionRef( baseG, "root", "1" );
+        final ProjectVersionRef c1 = new SimpleProjectVersionRef( baseG, "child-1", "1.0" );
         //        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG + ".child", "grandchild-1", "1.0" );
-        final ProjectVersionRef gc1 = new ProjectVersionRef( baseG, "grandchild-1", "1.0" );
-        final ProjectVersionRef c2 = new ProjectVersionRef( "org.bar", "child-2", "1.0" );
-        final ProjectVersionRef c3 = new ProjectVersionRef( baseG, "child-3", "1.0" );
-        final ProjectVersionRef gc3 = new ProjectVersionRef( baseG, "grandchild-3", "1.0" );
-        final ProjectVersionRef ggc3 = new ProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
+        final ProjectVersionRef gc1 = new SimpleProjectVersionRef( baseG, "grandchild-1", "1.0" );
+        final ProjectVersionRef c2 = new SimpleProjectVersionRef( "org.bar", "child-2", "1.0" );
+        final ProjectVersionRef c3 = new SimpleProjectVersionRef( baseG, "child-3", "1.0" );
+        final ProjectVersionRef gc3 = new SimpleProjectVersionRef( baseG, "grandchild-3", "1.0" );
+        final ProjectVersionRef ggc3 = new SimpleProjectVersionRef( baseG, "great-grandchild-3", "1.0" );
 
         final RelationshipGraph rootless =
             fixture.openGraph( new ViewParams( System.currentTimeMillis() + ".db" ), true );
         rootless.addActiveSource( src );
 
         /* @formatter:off */
-        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList(
-            new DependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
+            new SimpleDependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult( 
             src,
             gc1,
-            new HashSet<ProjectRelationship<?>>( Collections.singletonList( new ParentRelationship( src, gc1 ) ) ),
-            new HashSet<ProjectRelationship<?>>()
+            new HashSet<ProjectRelationship<?, ?>>( Collections.singletonList( new SimpleParentRelationship( src, gc1 ) ) ),
+            new HashSet<ProjectRelationship<?, ?>>()
         ) );
         /* @formatter:on */
 
@@ -116,9 +117,9 @@ public class DefaultGraphAggregatorTest
         logger.info( "\n\n\n\nSECOND PASS\n\n\n\n" );
 
         /* @formatter:off */
-        rootless.storeRelationships( Arrays.<ProjectRelationship<?>>asList( 
-            new DependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
-            new DependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
+        rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
+            new SimpleDependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false ),
+            new SimpleDependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false )
         ) );
         /* @formatter:on */
 

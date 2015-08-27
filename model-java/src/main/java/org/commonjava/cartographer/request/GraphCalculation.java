@@ -28,7 +28,7 @@ public class GraphCalculation
 
     private GraphCalculationType operation;
 
-    private Set<ProjectRelationship<?>> result;
+    private Set<ProjectRelationship<?, ?>> result;
 
     private Set<ProjectVersionRef> roots;
 
@@ -41,7 +41,7 @@ public class GraphCalculation
     }
 
     public GraphCalculation( final GraphCalculationType operation, final List<GraphDescription> graphs,
-                             final Set<ProjectVersionRef> roots, final Set<ProjectRelationship<?>> result )
+                             final Set<ProjectVersionRef> roots, final Set<ProjectRelationship<?, ?>> result )
     {
         this.operation = operation;
         this.graphs = graphs;
@@ -59,7 +59,7 @@ public class GraphCalculation
         return roots;
     }
 
-    public Set<ProjectRelationship<?>> getResultingRelationships()
+    public Set<ProjectRelationship<?, ?>> getResultingRelationships()
     {
         return result;
     }
@@ -87,7 +87,7 @@ public class GraphCalculation
         return projects;
     }
 
-    public Set<ProjectRelationship<?>> getResult()
+    public Set<ProjectRelationship<?, ?>> getResult()
     {
         return result;
     }
@@ -102,7 +102,7 @@ public class GraphCalculation
         this.operation = operation;
     }
 
-    protected void setResult( final Set<ProjectRelationship<?>> result )
+    protected void setResult( final Set<ProjectRelationship<?, ?>> result )
     {
         this.result = result;
     }

@@ -106,7 +106,7 @@ public class GraphRenderingOpsImpl
         }
 
         final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+            final Map<ProjectVersionRef, List<ProjectRelationship<?, ?>>> byDeclaring =
                             RelationshipUtils.mapByDeclaring( input.getAllRelationships() );
 
             final Map<String, Set<ProjectVersionRef>> labels = new HashMap<>();
@@ -179,7 +179,7 @@ public class GraphRenderingOpsImpl
         }
 
         final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
-            final Map<ProjectVersionRef, List<ProjectRelationship<?>>> byDeclaring =
+            final Map<ProjectVersionRef, List<ProjectRelationship<?, ?>>> byDeclaring =
                             RelationshipUtils.mapByDeclaring( input.getAllRelationships() );
 
             final Map<String, Set<ProjectVersionRef>> labels = new HashMap<>();
@@ -288,7 +288,7 @@ public class GraphRenderingOpsImpl
             {
                 if ( pomArtifact == null )
                 {
-                    pomArtifact = new VersionlessArtifactRef( r, new TypeAndClassifier( "pom" ), false );
+                    pomArtifact = new SimpleVersionlessArtifactRef( r, new SimpleTypeAndClassifier( "pom" ), false );
                     logger.debug( "No artifacts found for: {}; created POM artifact for inclusion: {}", r,
                                   pomArtifact );
                 }
@@ -389,7 +389,7 @@ public class GraphRenderingOpsImpl
         final StringBuilder sb = new StringBuilder();
         final MultiGraphFunction<MultiGraphAllInput> extractor = ( input, graphMap ) -> {
             final Set<ProjectVersionRef> refs = new HashSet<>( input.getAllProjects() );
-            final Collection<ProjectRelationship<?>> rels = input.getAllRelationships();
+            final Collection<ProjectRelationship<?, ?>> rels = input.getAllRelationships();
 
             final Map<ProjectVersionRef, String> aliases = new HashMap<>();
 
@@ -417,7 +417,7 @@ public class GraphRenderingOpsImpl
 
             sb.append( "\n" );
 
-            for ( final ProjectRelationship<?> rel : rels )
+            for ( final ProjectRelationship<?, ?> rel : rels )
             {
                 final String da = aliases.get( rel.getDeclaring() );
                 final String ta = aliases.get( rel.getTarget().asProjectVersionRef() );
@@ -441,7 +441,7 @@ public class GraphRenderingOpsImpl
     }
 
     @SuppressWarnings( "incomplete-switch" )
-    private void appendRelationshipInfo( final ProjectRelationship<?> rel, final StringBuilder sb )
+    private void appendRelationshipInfo( final ProjectRelationship<?, ?> rel, final StringBuilder sb )
     {
         sb.append( " [type=\"" ).append( rel.getType().name() ).append( "\"" );
         switch ( rel.getType() )

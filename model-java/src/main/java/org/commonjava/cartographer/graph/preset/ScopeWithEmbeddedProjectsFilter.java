@@ -34,6 +34,7 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ScopeTransitivity;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public class ScopeWithEmbeddedProjectsFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         boolean result;
         if ( rel.getType() == PARENT )
@@ -117,7 +118,7 @@ public class ScopeWithEmbeddedProjectsFilter
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> lastRelationship )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> lastRelationship )
     {
         switch ( lastRelationship.getType() )
         {

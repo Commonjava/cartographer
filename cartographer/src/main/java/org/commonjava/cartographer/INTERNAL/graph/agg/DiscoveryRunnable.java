@@ -16,12 +16,12 @@
 package org.commonjava.cartographer.INTERNAL.graph.agg;
 
 import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.graph.agg.AggregationOptions;
+import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
-import org.commonjava.cartographer.graph.agg.AggregationOptions;
-import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

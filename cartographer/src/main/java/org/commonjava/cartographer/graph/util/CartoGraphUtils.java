@@ -53,7 +53,7 @@ public final class CartoGraphUtils
 
     public static ProjectVersionRef getParent( final ProjectVersionRef source, final RelationshipGraph graph )
     {
-        final Set<ProjectRelationship<?>> matches =
+        final Set<ProjectRelationship<?, ?>> matches =
             graph.findDirectRelationshipsFrom( source, false, RelationshipType.PARENT );
 
         if ( matches != null && !matches.isEmpty() )
@@ -69,11 +69,11 @@ public final class CartoGraphUtils
     public static Set<ProjectVersionRef> getKnownChildren( final ProjectVersionRef parent, final RelationshipGraph graph )
         throws CartoDataException
     {
-        final Set<ProjectRelationship<?>> matches =
+        final Set<ProjectRelationship<?, ?>> matches =
             graph.findDirectRelationshipsTo( parent, false, RelationshipType.PARENT );
 
         final Set<ProjectVersionRef> refs = new HashSet<ProjectVersionRef>();
-        for ( final ProjectRelationship<?> rel : matches )
+        for ( final ProjectRelationship<?, ?> rel : matches )
         {
             refs.add( rel.getDeclaring() );
         }
@@ -81,17 +81,17 @@ public final class CartoGraphUtils
         return refs;
     }
 
-    public static Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGASource( final ProjectRef source,
+    public static Set<ProjectRelationship<?, ?>> getAllDirectRelationshipsWithGASource( final ProjectRef source,
                                                                                      final RelationshipGraph graph,
                                                                                      final boolean managed,
                                                                                      final RelationshipType... types )
         throws CartoDataException
     {
         final Set<ProjectVersionRef> refs = graph.getProjectsMatching( source );
-        final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>();
+        final Set<ProjectRelationship<?, ?>> result = new HashSet<ProjectRelationship<?, ?>>();
         for ( final ProjectVersionRef ref : refs )
         {
-            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsFrom( ref, managed, types );
+            final Set<ProjectRelationship<?, ?>> rels = graph.findDirectRelationshipsFrom( ref, managed, types );
             if ( rels != null )
             {
                 result.addAll( rels );
@@ -101,17 +101,17 @@ public final class CartoGraphUtils
         return result;
     }
 
-    public static Set<ProjectRelationship<?>> getAllDirectRelationshipsWithGATarget( final ProjectRef target,
+    public static Set<ProjectRelationship<?, ?>> getAllDirectRelationshipsWithGATarget( final ProjectRef target,
                                                                                      final RelationshipGraph graph,
                                                                                      final boolean managed,
                                                                                      final RelationshipType... types )
         throws CartoDataException
     {
         final Set<ProjectVersionRef> refs = graph.getProjectsMatching( target );
-        final Set<ProjectRelationship<?>> result = new HashSet<ProjectRelationship<?>>();
+        final Set<ProjectRelationship<?, ?>> result = new HashSet<ProjectRelationship<?, ?>>();
         for ( final ProjectVersionRef ref : refs )
         {
-            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsTo( ref, managed, types );
+            final Set<ProjectRelationship<?, ?>> rels = graph.findDirectRelationshipsTo( ref, managed, types );
             if ( rels != null )
             {
                 result.addAll( rels );

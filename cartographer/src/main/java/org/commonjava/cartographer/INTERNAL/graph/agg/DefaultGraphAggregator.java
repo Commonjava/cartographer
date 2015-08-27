@@ -17,6 +17,8 @@ package org.commonjava.cartographer.INTERNAL.graph.agg;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.graph.agg.AggregationOptions;
+import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
@@ -25,13 +27,11 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
-import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
-import org.commonjava.cartographer.graph.agg.AggregationOptions;
-import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -304,7 +304,7 @@ public class DefaultGraphAggregator
                 }
             }
 
-            final Set<ProjectRelationship<?>> discoveredRels = result.getAcceptedRelationships();
+            final Set<ProjectRelationship<?, ?>> discoveredRels = result.getAcceptedRelationships();
             if ( discoveredRels != null )
             {
                 final Map<GraphPath<?>, GraphPathInfo> parentPathMap = todo.getParentPathMap();
@@ -322,7 +322,7 @@ public class DefaultGraphAggregator
                 boolean contributedRels = false;
 
                 int idx = 0;
-                for ( final ProjectRelationship<?> rel : discoveredRels )
+                for ( final ProjectRelationship<?, ?> rel : discoveredRels )
                 {
                     final ProjectVersionRef relTarget = rel.getTarget()
                                                            .asProjectVersionRef();
@@ -333,7 +333,7 @@ public class DefaultGraphAggregator
                             GraphPath<?> path = entry.getKey();
                             GraphPathInfo pathInfo = entry.getValue();
 
-                            final ProjectRelationship<?> selected = pathInfo.selectRelationship( rel, path );
+                            final ProjectRelationship<?, ?> selected = pathInfo.selectRelationship( rel, path );
                             if ( selected == null )
                             {
                                 continue;
@@ -404,7 +404,7 @@ public class DefaultGraphAggregator
 
                     try
                     {
-                        graph.storeRelationships( new ParentRelationship( result.getSelectedRef() ) );
+                        graph.storeRelationships( new SimpleParentRelationship( result.getSelectedRef() ) );
                     }
                     catch ( final RelationshipGraphException e )
                     {

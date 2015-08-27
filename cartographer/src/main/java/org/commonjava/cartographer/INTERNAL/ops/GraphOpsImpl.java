@@ -90,7 +90,7 @@ public class GraphOpsImpl
 
         ProjectPathsResult result = new ProjectPathsResult();
 
-        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor = ( allRels, graphMap ) -> {
+        final MultiGraphFunction<Set<ProjectRelationship<?, ?>>> extractor = ( allRels, graphMap ) -> {
             for ( final GraphDescription desc : graphMap.keySet() )
             {
                 final RelationshipGraph graph = graphMap.get( desc );
@@ -112,16 +112,16 @@ public class GraphOpsImpl
                     CartoGraphUtils.closeGraphQuietly( graph );
                 }
 
-                final Set<List<ProjectRelationship<?>>> discoveredPaths = paths.getDiscoveredPaths();
+                final Set<List<ProjectRelationship<?, ?>>> discoveredPaths = paths.getDiscoveredPaths();
 
-                for ( final List<ProjectRelationship<?>> path : discoveredPaths )
+                for ( final List<ProjectRelationship<?, ?>> path : discoveredPaths )
                 {
                     if ( path == null || path.isEmpty() )
                     {
                         continue;
                     }
 
-                    for ( final ProjectRelationship<?> rel : path )
+                    for ( final ProjectRelationship<?, ?> rel : path )
                     {
                         if ( !allRels.contains( rel ) )
                         {
@@ -184,8 +184,8 @@ public class GraphOpsImpl
         MappedProjectResult result = new MappedProjectResult();
 
         final ProjectProjector<ProjectVersionRef> extractor = ( ref, graph ) -> {
-            final Set<ProjectRelationship<?>> rels = graph.getDirectRelationships( ref );
-            for ( final ProjectRelationship<?> rel : rels )
+            final Set<ProjectRelationship<?, ?>> rels = graph.getDirectRelationships( ref );
+            for ( final ProjectRelationship<?, ?> rel : rels )
             {
                 if ( rel instanceof ParentRelationship )
                 {
@@ -210,14 +210,14 @@ public class GraphOpsImpl
     {
         MappedProjectRelationshipsResult result = new MappedProjectRelationshipsResult();
 
-        final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
-            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsFrom( ref, recipe.isManagedIncluded(),
+        final ProjectProjector<Set<ProjectRelationship<?, ?>>> extractor = ( ref, graph ) -> {
+            final Set<ProjectRelationship<?, ?>> rels = graph.findDirectRelationshipsFrom( ref, recipe.isManagedIncluded(),
                                                                                         recipe.isConcreteIncluded(),
                                                                                         recipe.toTypeArray() );
             return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
         };
 
-        final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
+        final ProjectCollector<Set<ProjectRelationship<?, ?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
             {
                 result.addProject( new MappedProjectRelationships( ref, rels ) );
@@ -235,14 +235,14 @@ public class GraphOpsImpl
     {
         MappedProjectRelationshipsResult result = new MappedProjectRelationshipsResult();
 
-        final ProjectProjector<Set<ProjectRelationship<?>>> extractor = ( ref, graph ) -> {
-            final Set<ProjectRelationship<?>> rels = graph.findDirectRelationshipsTo( ref, recipe.isManagedIncluded(),
+        final ProjectProjector<Set<ProjectRelationship<?, ?>>> extractor = ( ref, graph ) -> {
+            final Set<ProjectRelationship<?, ?>> rels = graph.findDirectRelationshipsTo( ref, recipe.isManagedIncluded(),
                                                                                       recipe.isConcreteIncluded(),
                                                                                       recipe.toTypeArray() );
             return rels == null || rels.isEmpty() ? null : new HashSet<>( rels );
         };
 
-        final ProjectCollector<Set<ProjectRelationship<?>>> consumer = ( ref, rels ) -> {
+        final ProjectCollector<Set<ProjectRelationship<?, ?>>> consumer = ( ref, rels ) -> {
             if ( rels != null )
             {
                 result.addProject( new MappedProjectRelationships( ref, rels ) );
@@ -397,7 +397,7 @@ public class GraphOpsImpl
     {
         final ValueHolder<GraphExport> holder = new ValueHolder<>();
         final GraphFunction extractor = ( graph ) -> {
-            final Set<ProjectRelationship<?>> rels = graph.getAllRelationships();
+            final Set<ProjectRelationship<?, ?>> rels = graph.getAllRelationships();
             final Set<ProjectVersionRef> missing = graph.getAllIncompleteSubgraphs();
             final Set<ProjectVersionRef> variable = graph.getAllVariableSubgraphs();
             final Set<EProjectCycle> cycles = graph.getCycles();

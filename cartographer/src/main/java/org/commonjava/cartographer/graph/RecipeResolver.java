@@ -15,18 +15,19 @@
  */
 package org.commonjava.cartographer.graph;
 
+import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.CartoRequestException;
+import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
+import org.commonjava.cartographer.graph.preset.PresetSelector;
+import org.commonjava.cartographer.request.AbstractGraphRequest;
 import org.commonjava.cartographer.request.GraphComposition;
 import org.commonjava.cartographer.request.GraphDescription;
+import org.commonjava.cartographer.request.RepositoryContentRequest;
+import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.cartographer.CartoRequestException;
-import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
-import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
-import org.commonjava.cartographer.graph.preset.PresetSelector;
-import org.commonjava.cartographer.request.AbstractGraphRequest;
-import org.commonjava.cartographer.request.RepositoryContentRequest;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
@@ -179,7 +180,7 @@ public class RecipeResolver
                 for ( final DependencyView managedDependency : managedDependencies )
                 {
                     final ProjectRef ga = managedDependency.asProjectRef();
-                    final ProjectVersionRef version = new ProjectVersionRef( ga, managedDependency.getVersion() );
+                    final ProjectVersionRef version = new SimpleProjectVersionRef( ga, managedDependency.getVersion() );
                     if ( !versionMap.containsKey( ga ) )
                     {
                         versionMap.put( ga, version );

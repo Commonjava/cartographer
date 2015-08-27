@@ -58,7 +58,7 @@ public class CalculationOpsImpl
     }
 
     @Override
-    public GraphDifference<ProjectRelationship<?>> difference( final GraphAnalysisRequest request )
+    public GraphDifference<ProjectRelationship<?, ?>> difference( final GraphAnalysisRequest request )
                     throws CartoDataException, CartoRequestException
     {
         List<MultiGraphRequest> requests = request.getGraphRequests();
@@ -70,8 +70,8 @@ public class CalculationOpsImpl
         MultiGraphRequest from = requests.get( 0 );
         MultiGraphRequest to = requests.get( 1 );
 
-        ValueHolder<Set<ProjectRelationship<?>>> fromRels = new ValueHolder<>();
-        ValueHolder<Set<ProjectRelationship<?>>> toRels = new ValueHolder<>();
+        ValueHolder<Set<ProjectRelationship<?, ?>>> fromRels = new ValueHolder<>();
+        ValueHolder<Set<ProjectRelationship<?, ?>>> toRels = new ValueHolder<>();
 
         graphResolver.resolveAndExtractMultiGraph( AnyFilter.INSTANCE, from,
                                                 ( allProjects, allRelationships, roots ) -> allRelationships.get(),
@@ -81,10 +81,10 @@ public class CalculationOpsImpl
                                                 ( allProjects, allRelationships, roots ) -> allRelationships.get(),
                                                 ( elements, graphs ) -> toRels.set( elements ) );
 
-        final Set<ProjectRelationship<?>> removed = new HashSet<>( fromRels.get() );
+        final Set<ProjectRelationship<?, ?>> removed = new HashSet<>( fromRels.get() );
         removed.removeAll( toRels.get() );
 
-        final Set<ProjectRelationship<?>> added = new HashSet<>( toRels.get() );
+        final Set<ProjectRelationship<?, ?>> added = new HashSet<>( toRels.get() );
         added.removeAll( fromRels.get() );
 
         return new GraphDifference<>( from, to, added, removed );

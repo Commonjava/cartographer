@@ -37,14 +37,14 @@ public class GroupIdFilter
     }
 
     @Override
-    public boolean accept( final ProjectRelationship<?> rel )
+    public boolean accept( final ProjectRelationship<?, ?> rel )
     {
         return groupId.equals( rel.getTarget()
                                   .getGroupId() );
     }
 
     @Override
-    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?> parent )
+    public ProjectRelationshipFilter getChildFilter( final ProjectRelationship<?, ?> parent )
     {
         //        return new GroupIdFilter( groupId + ".child" );
         return this;

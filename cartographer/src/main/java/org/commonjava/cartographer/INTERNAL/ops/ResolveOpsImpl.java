@@ -31,6 +31,7 @@ import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.cartographer.CartoRequestException;
@@ -229,7 +230,7 @@ public class ResolveOpsImpl
         recipeResolver.resolve( recipe );
 
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = new HashMap<>();
-        final MultiGraphFunction<Set<ProjectRelationship<?>>> extractor = ( allRels, graphMap ) -> {
+        final MultiGraphFunction<Set<ProjectRelationship<?, ?>>> extractor = ( allRels, graphMap ) -> {
             try
             {
                 refMap.putAll( collectProjectVersionReferences( allRels ) );

@@ -38,7 +38,7 @@ public final class AggregationUtils
 
     public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final RelationshipGraph graph )
     {
-        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
+        final Collection<ProjectRelationship<?, ?>> rels = graph.getAllRelationships();
         return collectProjectReferences( rels );
     }
 
@@ -71,11 +71,11 @@ public final class AggregationUtils
         return projects;
     }
 
-    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Collection<ProjectRelationship<?>> rels )
+    public static Map<ProjectRef, ProjectRefCollection> collectProjectReferences( final Collection<ProjectRelationship<?, ?>> rels )
     {
         final Map<ProjectRef, ProjectRefCollection> projects = new HashMap<ProjectRef, ProjectRefCollection>();
 
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             //            if ( !( rel instanceof DependencyRelationship ) )
             //            {
@@ -115,7 +115,7 @@ public final class AggregationUtils
 
     public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final RelationshipGraph graph )
     {
-        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
+        final Collection<ProjectRelationship<?, ?>> rels = graph.getAllRelationships();
         final Map<ProjectVersionRef, ProjectRefCollection> result = collectProjectVersionReferences( rels );
         for ( final ProjectVersionRef root : graph.getParams()
                                                   .getRoots() )
@@ -133,12 +133,12 @@ public final class AggregationUtils
         return result;
     }
 
-    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?>> rels )
+    public static Map<ProjectVersionRef, ProjectRefCollection> collectProjectVersionReferences( final Collection<ProjectRelationship<?, ?>> rels )
     {
         final Map<ProjectVersionRef, ProjectRefCollection> projects =
             new HashMap<ProjectVersionRef, ProjectRefCollection>();
 
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             //            if ( !( rel instanceof DependencyRelationship ) )
             //            {
@@ -178,16 +178,16 @@ public final class AggregationUtils
     public static Set<ArtifactRef> collectArtifactReferences( final RelationshipGraph graph,
                                                               final boolean includePomArtifacts )
     {
-        final Collection<ProjectRelationship<?>> rels = graph.getAllRelationships();
+        final Collection<ProjectRelationship<?, ?>> rels = graph.getAllRelationships();
         return collectArtifactReferences( rels, includePomArtifacts );
     }
 
-    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?>> rels,
+    public static Set<ArtifactRef> collectArtifactReferences( final Collection<ProjectRelationship<?, ?>> rels,
                                                               final boolean includePomArtifacts )
     {
         final Set<ArtifactRef> artifacts = new HashSet<ArtifactRef>();
 
-        for ( final ProjectRelationship<?> rel : rels )
+        for ( final ProjectRelationship<?, ?> rel : rels )
         {
             //            if ( !( rel instanceof DependencyRelationship ) )
             //            {

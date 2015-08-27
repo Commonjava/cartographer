@@ -41,8 +41,8 @@ public class CartoEventGraphListenerFactory
 
     @Override
     public void stored( final RelationshipGraph graph,
-                        final Collection<? extends ProjectRelationship<?>> relationships,
-                        final Collection<ProjectRelationship<?>> rejected )
+                        final Collection<? extends ProjectRelationship<?, ?>> relationships,
+                        final Collection<ProjectRelationship<?, ?>> rejected )
         throws RelationshipGraphException
     {
         funnel.fireStorageEvent( new RelationshipStorageEvent( relationships, rejected, graph ) );

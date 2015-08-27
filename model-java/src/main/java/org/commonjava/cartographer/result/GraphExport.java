@@ -24,7 +24,7 @@ import java.util.Set;
 public class GraphExport
 {
 
-    private Set<ProjectRelationship<?>> relationships;
+    private Set<ProjectRelationship<?, ?>> relationships;
 
     private Set<ProjectVersionRef> missing;
 
@@ -36,7 +36,7 @@ public class GraphExport
 
     public GraphExport(){}
 
-    public GraphExport( final Set<ProjectRelationship<?>> relationships,
+    public GraphExport( final Set<ProjectRelationship<?, ?>> relationships,
                         final Set<ProjectVersionRef> missingProjects,
                         final Set<ProjectVersionRef> variableProjects,
                         final ProjectErrors projectErrors,
@@ -49,12 +49,12 @@ public class GraphExport
         this.cycles = cycles;
     }
 
-    public Set<ProjectRelationship<?>> getRelationships()
+    public Set<ProjectRelationship<?, ?>> getRelationships()
     {
         return relationships;
     }
 
-    public void setRelationships( final Set<ProjectRelationship<?>> relationships )
+    public void setRelationships( final Set<ProjectRelationship<?, ?>> relationships )
     {
         this.relationships = relationships;
     }

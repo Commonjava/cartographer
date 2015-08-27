@@ -33,6 +33,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.junit.After;
@@ -179,7 +180,7 @@ public abstract class AbstractCartographerTCK
                                ( dep.getType() == null ? "jar" : dep.getType() ), ( dep.getClassifier() == null ? ""
                                                : ":" + dep.getClassifier() ) );
 
-            depArtifacts.add( ArtifactRef.parse( depSpec ) );
+            depArtifacts.add( SimpleArtifactRef.parse( depSpec ) );
         }
 
         System.out.println( "POM dependencies:\n  " + StringUtils.join( depArtifacts, "\n  " ) );
@@ -187,7 +188,7 @@ public abstract class AbstractCartographerTCK
         assertThat( depArtifacts.size(), equalTo( specs.size() ) );
         for ( final String spec : specs )
         {
-            final ArtifactRef ar = ArtifactRef.parse( spec );
+            final ArtifactRef ar = SimpleArtifactRef.parse( spec );
             assertThat( spec + " was missing from dependencies!", depArtifacts.contains( ar ), equalTo( true ) );
         }
     }

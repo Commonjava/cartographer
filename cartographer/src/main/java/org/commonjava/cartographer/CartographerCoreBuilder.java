@@ -23,6 +23,8 @@ import org.commonjava.cartographer.graph.preset.*;
 import org.commonjava.cartographer.ops.*;
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectRelationshipSerializerModule;
+import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectVersionRefSerializerModule;
 import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
@@ -366,7 +368,9 @@ public class CartographerCoreBuilder
 
         logger.debug( "{} adding standard modules", objectMapper );
         objectMapper.registerModules( new ProjectVersionRefSerializerModule(),
-                                      new ProjectRelationshipSerializerModule() );
+                                      new ProjectRelationshipSerializerModule(),
+                                      new NeoSpecificProjectVersionRefSerializerModule(),
+                                      new NeoSpecificProjectRelationshipSerializerModule() );
         return this;
     }
 

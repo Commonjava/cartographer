@@ -21,8 +21,8 @@ import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryConte
 import java.net.URI;
 import java.util.*;
 
-import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -62,11 +62,11 @@ public abstract class AbstractPatcherTest
         return ctx;
     }
 
-    protected Set<ProjectRelationship<?>> parseDependencyRelationships( final String pom, final ProjectVersionRef pvr,
+    protected Set<ProjectRelationship<?, ?>> parseDependencyRelationships( final String pom, final ProjectVersionRef pvr,
                                                                         final Location location, final URI src )
         throws GalleyMavenException
     {
-        final Set<ProjectRelationship<?>> discovered = new HashSet<ProjectRelationship<?>>();
+        final Set<ProjectRelationship<?, ?>> discovered = new HashSet<ProjectRelationship<?, ?>>();
         final MavenPomView pomView = galleyFixture.getPomReader()
                                                   .read( pvr, Collections.singletonList( location ) );
         List<DependencyView> deps = pomView.getAllDirectDependencies();
@@ -91,7 +91,7 @@ public abstract class AbstractPatcherTest
 
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
-            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
+            discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
                                                         false, depEx ) );
         }
 
@@ -117,7 +117,7 @@ public abstract class AbstractPatcherTest
 
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
-            discovered.add( new DependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
+            discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
                                                         true, depEx ) );
         }
 
