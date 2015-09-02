@@ -130,6 +130,11 @@
       
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-api</artifactId>
+        <version>${galleyVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-core</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
