@@ -89,6 +89,7 @@ public class PatcherSupport
         Set<String> patcherIds = new HashSet<>( patchers );
         if ( patcherIds.contains(DepgraphPatcherConstants.ALL))
         {
+            patcherIds.remove( DepgraphPatcherConstants.ALL );
             patcherIds.addAll(this.patchers.keySet());
         }
 
