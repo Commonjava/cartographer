@@ -43,7 +43,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.15.0</atlasVersion>
-    <galleyVersion>0.10.0</galleyVersion>
+    <galleyVersion>0.10.1-SNAPSHOT</galleyVersion>
     <javaVersion>1.8</javaVersion>
   </properties>
 
@@ -54,6 +54,7 @@
     <module>spi</module>
     <module>tck</module>
     <module>ftests</module>
+    <module>cdi-embedder</module>
   </modules>
 
   <dependencyManagement>
@@ -165,6 +166,11 @@
         <version>${galleyVersion}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-cdi-embedder</artifactId>
+        <version>${galleyVersion}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
@@ -191,6 +197,12 @@
         <groupId>org.commonjava.util</groupId>
         <artifactId>http-testserver</artifactId>
         <version>1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.weld.se</groupId>
+        <artifactId>weld-se</artifactId>
+        <version>1.1.8.Final</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
