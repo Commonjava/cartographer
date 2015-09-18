@@ -66,6 +66,18 @@ public class MetadataCollationRequestBuilder<T extends MetadataCollationRequestB
     }
 
     @Override
+    public T withTargetProject( ProjectVersionRef project )
+    {
+        return super.withTargetProject( project );
+    }
+
+    @Override
+    public T withProjectGavPattern( String projectGavPattern )
+    {
+        return super.withProjectGavPattern( projectGavPattern );
+    }
+
+    @Override
     public T withProjectVersionRef( ProjectVersionRef ref )
     {
         return super.withProjectVersionRef( ref );
