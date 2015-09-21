@@ -29,6 +29,10 @@ public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, 
     extends SingleGraphRequestBuilder<T, R>
 {
 
+    private String projectGavPattern;
+
+    private ProjectVersionRef project;
+
     public static final class StandaloneProject
         extends ProjectGraphRequestBuilder<StandaloneProject, ProjectGraphRequest>
     {
@@ -49,9 +53,27 @@ public class ProjectGraphRequestBuilder<T extends ProjectGraphRequestBuilder<T, 
         return recipe;
     }
 
+    protected void configure( final R recipe )
+    {
+        recipe.setProjectGavPattern( projectGavPattern );
+        super.configure( recipe );
+    }
+
     public T withProjectVersionRef( final ProjectVersionRef ref )
     {
         return withGraph( GraphDescriptionBuilder.newGraphDescriptionBuilder().withRoots( ref ).build() );
+    }
+
+    public T withTargetProject( ProjectVersionRef project )
+    {
+        this.project = project;
+        return self;
+    }
+
+    public T withProjectGavPattern( String projectGavPattern )
+    {
+        this.projectGavPattern = projectGavPattern;
+        return self;
     }
 
     @Override
