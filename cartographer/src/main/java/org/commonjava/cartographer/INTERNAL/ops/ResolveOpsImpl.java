@@ -116,6 +116,7 @@ public class ResolveOpsImpl
                                           recipe.getSourceLocation(), sourceManager.getFormatHint() );
         }
 
+        // FIXME: lambdas...
         final Map<ProjectVersionRef, ProjectRefCollection> refMap = resolveReferenceMap( recipe );
         final List<RepoContentCollector> collectors = collectContent( refMap, recipe );
 
