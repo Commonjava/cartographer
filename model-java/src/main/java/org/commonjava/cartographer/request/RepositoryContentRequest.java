@@ -37,7 +37,9 @@ public class RepositoryContentRequest
         }
     };
 
-    private static final String NO_METAS = "none";
+    public static final String NO_METAS = "none";
+
+    public static final Set<String> NO_METAS_SET = Collections.unmodifiableSet( Collections.singleton( NO_METAS ) );
 
     private boolean multiSourceGAVs;
 
