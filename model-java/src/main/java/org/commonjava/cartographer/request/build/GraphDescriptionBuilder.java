@@ -106,11 +106,11 @@ public class GraphDescriptionBuilder
     {
         if ( preset != null )
         {
-            return new GraphDescription( preset, presetParams, roots );
+            return new GraphDescription( preset, null, presetParams, roots );
         }
         else
         {
-            return new GraphDescription( filter, roots );
+            return new GraphDescription( filter, null, roots );
         }
     }
 

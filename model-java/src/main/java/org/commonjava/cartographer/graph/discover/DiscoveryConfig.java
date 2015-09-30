@@ -15,8 +15,8 @@
  */
 package org.commonjava.cartographer.graph.discover;
 
+import org.commonjava.cartographer.graph.mutator.MutatorSelector;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.galley.model.Location;
 
 import java.net.URI;
@@ -36,8 +36,6 @@ public class DiscoveryConfig
     private List<? extends Location> discoveryLocations;
 
     private Collection<String> patchers;
-
-    private GraphMutator mutator;
 
     private boolean storeRelationships = true;
 
@@ -91,7 +89,6 @@ public class DiscoveryConfig
         this.enabled = discoveryConfig.isEnabled();
         this.timeoutMillis = discoveryConfig.getTimeoutMillis();
         this.discoverySource = discoveryConfig.getDiscoverySource();
-        this.mutator = discoveryConfig.getMutator();
         this.discoveryLocations = discoveryConfig.getLocations();
         this.storeRelationships = discoveryConfig.isStoreRelationships();
         this.includeBuildSection = discoveryConfig.isIncludeBuildSection();
@@ -135,17 +132,6 @@ public class DiscoveryConfig
     public Collection<String> getEnabledPatchers()
     {
         return patchers == null ? Collections.<String> emptySet() : patchers;
-    }
-
-    public GraphMutator getMutator()
-    {
-        return mutator == null ? new ManagedDependencyMutator() : mutator;
-    }
-
-    public DiscoveryConfig setMutator( final GraphMutator mutator )
-    {
-        this.mutator = mutator;
-        return this;
     }
 
     public List<? extends Location> getLocations()

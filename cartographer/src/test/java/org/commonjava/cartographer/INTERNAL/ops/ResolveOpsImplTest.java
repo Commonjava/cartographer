@@ -114,6 +114,7 @@ public class ResolveOpsImplTest
                                                                                                            new ScopeWithEmbeddedProjectsFilter(
                                                                                                                                                 DependencyScope.runtime,
                                                                                                                                                 false ),
+                                                                                                           null,
                                                                                                            Collections.singleton( recipeRoot ) ) ) ) );
 
         recipe.setResolve( false );
