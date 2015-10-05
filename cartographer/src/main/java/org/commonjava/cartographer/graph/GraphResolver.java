@@ -36,6 +36,7 @@ import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.AndFilter;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -212,13 +213,11 @@ public class GraphResolver
             }
             else
             {
-                final ViewParams params =
-                                new ViewParams.Builder( recipe.getWorkspaceId(), desc.rootsArray() ).withFilter(
-                                                desc.filter() )
-                                                                                                    .withMutator( new ManagedDependencyMutator() )
-                                                                                                    .withSelections(
-                                                                                                                    recipe.getVersionSelections() )
-                                                                                                    .build();
+                final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), desc.rootsArray() )
+                                                        .withFilter( desc.filter() )
+                                                        .withMutator( desc.getMutatorInstance() )
+                                                        .withSelections( recipe.getVersionSelections() )
+                                                        .build();
                 // ensure the graph is available.
                 RelationshipGraph graph = null;
                 try
@@ -303,12 +302,11 @@ public class GraphResolver
 
         if ( !recipe.isResolve() )
         {
-            final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), desc.rootsArray() ).withFilter(
-                            desc.filter() )
-                                                                                                          .withMutator( new ManagedDependencyMutator() )
-                                                                                                          .withSelections(
-                                                                                                                          recipe.getVersionSelections() )
-                                                                                                          .build();
+            final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), desc.rootsArray() )
+                                                    .withFilter( desc.filter() )
+                                                    .withMutator( desc.getMutatorInstance() )
+                                                    .withSelections( recipe.getVersionSelections() )
+                                                    .build();
             // ensure the graph is available.
             try
             {
@@ -339,12 +337,11 @@ public class GraphResolver
             specifics.add( specific );
         }
 
-        final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), specifics ).withFilter(
-                        aggOptions.getFilter() )
-                                                                                              .withMutator( aggOptions.getMutator() )
-                                                                                              .withSelections(
-                                                                                                              recipe.getVersionSelections() )
-                                                                                              .build();
+        final ViewParams params = new ViewParams.Builder( recipe.getWorkspaceId(), specifics )
+                                                .withFilter( aggOptions.getFilter() )
+                                                .withMutator( desc.getMutatorInstance() )
+                                                .withSelections( recipe.getVersionSelections() )
+                                                .build();
 
         sourceManager.activateWorkspaceSources( params, discoveryConfig.getLocations() );
 

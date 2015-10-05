@@ -18,6 +18,7 @@ package org.commonjava.cartographer.graph;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.CartoRequestException;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
+import org.commonjava.cartographer.graph.mutator.MutatorSelector;
 import org.commonjava.cartographer.graph.preset.PresetSelector;
 import org.commonjava.cartographer.request.AbstractGraphRequest;
 import org.commonjava.cartographer.request.GraphComposition;
@@ -25,6 +26,7 @@ import org.commonjava.cartographer.request.GraphDescription;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
@@ -60,6 +62,9 @@ public class RecipeResolver
     @Inject
     private PresetSelector presets;
 
+    @Inject
+    private MutatorSelector mutators;
+
     protected RecipeResolver()
     {
     }
@@ -86,6 +91,7 @@ public class RecipeResolver
         resolveSourceLocations( recipe );
         resolveDiscoveryConfig( recipe );
         resolvePresets( recipe );
+        resolveMutators( recipe );
         resolveVersionSelections( recipe );
 
         if ( recipe instanceof RepositoryContentRequest )
@@ -333,6 +339,46 @@ public class RecipeResolver
 
         final GraphComposition comp = recipe.getGraphComposition();
         resolvePresets( comp );
+    }
+
+    public void resolveMutator( final GraphDescription graph )
+    {
+        if ( graph == null )
+        {
+            return;
+        }
+
+        if ( graph.getMutatorInstance() == null )
+        {
+            final GraphMutator mutator =
+                mutators.getGraphMutator( graph.getMutator() );
+
+            graph.setMutatorInstance( mutator );
+        }
+    }
+
+    public void resolveMutators( final GraphComposition graphs )
+    {
+        if ( graphs == null )
+        {
+            return;
+        }
+
+        for ( final GraphDescription graph : graphs )
+        {
+            resolveMutator( graph );
+        }
+    }
+
+    public void resolveMutators( final AbstractGraphRequest recipe )
+    {
+        if ( recipe == null )
+        {
+            return;
+        }
+
+        final GraphComposition comp = recipe.getGraphComposition();
+        resolveMutators( comp );
     }
 
     public Set<Location> resolveSourceLocationSet( final Set<String> specs )

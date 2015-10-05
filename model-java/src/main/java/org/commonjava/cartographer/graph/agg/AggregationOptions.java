@@ -18,9 +18,9 @@ package org.commonjava.cartographer.graph.agg;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
+import org.commonjava.cartographer.graph.mutator.MutatorSelector;
 import org.commonjava.cartographer.graph.preset.ScopedProjectFilter;
 
 import java.net.URI;
@@ -44,8 +44,6 @@ public class AggregationOptions
 
     private DiscoveryConfig dc;
 
-    private GraphMutator mutator;
-
     public AggregationOptions()
     {
         this.filter = new ScopedProjectFilter();
@@ -60,7 +58,6 @@ public class AggregationOptions
         this.discoverySource = options.getDiscoverySource();
         this.discoveryTimeoutMillis = options.getDiscoveryTimeoutMillis();
         this.dc = options.getDiscoveryConfig();
-        this.mutator = options.getMutator();
     }
 
     public AggregationOptions setFilter( final ProjectRelationshipFilter filter )
@@ -99,11 +96,6 @@ public class AggregationOptions
         return this;
     }
 
-    public AggregationOptions setMutator( final GraphMutator mutator )
-    {
-        this.mutator = mutator;
-        return this;
-    }
     public ProjectRelationshipFilter getFilter()
     {
         return filter == null ? AnyFilter.INSTANCE : filter;
@@ -122,8 +114,8 @@ public class AggregationOptions
     public DiscoveryConfig getDiscoveryConfig()
     {
         return dc == null ? new DiscoveryConfig( discoverySource ).setEnabled( discoveryEnabled )
-                                                                         .setTimeoutMillis( discoveryTimeoutMillis )
-                                                                         .setMutator( mutator ) : dc;
+                                                                  .setTimeoutMillis( discoveryTimeoutMillis )
+                          : dc;
     }
 
     public boolean isDiscoveryEnabled()
@@ -144,9 +136,9 @@ public class AggregationOptions
     @Override
     public String toString()
     {
-        return String.format( "AggregationOptions [\n\tmutator=%s\n\tprocessIncomplete=%s"
+        return String.format( "AggregationOptions [\n\tprocessIncomplete=%s"
                                   + "\n\tprocessVariable=%s" + "\n\tdiscoveryEnabled=%s"
-                                  + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]", mutator,
+                                  + "\n\tdiscoveryTimeoutMillis=%s" + "\n\n\tfilter:\n\n%s\n\n]",
                               processIncomplete, processVariable, discoveryEnabled,
                               discoveryTimeoutMillis, filter );
     }
@@ -157,13 +149,7 @@ public class AggregationOptions
         this.discoverySource = dc.getDiscoverySource();
         this.discoveryEnabled = dc.isEnabled();
         this.discoveryTimeoutMillis = dc.getTimeoutMillis();
-        this.mutator = dc.getMutator();
         return this;
-    }
-
-    public GraphMutator getMutator()
-    {
-        return mutator == null ? new ManagedDependencyMutator() : mutator;
     }
 
 }

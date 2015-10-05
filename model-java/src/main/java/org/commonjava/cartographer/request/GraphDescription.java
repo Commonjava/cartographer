@@ -17,18 +17,21 @@ package org.commonjava.cartographer.request;
 
 import java.util.*;
 
-import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 
-// TODO: Allow configuration of mutator too...
+
 public class GraphDescription
 {
 
     private Set<ProjectVersionRef> roots;
 
     private String preset;
+    
+    private String mutator;
+    
+    private GraphMutator mutatorInstance;
 
     private Map<String, Object> presetParams;
 
@@ -40,29 +43,33 @@ public class GraphDescription
     {
     }
 
-    public GraphDescription( final String preset, final Map<String, ?> presetParams,
-                             final Collection<ProjectVersionRef> roots )
+    public GraphDescription( final String preset, final String mutator,
+                             final Map<String, ?> presetParams, final Collection<ProjectVersionRef> roots )
     {
         this.preset = preset;
+        this.mutator = mutator;
         this.presetParams = presetParams == null ? new TreeMap<>() : new TreeMap<>( presetParams );
         this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
-    public GraphDescription( final String preset, final Map<String, ?> presetParams,
+    public GraphDescription( final String preset, final String mutator, final Map<String, ?> presetParams,
                              final ProjectVersionRef... roots )
     {
-        this( preset, presetParams, Arrays.asList( roots ) );
+        this( preset, mutator, presetParams, Arrays.asList( roots ) );
     }
 
-    public GraphDescription( final ProjectRelationshipFilter filter, final Collection<ProjectVersionRef> roots )
+    public GraphDescription( final ProjectRelationshipFilter filter, final String mutator,
+                             final Collection<ProjectVersionRef> roots )
     {
         this.filter = filter;
+        this.mutator = mutator;
         this.roots = new TreeSet<ProjectVersionRef>( roots );
     }
 
-    public GraphDescription( final ProjectRelationshipFilter filter, final ProjectVersionRef... roots )
+    public GraphDescription( final ProjectRelationshipFilter filter, final String mutator,
+                             final ProjectVersionRef... roots )
     {
-        this( filter, Arrays.asList( roots ) );
+        this( filter, mutator, Arrays.asList( roots ) );
     }
 
     public Set<ProjectVersionRef> getRoots()
@@ -75,6 +82,11 @@ public class GraphDescription
         return preset;
     }
 
+    public String getMutator()
+    {
+        return mutator;
+    }
+
     public void setRoots( final Set<ProjectVersionRef> roots )
     {
         this.roots = new TreeSet<>( roots );
@@ -83,6 +95,11 @@ public class GraphDescription
     public void setPreset( final String preset )
     {
         this.preset = preset;
+    }
+
+    public void setMutator( final String mutator )
+    {
+        this.mutator = mutator;
     }
 
     public ProjectVersionRef[] rootsArray()
@@ -100,10 +117,21 @@ public class GraphDescription
         this.filter = filter;
     }
 
+    public GraphMutator getMutatorInstance()
+    {
+        return mutatorInstance;
+    }
+    
+    public void setMutatorInstance( final GraphMutator mutatorInstance )
+    {
+        this.mutatorInstance = mutatorInstance;
+    }
+
     @Override
     public String toString()
     {
-        return String.format( "GraphDescription [roots=%s, preset=%s, filter=%s, presetParams=%s]", roots, preset, filter, presetParams );
+        return String.format( "GraphDescription [roots=%s, preset=%s, mutator=%s, filter=%s, presetParams=%s]", roots,
+                              preset, mutator, filter, presetParams );
     }
 
     public void normalize()
@@ -128,6 +156,7 @@ public class GraphDescription
         final int prime = 31;
         int result = 1;
         result = prime * result + ( ( preset == null ) ? 0 : preset.hashCode() );
+        result = prime * result + ( ( mutator == null ) ? 0 : mutator.hashCode() );
         result = prime * result + ( ( presetParams == null ) ? 0 : presetParams.hashCode() );
         result = prime * result + ( ( roots == null ) ? 0 : roots.hashCode() );
         return result;
@@ -168,6 +197,17 @@ public class GraphDescription
             }
         }
         else if ( !preset.equals( other.preset ) )
+        {
+            return false;
+        }
+        if ( mutator == null )
+        {
+            if ( other.mutator != null )
+            {
+                return false;
+            }
+        }
+        else if ( !mutator.equals( other.mutator ) )
         {
             return false;
         }
