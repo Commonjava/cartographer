@@ -71,13 +71,14 @@ public class RecipeResolver
 
     public RecipeResolver( final LocationResolver resolver, final LocationExpander locationExpander,
                         final DiscoverySourceManager sourceManager,
-                        final MavenPomReader pomReader, final PresetSelector presets )
+                        final MavenPomReader pomReader, final PresetSelector presets, final MutatorSelector mutators )
     {
         this.resolver = resolver;
         this.locationExpander = locationExpander;
         this.sourceManager = sourceManager;
         this.pomReader = pomReader;
         this.presets = presets;
+        this.mutators = mutators;
     }
 
     public void resolve( final AbstractGraphRequest recipe )

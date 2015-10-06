@@ -19,6 +19,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.commonjava.cartographer.graph.mutator.ManagedDependencyGraphMutatorFactory;
+import org.commonjava.cartographer.graph.mutator.MutatorSelector;
+import org.commonjava.cartographer.graph.mutator.NoOpGraphMutatorFactory;
 import org.commonjava.cartographer.graph.preset.*;
 import org.commonjava.cartographer.ops.*;
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
@@ -136,6 +139,8 @@ public class CartographerCoreBuilder
     private PresetSelector presetSelector;
 
     private ObjectMapper objectMapper;
+
+    private MutatorSelector mutatorSelector;
 
     public CartographerCoreBuilder( final GalleyMaven galleyMaven,
                                     final RelationshipGraphConnectionFactory connectionFactory )
@@ -317,10 +322,16 @@ public class CartographerCoreBuilder
                                                           new ScopedProjectFilterFactory() ) );
         }
 
+        if ( mutatorSelector == null )
+        {
+            mutatorSelector = new MutatorSelector(
+                    Arrays.asList( new ManagedDependencyGraphMutatorFactory(), new NoOpGraphMutatorFactory() ) );
+        }
+
         if ( dtoResolver == null )
         {
             dtoResolver = new RecipeResolver( getLocationResolver(), getLocationExpander(), sourceManager,
-                                              getPomReader(), presetSelector );
+                                              getPomReader(), presetSelector, mutatorSelector );
         }
 
         withStandardObjectMapperModules();
@@ -897,6 +908,17 @@ public class CartographerCoreBuilder
     public CartographerCoreBuilder withPresetSelector( final PresetSelector presetSelector )
     {
         this.presetSelector = presetSelector;
+        return this;
+    }
+
+    public MutatorSelector getMutatorSelector()
+    {
+        return mutatorSelector;
+    }
+
+    public CartographerCoreBuilder withMutatorSelector( final MutatorSelector mutatorSelector )
+    {
+        this.mutatorSelector = mutatorSelector;
         return this;
     }
 
