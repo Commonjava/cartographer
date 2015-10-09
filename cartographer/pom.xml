@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava.maven.cartographer</groupId>
     <artifactId>cartographer-parent</artifactId>
-    <version>0.10.2-SNAPSHOT</version>
+    <version>0.10.2</version>
   </parent>
 
   <artifactId>cartographer</artifactId>
