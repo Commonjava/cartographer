@@ -107,10 +107,6 @@ public class GraphOpsImpl
                                     "Failed to open / traverse the graph (for paths operation): " + ex.getMessage(),
                                     ex );
                 }
-                finally
-                {
-                    CartoGraphUtils.closeGraphQuietly( graph );
-                }
 
                 final Set<List<ProjectRelationship<?, ?>>> discoveredPaths = paths.getDiscoveredPaths();
 
