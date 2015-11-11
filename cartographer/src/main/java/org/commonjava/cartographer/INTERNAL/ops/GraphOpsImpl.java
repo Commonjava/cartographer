@@ -126,7 +126,7 @@ public class GraphOpsImpl
                         }
                     }
 
-                    final ProjectVersionRef ref = path.get( 0 ).getDeclaring();
+                    final ProjectVersionRef ref = path.get( path.size() - 1 ).getTarget();
                     result.addPath( ref, new ProjectPath( path ) );
                 }
             }
