@@ -147,6 +147,7 @@ public class DependencyPluginPatcher
                             final DependencyRelationship replacement =
                                 new SimpleDependencyRelationship( dep.getSources(), ref, dep.getTargetArtifact(),
                                                             DependencyScope.embedded, dep.getIndex(), false,
+                                                            depView.getOriginInfo().isInherited(),
                                                             excludedRefs );
 
                             if ( !result.addDiscoveredRelationship( replacement ) )
@@ -162,7 +163,7 @@ public class DependencyPluginPatcher
                             new SimpleDependencyRelationship( source,
                                                         RelationshipUtils.profileLocation( depView.getProfileId() ),
                                                         ref, depView.asArtifactRef(), DependencyScope.embedded,
-                                                        concreteDeps.size(), false );
+                                                        concreteDeps.size(), false, depView.getOriginInfo().isInherited() );
 
                         if ( !result.addDiscoveredRelationship( injected ) )
                         {

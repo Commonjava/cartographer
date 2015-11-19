@@ -87,7 +87,7 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingPlugin()
         throws Exception
     {
-        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false );
+        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
@@ -101,7 +101,7 @@ public class BuildRequirementProjectsFilterTest
     public void acceptOnlyConcreteEmbeddedOrRuntimeImpliedDependenciesAfterTraversingExtension()
         throws Exception
     {
-        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0 );
+        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt,
@@ -116,7 +116,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -132,7 +132,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -148,7 +148,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -167,7 +167,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 

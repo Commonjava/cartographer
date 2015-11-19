@@ -86,7 +86,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
     public void acceptNothingAfterTraversingPlugin()
         throws Exception
     {
-        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false );
+        final PluginRelationship plugin = new SimplePluginRelationship( from, root, src, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
@@ -98,7 +98,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
     public void acceptNothingAfterTraversingExtension()
         throws Exception
     {
-        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0 );
+        final ExtensionRelationship plugin = new SimpleExtensionRelationship( from, root, src, 0, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( plugin );
         assertConcreteAcceptance( child, from, src, tgt, new HashSet<DependencyScope>() );
@@ -111,7 +111,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -125,7 +125,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -139,7 +139,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -155,7 +155,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -193,7 +193,7 @@ public class ScopeWithEmbeddedProjectsFilterTest
         final ParentRelationship gparent = new SimpleParentRelationship( from, parentRef, root );
         assertThat( child.accept( gparent ), equalTo( true ) );
 
-        final BomRelationship bom = new SimpleBomRelationship( from, parentRef, root, 0 );
+        final BomRelationship bom = new SimpleBomRelationship( from, parentRef, root, 0, false, false );
         assertThat( child.accept( bom ), equalTo( true ) );
     }
 
