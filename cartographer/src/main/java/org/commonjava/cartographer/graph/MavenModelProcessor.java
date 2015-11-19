@@ -123,7 +123,8 @@ public class MavenModelProcessor
                 ref.getVersionSpec();
 
                 builder.withExtensions( new SimpleExtensionRelationship( source, projectRef, ref,
-                                                                   builder.getNextExtensionIndex() ) );
+                                                                   builder.getNextExtensionIndex(),
+                                                                   ext.getOriginInfo().isInherited() ) );
             }
             catch ( final InvalidRefException e )
             {
@@ -285,10 +286,14 @@ public class MavenModelProcessor
                     final String profileId = plugin.getProfileId();
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
+                    boolean inherited = plugin.getOriginInfo().isInherited();
+                    boolean mixin = plugin.getOriginInfo().isMixin();
                     builder.withPlugins( new SimplePluginRelationship( source, location, projectRef, pluginRef,
                                                                  builder.getNextPluginDependencyIndex( projectRef,
-                                                                                                       managed ),
-                                                                 managed ) );
+                                                                                                       managed,
+                                                                                                       inherited ),
+                                                                 managed,
+                                                                 inherited ) );
                 }
                 catch ( final GalleyMavenException e )
                 {
@@ -365,6 +370,8 @@ public class MavenModelProcessor
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
 
+                    boolean inherited = dep.getOriginInfo().isInherited();
+                    boolean mixin = dep.getOriginInfo().isMixin();
                     builder.withPluginDependencies( new SimplePluginDependencyRelationship(
                                                                                       source,
                                                                                       location,
@@ -372,8 +379,10 @@ public class MavenModelProcessor
                                                                                       pluginRef,
                                                                                       artifactRef,
                                                                                       builder.getNextPluginDependencyIndex( pluginRef,
-                                                                                                                            managed ),
-                                                                                      managed ) );
+                                                                                                                            managed,
+                                                                                                                            inherited ),
+                                                                                      managed,
+                                                                                      inherited ) );
                 }
                 catch ( final InvalidRefException e )
                 {
@@ -425,7 +434,9 @@ public class MavenModelProcessor
             final DependencyView bomView = boms.get( i );
             try
             {
-                builder.withBoms( new SimpleBomRelationship( source, projectRef, bomView.asProjectVersionRef(), i ) );
+                builder.withBoms( new SimpleBomRelationship( source, projectRef, bomView.asProjectVersionRef(), i,
+                                                             bomView.getOriginInfo().isInherited(),
+                                                             bomView.getOriginInfo().isMixin() ) );
             }
             catch ( final InvalidRefException e )
             {
@@ -534,7 +545,8 @@ public class MavenModelProcessor
                     builder.withDependencies( new SimpleDependencyRelationship( source, location, projectRef, artifactRef,
                                                                           dep.getScope(),
                                                                           builder.getNextDependencyIndex( managed ),
-                                                                          managed, excludes ) );
+                                                                          managed, dep.getOriginInfo().isInherited(),
+                                                                          excludes ) );
                 }
                 catch ( final InvalidRefException e )
                 {

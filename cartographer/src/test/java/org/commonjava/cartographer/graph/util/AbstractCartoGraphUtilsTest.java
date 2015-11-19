@@ -84,7 +84,7 @@ public abstract class AbstractCartoGraphUtilsTest
         final ProjectVersionRef r = new SimpleProjectVersionRef( "org.test", "root", "1" );
         final ProjectVersionRef d = new SimpleProjectVersionRef( "org.test", "dep", "1" );
         final EProjectDirectRelationships root =
-            new EProjectDirectRelationships.Builder( sourceUri, r ).withDependency( d, null, null, null, false )
+            new EProjectDirectRelationships.Builder( sourceUri, r ).withDependency( d, null, null, null, false, false )
                                                                    .build();
 
         graph.storeRelationships( root.getExactAllRelationships() );
@@ -137,21 +137,21 @@ public abstract class AbstractCartoGraphUtilsTest
         final DependencyRelationship papi =
             new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+                                        idx++, false, false );
         final DependencyRelationship art =
             new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+                                        idx++, false, false );
         final PluginRelationship jarp =
             new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-jar-plugin", "2.2" ), pidx++, false );
+                                                                         "maven-jar-plugin", "2.2" ), pidx++, false, false );
         final PluginRelationship comp =
             new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-compiler-plugin", "2.3.2" ), pidx++,
-                                    false );
+                                    false, false );
         final ExtensionRelationship wag =
             new SimpleExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
-                                                                            "wagon-provider-webdav", "1.0" ), 0 );
+                                                                            "wagon-provider-webdav", "1.0" ), 0, false );
 
         prb.withParent( parent );
         prb.withDependencies( papi, art );
@@ -196,21 +196,21 @@ public abstract class AbstractCartoGraphUtilsTest
         final DependencyRelationship papi =
             new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-plugin-api", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+                                        idx++, false, false );
         final DependencyRelationship art =
             new SimpleDependencyRelationship( sourceUri, p, new SimpleArtifactRef( "org.apache.maven", "maven-artifact", "3.0.3",
                                                                        null, null, false ), DependencyScope.compile,
-                                        idx++, false );
+                                        idx++, false, false );
         final PluginRelationship jarp =
             new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
-                                                                         "maven-jar-plugin", "2.2" ), pidx++, false );
+                                                                         "maven-jar-plugin", "2.2" ), pidx++, false, false );
         final PluginRelationship comp =
             new SimplePluginRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.plugins",
                                                                          "maven-compiler-plugin", "2.3.2" ), pidx++,
-                                    false );
+                                    false, false );
         final ExtensionRelationship wag =
             new SimpleExtensionRelationship( sourceUri, p, new SimpleProjectVersionRef( "org.apache.maven.wagon",
-                                                                            "wagon-provider-webdav", "1.0" ), 0 );
+                                                                            "wagon-provider-webdav", "1.0" ), 0, false );
 
         prb.withParent( parent );
         prb.withDependencies( papi );
@@ -316,16 +316,11 @@ public abstract class AbstractCartoGraphUtilsTest
         throws Exception
     {
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, new SimpleProjectVersionRef( "org.apache.maven",
-                                                                                       "maven-core", "3.0.3" ) ).withDependency( new SimpleProjectVersionRef(
-                                                                                                                                                        "org.apache.maven",
-                                                                                                                                                        "maven-artifact",
-                                                                                                                                                        "3.0.3" ),
-                                                                                                                                 null,
-                                                                                                                                 null,
-                                                                                                                                 null,
-                                                                                                                                 false )
-                                                                                                                .build();
+            new EProjectDirectRelationships.Builder( sourceUri,
+                                                     new SimpleProjectVersionRef( "org.apache.maven", "maven-core", "3.0.3" ) )
+                                                         .withDependency( new SimpleProjectVersionRef("org.apache.maven", "maven-artifact", "3.0.3" ),
+                                                                          null, null, null, false, false )
+                                                         .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );
 
@@ -349,7 +344,7 @@ public abstract class AbstractCartoGraphUtilsTest
         final ProjectVersionRef d = new SimpleProjectVersionRef( "org.apache.maven", "maven-artifact", "3.0.3" );
 
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, p ).withDependency( d, null, null, null, false )
+            new EProjectDirectRelationships.Builder( sourceUri, p ).withDependency( d, null, null, null, false, false )
                                                                    .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );
@@ -375,7 +370,7 @@ public abstract class AbstractCartoGraphUtilsTest
             new SimpleProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
 
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
+            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false, false )
                                                                          .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );
@@ -401,7 +396,7 @@ public abstract class AbstractCartoGraphUtilsTest
             new SimpleProjectVersionRef( "org.apache.maven.plugins", "maven-compiler-plugin", "2.3.2" );
 
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false )
+            new EProjectDirectRelationships.Builder( sourceUri, project ).withPlugin( plugin, false, false )
                                                                          .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );
@@ -426,7 +421,7 @@ public abstract class AbstractCartoGraphUtilsTest
         final ProjectVersionRef ext = new SimpleProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "2.0" );
 
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
+            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext, false )
                                                                          .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );
@@ -447,7 +442,7 @@ public abstract class AbstractCartoGraphUtilsTest
         final ProjectVersionRef ext = new SimpleProjectVersionRef( "org.apache.maven.wagon", "wagon-provider-webdav", "2.0" );
 
         final EProjectDirectRelationships rels =
-            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext )
+            new EProjectDirectRelationships.Builder( sourceUri, project ).withExtension( ext, false )
                                                                          .build();
 
         graph.storeRelationships( rels.getExactAllRelationships() );

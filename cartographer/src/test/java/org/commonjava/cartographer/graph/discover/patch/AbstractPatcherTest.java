@@ -92,7 +92,8 @@ public abstract class AbstractPatcherTest
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
             discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
-                                                        false, depEx ) );
+                                                        false, dep.getOriginInfo().isInherited(),
+                                                        depEx ) );
         }
 
         deps = pomView.getAllManagedDependencies();
@@ -118,7 +119,8 @@ public abstract class AbstractPatcherTest
             final URI pomLoc = RelationshipUtils.profileLocation( dep.getProfileId() );
 
             discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
-                                                        true, depEx ) );
+                                                        true, dep.getOriginInfo().isInherited(),
+                                                        depEx ) );
         }
 
         return discovered;
