@@ -27,6 +27,7 @@ import org.commonjava.maven.atlas.graph.model.EProjectCycle;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionException;
+import org.commonjava.maven.atlas.graph.spi.neo4j.io.Conversions;
 import org.commonjava.maven.atlas.graph.traverse.BuildOrderTraversal;
 import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
@@ -126,8 +127,9 @@ public class GraphOpsImpl
                         }
                     }
 
-                    final ProjectVersionRef ref = path.get( path.size() - 1 ).getTarget();
-                    result.addPath( ref, new ProjectPath( path ) );
+                    List<ProjectRelationship<?, ?>> detachedPath = Conversions.convertToDetachedRelationships( path );
+                    final ProjectVersionRef ref = detachedPath.get( path.size() - 1 ).getTarget();
+                    result.addPath( ref, new ProjectPath( detachedPath ) );
                 }
             }
         };
