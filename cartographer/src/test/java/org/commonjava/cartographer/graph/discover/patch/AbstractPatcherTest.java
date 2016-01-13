@@ -93,7 +93,7 @@ public abstract class AbstractPatcherTest
 
             discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
                                                         false, dep.getOriginInfo().isInherited(),
-                                                        depEx ) );
+                                                        dep.isOptional(), depEx ) );
         }
 
         deps = pomView.getAllManagedDependencies();
@@ -120,7 +120,7 @@ public abstract class AbstractPatcherTest
 
             discovered.add( new SimpleDependencyRelationship( src, pomLoc, pvr, dep.asArtifactRef(), dep.getScope(), idx++,
                                                         true, dep.getOriginInfo().isInherited(),
-                                                        depEx ) );
+                                                        dep.isOptional(), depEx ) );
         }
 
         return discovered;

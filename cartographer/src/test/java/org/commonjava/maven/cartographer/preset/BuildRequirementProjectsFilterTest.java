@@ -62,7 +62,7 @@ public class BuildRequirementProjectsFilterTest
         from = new URI( "test:source" );
         root = new SimpleProjectVersionRef( "group", "root", "1" );
         src = new SimpleProjectVersionRef( "group.id", "artifact-id", "1.0" );
-        tgt = new SimpleArtifactRef( "other.group", "other-artifact", "2.0", "jar", null, false );
+        tgt = new SimpleArtifactRef( "other.group", "other-artifact", "2.0", "jar", null );
     }
 
     @Test
@@ -116,7 +116,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), test, 0, false, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null ), test, 0, false, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -132,7 +132,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), provided, 0, false, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null ), provided, 0, false, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -148,7 +148,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), runtime, 0, false, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null ), runtime, 0, false, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 
@@ -167,7 +167,7 @@ public class BuildRequirementProjectsFilterTest
         throws Exception
     {
         final DependencyRelationship dep =
-            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null, false ), compile, 0, false, false );
+            new SimpleDependencyRelationship( from, root, new SimpleArtifactRef( src, "jar", null ), compile, 0, false, false, false );
 
         final ProjectRelationshipFilter child = filter.getChildFilter( dep );
 

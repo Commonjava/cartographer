@@ -365,7 +365,7 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef =
-                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
@@ -520,7 +520,7 @@ public class MavenModelProcessor
                     final URI location = RelationshipUtils.profileLocation( profileId );
 
                     final ArtifactRef artifactRef =
-                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier(), dep.isOptional() );
+                        new SimpleArtifactRef( ref, dep.getType(), dep.getClassifier() );
 
                     // force the InvalidVersionSpecificationException.
                     artifactRef.getVersionSpec();
@@ -546,7 +546,7 @@ public class MavenModelProcessor
                                                                           dep.getScope(),
                                                                           builder.getNextDependencyIndex( managed ),
                                                                           managed, dep.getOriginInfo().isInherited(),
-                                                                          excludes ) );
+                                                                          dep.isOptional(), excludes ) );
                 }
                 catch ( final InvalidRefException e )
                 {

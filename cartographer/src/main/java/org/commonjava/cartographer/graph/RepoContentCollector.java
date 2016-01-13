@@ -165,7 +165,7 @@ public class RepoContentCollector
 
             ar =
                 new SimpleArtifactRef( ar.getGroupId(), ar.getArtifactId(), specific.getVersionSpec(), ar.getType(),
-                                 ar.getClassifier(), ar.isOptional() );
+                                 ar.getClassifier() );
         }
 
         ArtifactRef pomAR;
@@ -262,7 +262,7 @@ public class RepoContentCollector
 
                         if ( extra.matches( tc ) )
                         {
-                            final ArtifactRef extAR = new SimpleArtifactRef( ar, tc, false );
+                            final ArtifactRef extAR = new SimpleArtifactRef( ar, tc );
                             logger.debug( "{}/{} {}/{} {}/{}. Attempting to graph classifier/type artifact from listing: {}",
                                           projectCounter, projectSz, artifactCounter, artifactSz, extCounter,
                                           tcs.size() + extOffset, extAR );
@@ -299,7 +299,7 @@ public class RepoContentCollector
 
                     final ArtifactRef extAR =
                         new SimpleArtifactRef( ar.getGroupId(), ar.getArtifactId(), ar.getVersionSpec(), extraCT.getType(),
-                                         extraCT.getClassifier(), false );
+                                         extraCT.getClassifier() );
 
                     logger.debug( "{}/{} {}/{} {}/{}. Attempting to graph specifically listed classifier/type artifact: {}",
                                   projectCounter, projectSz, artifactCounter, artifactSz, extCounter, extras.size()
