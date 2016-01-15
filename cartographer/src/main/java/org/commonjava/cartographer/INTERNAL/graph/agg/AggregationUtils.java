@@ -96,8 +96,7 @@ public final class AggregationUtils
             prc.addVersionRef( pvr );
             prc.addArtifactRef( pvr.asPomArtifact() );
 
-            final ArtifactRef tar = rel.getTargetArtifact()
-                                       .setOptional( false );
+            final ArtifactRef tar = rel.getTargetArtifact();
 
             final ProjectRef tr = tar.asProjectRef();
             ProjectRefCollection tprc = projects.get( tr );
@@ -158,8 +157,7 @@ public final class AggregationUtils
             prc.addVersionRef( pvr );
             prc.addArtifactRef( pvr.asPomArtifact() );
 
-            final ArtifactRef tar = rel.getTargetArtifact()
-                                       .setOptional( false );
+            final ArtifactRef tar = rel.getTargetArtifact();
 
             final ProjectVersionRef tr = tar.asProjectVersionRef();
             ProjectRefCollection tprc = projects.get( tr );
@@ -202,8 +200,7 @@ public final class AggregationUtils
                 artifacts.add( pvr.asPomArtifact() );
             }
 
-            final ArtifactRef tar = rel.getTargetArtifact()
-                                       .setOptional( false );
+            final ArtifactRef tar = rel.getTargetArtifact();
 
             artifacts.add( tar );
             if ( includePomArtifacts )

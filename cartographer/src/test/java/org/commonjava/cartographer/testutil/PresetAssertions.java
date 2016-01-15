@@ -74,23 +74,23 @@ public final class PresetAssertions
         assertThat( "Extension acceptance does not match expectations", filter.accept( ext ),
                     equalTo( accepted.contains( EXTENSION ) ) );
 
-        final DependencyRelationship runtimeDep = new SimpleDependencyRelationship( from, src, tgt, runtime, 0, false, false );
+        final DependencyRelationship runtimeDep = new SimpleDependencyRelationship( from, src, tgt, runtime, 0, false, false, false );
         assertThat( "Runtime dependency acceptance does not match expectations", filter.accept( runtimeDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( runtime ) ) );
 
-        final DependencyRelationship testDep = new SimpleDependencyRelationship( from, src, tgt, test, 0, false, false );
+        final DependencyRelationship testDep = new SimpleDependencyRelationship( from, src, tgt, test, 0, false, false, false );
         assertThat( "Test dependency acceptance does not match expectations", filter.accept( testDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( test ) ) );
 
-        final DependencyRelationship compileDep = new SimpleDependencyRelationship( from, src, tgt, compile, 0, false, false );
+        final DependencyRelationship compileDep = new SimpleDependencyRelationship( from, src, tgt, compile, 0, false, false, false );
         assertThat( "Compile dependency acceptance does not match expectations", filter.accept( compileDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( compile ) ) );
 
-        final DependencyRelationship providedDep = new SimpleDependencyRelationship( from, src, tgt, provided, 0, false, false );
+        final DependencyRelationship providedDep = new SimpleDependencyRelationship( from, src, tgt, provided, 0, false, false, false );
         assertThat( "Provided dependency acceptance does not match expectations", filter.accept( providedDep ),
                     equalTo( accepted.contains( DEPENDENCY ) && acceptedScopes.contains( provided ) ) );
 
-        final DependencyRelationship embeddedDep = new SimpleDependencyRelationship( from, src, tgt, embedded, 0, false, false );
+        final DependencyRelationship embeddedDep = new SimpleDependencyRelationship( from, src, tgt, embedded, 0, false, false, false );
         //        final boolean emAccept = filter.accept( embeddedDep );
         //        final boolean emScope = acceptedScopes.contains( embedded );
         assertThat( "Embedded dependency acceptance does not match expectations", filter.accept( embeddedDep ),
@@ -113,7 +113,7 @@ public final class PresetAssertions
         assertThat( "Managed Plugin-dependency not rejected", filter.accept( managedPdep ), equalTo( false ) );
 
         final DependencyRelationship runtimeManagedDep =
-            new SimpleDependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true, false );
+            new SimpleDependencyRelationship( from, src, tgt, DependencyScope.runtime, 0, true, false, false );
         assertThat( "Managed Dependency not rejected", filter.accept( runtimeManagedDep ), equalTo( false ) );
     }
 }

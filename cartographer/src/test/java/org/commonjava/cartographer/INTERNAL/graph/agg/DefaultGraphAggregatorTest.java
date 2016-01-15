@@ -78,10 +78,10 @@ public class DefaultGraphAggregatorTest
 
         /* @formatter:off */
         rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
-            new SimpleDependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false ),
-            new SimpleDependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false ),
-            new SimpleDependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false ),
-            new SimpleDependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false )
+            new SimpleDependencyRelationship( src, root, c1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false ),
+            new SimpleDependencyRelationship( src, root, c2.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false ),
+            new SimpleDependencyRelationship( src, root, c3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false ),
+            new SimpleDependencyRelationship( src, c1, gc1.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false )
         ) );
 
         fixture.getDiscoverer().mapResult( gc1, new DiscoveryResult(
@@ -118,8 +118,8 @@ public class DefaultGraphAggregatorTest
 
         /* @formatter:off */
         rootless.storeRelationships( Arrays.<ProjectRelationship<?, ?>>asList(
-            new SimpleDependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false ),
-            new SimpleDependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false )
+            new SimpleDependencyRelationship( src, c3, gc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false ),
+            new SimpleDependencyRelationship( src, gc3, ggc3.asArtifactRef( "jar", null ), DependencyScope.compile, 0, false, false, false )
         ) );
         /* @formatter:on */
 

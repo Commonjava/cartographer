@@ -96,7 +96,7 @@ public class DistributionPomPatcher
                     final DependencyRelationship replacement =
                         new SimpleDependencyRelationship( dep.getSources(), dep.getPomLocation(), ref,
                                                     dep.getTargetArtifact(), DependencyScope.embedded, dep.getIndex(),
-                                                    false, dep.isInherited(), excludedRefs );
+                                                    false, dep.isInherited(), dep.isOptional(), excludedRefs );
 
                     result.addDiscoveredRelationship( replacement );
                 }

@@ -213,7 +213,6 @@ public class GraphRenderingOpsImpl
     }
 
     @Override
-    @SuppressWarnings( "null" )
     public Model generatePOM( final PomRequest recipe )
                     throws CartoDataException, CartoRequestException
     {
@@ -288,7 +287,7 @@ public class GraphRenderingOpsImpl
             {
                 if ( pomArtifact == null )
                 {
-                    pomArtifact = new SimpleVersionlessArtifactRef( r, new SimpleTypeAndClassifier( "pom" ), false );
+                    pomArtifact = new SimpleVersionlessArtifactRef( r, new SimpleTypeAndClassifier( "pom" ) );
                     logger.debug( "No artifacts found for: {}; created POM artifact for inclusion: {}", r,
                                   pomArtifact );
                 }
@@ -346,11 +345,6 @@ public class GraphRenderingOpsImpl
         if ( artifact.getClassifier() != null )
         {
             d.setClassifier( artifact.getClassifier() );
-        }
-
-        if ( artifact.isOptional() )
-        {
-            d.setOptional( true );
         }
 
         if ( dto.isGraphToManagedDeps() )
