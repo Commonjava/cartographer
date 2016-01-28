@@ -13,44 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
-import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
+import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
-
 /**
- * TCK test class checking that a parent of an imported BOM in a project is included when running generatečPOM() method.
- * The dependency graph looks like this:
+ * TCK test class checking that a plugin dependency declared in a project is included when running generatečPOM()
+ * method. The dependency graph looks like this:
  * <pre>
  *   +----------+
- *   | consumer |
- *   +----------+
- *        |
- *        | imports
- *        V
- *   +---------+
- *   |   bom   |
- *   +---------+
- *        |
- *        | has parent
- *        V
- *    +--------+
- *    | parent |
- *    +--------+
+ *   | consumer |----+
+ *   +----------+    |
+ *        |          |
+ *        | uses     |declares plugin dependency
+ *        V          |
+ *   +----------+    |    +-------+
+ *   |  plugin  |----+--->|  dep  |
+ *   +----------+         +-------+
  * </pre>
  *
- * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
- * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
- * and parent pom are expected to be in the result.
+ * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
+ * {@link BuildRequirementProjectsFilter}. Consumer pom, plugin's maven-plugin
+ * and dep jar are expected to be in the result.
  */
-public class ParentOfBomDownloadTest
-    extends AbstractCartographerTCK
+public class PluginDepDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "parent-of-bom";
+    private static final String PROJECT = "plugin-dep";
 
     @Test
     public void run()

@@ -13,45 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.paths;
 
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
+import org.commonjava.cartographer.request.PathsRequest;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.cartographer.result.ProjectPathsResult;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
-
 /**
- * TCK test class checking that an imported BOM with another BOM imported in a project are included when running
- * generatečPOM() method. The dependency graph looks like this:
+ * TCK test class checking that a simple dependency of a project is included when running getPaths() method. The
+ * dependency graph looks like this:
  * <pre>
- *   +----------+      imports         +-------+
- *   | consumer |--------------------->|  bom  |
- *   +----------+                      +-------+
- *        |                                |
- *        | depends on                     |
- *        | manages dep version to 1.2     | manages dep version to 1.1
- *        V                                |
- *   +---------+                           |
- *   |   dep   |<--------------------------+
- *   +---------+
+ *   +----------+
+ *   | consumer |
+ *   +----------+
+ *        |
+ *        | depends on
+ *        V
+ *   +----------+
+ *   |   dep    |
+ *   +----------+
  * </pre>
  *
  * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
- * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
- * and dep jar 1.2 are expected to be in the result.
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Dep jar is expected to be
+ * in the result.
  */
-public class DepManagedOverridenBomDownloadTest
-    extends AbstractCartographerTCK
+public class SimpleProjectWithOneDepDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "dep-managed-overriden-bom";
+    private static final String PROJECT = "simple-dep";
 
     @Test
     public void run()
         throws Exception
     {
-        final String dto = "pom.json";
+        final String dto = "paths.json";
         final String depsTxt = "deps.txt";
         final String repoResource = "/repo/org/foo/consumer/1/consumer-1.pom";
         final int repoResourceTrim = 5;
@@ -59,12 +60,10 @@ public class DepManagedOverridenBomDownloadTest
 
         aliasRepo( alias, repoResource, repoResourceTrim );
 
-        final PomRequest recipe = readRecipe( dto, PomRequest.class );
+        final PathsRequest recipe = readRecipe( dto, PathsRequest.class );
 
-        final Model pom = carto.getRenderer()
-                               .generatePOM( recipe );
-
-        assertPomDeps( pom, false, depsTxt );
+        ProjectPathsResult paths = carto.getGrapher().getPaths( recipe );
+        System.out.println( paths );
     }
 
     @Override

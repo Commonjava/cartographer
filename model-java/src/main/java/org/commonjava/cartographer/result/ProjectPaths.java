@@ -44,4 +44,12 @@ public class ProjectPaths
     {
         this.paths = paths;
     }
+
+    @Override
+    public String toString()
+    {
+        return "ProjectPaths{" +
+                "paths=" + paths +
+                '}';
+    }
 }

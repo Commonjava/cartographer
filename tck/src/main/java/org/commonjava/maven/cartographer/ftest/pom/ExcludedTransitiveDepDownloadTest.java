@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
 /**
@@ -46,7 +47,7 @@ import org.junit.Test;
  * and transitive-dep jar are expected to be in the result.
  */
 public class ExcludedTransitiveDepDownloadTest
-    extends AbstractCartographerTCK
+        extends AbstractCartographerTCK
 {
 
     private static final String PROJECT = "excluded-transitive-dep";

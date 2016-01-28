@@ -13,36 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
+import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
+
 /**
- * TCK test class checking that a simple provided-scope dependency of a project is included when running generatečPOM()
- * method. The dependency graph looks like this:
+ * TCK test class checking that a parent of an imported BOM in a project is included when running generatečPOM() method.
+ * The dependency graph looks like this:
  * <pre>
  *   +----------+
  *   | consumer |
  *   +----------+
  *        |
- *        | depends on (provided scope)
+ *        | imports
  *        V
- *   +----------+
- *   |   dep    |
- *   +----------+
+ *   +---------+
+ *   |   bom   |
+ *   +---------+
+ *        |
+ *        | has parent
+ *        V
+ *    +--------+
+ *    | parent |
+ *    +--------+
  * </pre>
  *
- * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
- * {@link org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter}, i.e. build-time dependency graph.
- * Consumer pom and dep jar are expected to be in the result.
+ * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
+ * and parent pom are expected to be in the result.
  */
-public class SimpleProjectWithProvidedDepDownloadTest
-    extends AbstractCartographerTCK
+public class ParentOfBomDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "simple-provided-dep";
+    private static final String PROJECT = "parent-of-bom";
 
     @Test
     public void run()

@@ -1,0 +1,18 @@
+{
+  "source": "test",
+  "workspaceId": "consumer-1-dep",
+  "resolve": true,
+  "graphComposition": {
+    "graphs": [
+      {
+        "roots": [
+          "org.foo:consumer:1"
+        ],
+        "preset": "requires"
+      }
+    ]
+  },
+  "targets": [
+    "org.bar:dep:1.1"
+  ]
+}

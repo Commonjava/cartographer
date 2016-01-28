@@ -13,44 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
 
 /**
- * TCK test class checking that a dependency inherited from a parent of a project is included when running
+ * TCK test class checking that an imported BOM with another BOM imported in a project are included when running
  * generatečPOM() method. The dependency graph looks like this:
  * <pre>
- *   +----------+
- *   | consumer |
- *   +----------+
- *        |
- *        | has parent
- *        V
- *   +----------+
- *   |  parent  |
- *   +----------+
- *        |
- *        | depends on
- *        V
- *   +----------+
- *   |   dep    |
- *   +----------+
+ *   +----------+             imports             +-------+
+ *   | consumer |-------------------------------->|  bom  |
+ *   +----------+                                 +-------+
+ *        |                                           |
+ *        | depends on with no version specified      | manages dep version to 1.1
+ *        V                                           |
+ *   +---------+                                      |
+ *   |   dep   |<-------------------------------------+
+ *   +---------+
  * </pre>
  *
  * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
- * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, parent pom
- * and dep jar are expected to be in the result.
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
+ * and dep jar 1.2 are expected to be in the result.
  */
-public class ProjectWithInheritedDepDownloadTest
-    extends AbstractCartographerTCK
+public class DepManagedInBomDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "dep-from-parent";
+    private static final String PROJECT = "dep-managed-in-bom";
 
     @Test
     public void run()

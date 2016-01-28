@@ -42,4 +42,12 @@ public class ProjectPath
     {
         this.pathParts = pathParts;
     }
+
+    @Override
+    public String toString()
+    {
+        return "ProjectPath{" +
+                pathParts +
+                '}';
+    }
 }
