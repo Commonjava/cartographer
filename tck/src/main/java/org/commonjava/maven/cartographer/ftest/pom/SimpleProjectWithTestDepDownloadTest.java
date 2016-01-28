@@ -13,37 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
-import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
+import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
 /**
- * TCK test class checking that a plugin dependency declared in a project is included when running generatečPOM()
+ * TCK test class checking that a simple test-scoped dependency of a project is included when running generatečPOM()
  * method. The dependency graph looks like this:
  * <pre>
  *   +----------+
- *   | consumer |----+
- *   +----------+    |
- *        |          |
- *        | uses     |declares plugin dependency
- *        V          |
- *   +----------+    |    +-------+
- *   |  plugin  |----+--->|  dep  |
- *   +----------+         +-------+
+ *   | consumer |
+ *   +----------+
+ *        |
+ *        | depends on (test scope)
+ *        V
+ *   +----------+
+ *   |   dep    |
+ *   +----------+
  * </pre>
  *
  * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
- * {@link BuildRequirementProjectsFilter}. Consumer pom, plugin's maven-plugin
- * and dep jar are expected to be in the result.
+ * {@link org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter}, i.e. build-time dependency graph.
+ * Consumer pom and dep jar are expected to be in the result.
  */
-public class PluginDepDownloadTest
-    extends AbstractCartographerTCK
+public class SimpleProjectWithTestDepDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "plugin-dep";
+    private static final String PROJECT = "simple-test-dep";
 
     @Test
     public void run()

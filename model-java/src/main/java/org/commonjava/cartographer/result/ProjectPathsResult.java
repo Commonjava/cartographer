@@ -52,4 +52,12 @@ public class ProjectPathsResult
 
         return projectPaths.addPath( path );
     }
+
+    @Override
+    public String toString()
+    {
+        return "ProjectPathsResult{" +
+                "projects=" + projects +
+                '}';
+    }
 }

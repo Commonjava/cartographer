@@ -13,44 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
-import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
+import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
 
 /**
- * TCK test class checking that a BOM imported in a dependency of a project are included when running
- * generatečPOM() method. The dependency graph looks like this:
+ * TCK test class checking that a plugin used in a project is included when running generatečPOM() method. The
+ * dependency graph looks like this:
  * <pre>
  *   +----------+
  *   | consumer |
  *   +----------+
  *        |
- *        | depends on
+ *        | uses
  *        V
- *   +---------+
- *   |   dep   |
- *   +---------+
- *        |
- *        | imports
- *        V
- *   +---------+
- *   |   bom   |
- *   +---------+
+ *   +----------+
+ *   |  plugin  |
+ *   +----------+
  * </pre>
  *
- * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
- * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, dep jar
- * and bom pom are expected to be in the result.
+ * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
+ * {@link BuildRequirementProjectsFilter}. Consumer pom and plugin's
+ * maven-plugin are expected to be in the result.
  */
-public class ImportBomInDepDownloadTest
-    extends AbstractCartographerTCK
+public class SimplePluginDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "import-bom-in-dep";
+    private static final String PROJECT = "simple-plugin";
 
     @Test
     public void run()

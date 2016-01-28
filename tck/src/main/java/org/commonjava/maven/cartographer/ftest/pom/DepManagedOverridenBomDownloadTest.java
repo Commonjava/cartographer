@@ -13,37 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.cartographer.ftest;
+package org.commonjava.maven.cartographer.ftest.pom;
 
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
 import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.maven.cartographer.ftest.AbstractCartographerTCK;
 import org.junit.Test;
 
+
 /**
- * TCK test class checking that a simple test-scoped dependency of a project is included when running generatečPOM()
- * method. The dependency graph looks like this:
+ * TCK test class checking that an imported BOM with another BOM imported in a project are included when running
+ * generatečPOM() method. The dependency graph looks like this:
  * <pre>
- *   +----------+
- *   | consumer |
- *   +----------+
- *        |
- *        | depends on (test scope)
- *        V
- *   +----------+
- *   |   dep    |
- *   +----------+
+ *   +----------+      imports         +-------+
+ *   | consumer |--------------------->|  bom  |
+ *   +----------+                      +-------+
+ *        |                                |
+ *        | depends on                     |
+ *        | manages dep version to 1.2     | manages dep version to 1.1
+ *        V                                |
+ *   +---------+                           |
+ *   |   dep   |<--------------------------+
+ *   +---------+
  * </pre>
  *
- * The {@code consumer} is used as the request root artifact. Used preset is "build-requires", which results in usage of
- * {@link org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilter}, i.e. build-time dependency graph.
- * Consumer pom and dep jar are expected to be in the result.
+ * The {@code consumer} is used as the request root artifact. Used preset is "requires", which results in usage of
+ * {@link ScopeWithEmbeddedProjectsFilter} with scope runtime, i.e. runtime dependency graph. Consumer pom, bom pom
+ * and dep jar 1.2 are expected to be in the result.
  */
-public class SimpleProjectWithTestDepDownloadTest
-    extends AbstractCartographerTCK
+public class DepManagedOverridenBomDownloadTest
+        extends AbstractCartographerTCK
 {
 
-    private static final String PROJECT = "simple-test-dep";
+    private static final String PROJECT = "dep-managed-overriden-bom";
 
     @Test
     public void run()

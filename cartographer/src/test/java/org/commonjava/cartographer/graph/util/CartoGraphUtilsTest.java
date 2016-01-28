@@ -37,6 +37,7 @@ import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
@@ -112,7 +113,7 @@ public class CartoGraphUtilsTest
 
         final TransferManager transferManager =
             new TransferManagerImpl( transportManager, cacheProvider, nfc, provider.getFileEventManager(), dh, uh, lh,
-                                     eh, batchExecutor );
+                                     eh, new SpecialPathManagerImpl(), batchExecutor );
 
         xml = new XMLInfrastructure();
         xpath = new XPathManager();
