@@ -16,8 +16,34 @@
 package org.commonjava.cartographer.INTERNAL.ops;
 
 import org.apache.commons.lang.StringUtils;
-import org.commonjava.cartographer.request.*;
-import org.commonjava.cartographer.result.*;
+import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.CartoRequestException;
+import org.commonjava.cartographer.graph.GraphResolver;
+import org.commonjava.cartographer.graph.fn.GraphFunction;
+import org.commonjava.cartographer.graph.fn.MatchingProjectFunction;
+import org.commonjava.cartographer.graph.fn.MultiGraphFunction;
+import org.commonjava.cartographer.graph.fn.ProjectCollector;
+import org.commonjava.cartographer.graph.fn.ProjectProjector;
+import org.commonjava.cartographer.graph.fn.ProjectSelector;
+import org.commonjava.cartographer.graph.fn.ValueHolder;
+import org.commonjava.cartographer.graph.util.CartoGraphUtils;
+import org.commonjava.cartographer.ops.GraphOps;
+import org.commonjava.cartographer.request.GraphDescription;
+import org.commonjava.cartographer.request.PathsRequest;
+import org.commonjava.cartographer.request.ProjectGraphRelationshipsRequest;
+import org.commonjava.cartographer.request.ProjectGraphRequest;
+import org.commonjava.cartographer.request.SingleGraphRequest;
+import org.commonjava.cartographer.result.GraphExport;
+import org.commonjava.cartographer.result.MappedProjectRelationships;
+import org.commonjava.cartographer.result.MappedProjectRelationshipsResult;
+import org.commonjava.cartographer.result.MappedProjectResult;
+import org.commonjava.cartographer.result.MappedProjects;
+import org.commonjava.cartographer.result.MappedProjectsResult;
+import org.commonjava.cartographer.result.ProjectError;
+import org.commonjava.cartographer.result.ProjectErrors;
+import org.commonjava.cartographer.result.ProjectListResult;
+import org.commonjava.cartographer.result.ProjectPath;
+import org.commonjava.cartographer.result.ProjectPathsResult;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
@@ -33,17 +59,15 @@ import org.commonjava.maven.atlas.graph.traverse.PathsTraversal;
 import org.commonjava.maven.atlas.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.cartographer.CartoRequestException;
-import org.commonjava.cartographer.graph.GraphResolver;
-import org.commonjava.cartographer.graph.fn.*;
-import org.commonjava.cartographer.graph.util.CartoGraphUtils;
-import org.commonjava.cartographer.ops.GraphOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class GraphOpsImpl
                 implements GraphOps
@@ -397,6 +421,12 @@ public class GraphOpsImpl
         final GraphFunction extractor = ( graph ) -> {
             final Set<ProjectRelationship<?, ?>> rels = graph.getAllRelationships();
             final Set<ProjectVersionRef> missing = graph.getAllIncompleteSubgraphs();
+
+            if ( missing != null && missing.containsAll( recipe.getGraph().getRoots() ) )
+            {
+                holder.consumer().accept( null );
+            }
+
             final Set<ProjectVersionRef> variable = graph.getAllVariableSubgraphs();
             final Set<EProjectCycle> cycles = graph.getCycles();
 
