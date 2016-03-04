@@ -16,21 +16,35 @@
 package org.commonjava.cartographer.graph;
 
 import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships.Builder;
-import org.commonjava.maven.atlas.graph.rel.*;
+import org.commonjava.maven.atlas.graph.rel.SimpleBomRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleExtensionRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimplePluginDependencyRelationship;
+import org.commonjava.maven.atlas.graph.rel.SimplePluginRelationship;
 import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
-import org.commonjava.maven.atlas.ident.ref.*;
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.InvalidRefException;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
-import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.model.view.*;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
+import org.commonjava.maven.galley.maven.model.view.ExtensionView;
+import org.commonjava.maven.galley.maven.model.view.MavenPomView;
+import org.commonjava.maven.galley.maven.model.view.ParentView;
+import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
+import org.commonjava.maven.galley.maven.model.view.PluginView;
+import org.commonjava.maven.galley.maven.model.view.ProjectRefView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +83,7 @@ public class MavenModelProcessor
             }
 
             final EProjectDirectRelationships rels = builder.build();
-            return new DiscoveryResult( source, projectRef, rels.getAllRelationships() );
+            return new DiscoveryResult( source, projectRef, rels.getExactAllRelationships() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -579,10 +593,14 @@ public class MavenModelProcessor
                 // force the InvalidVersionSpecificationException.
                 ref.getVersionSpec();
 
+                logger.info( "Adding parent relationship for: {} to : {}", builder.getProjectRef(), ref );
                 builder.withParent( new SimpleParentRelationship( source, builder.getProjectRef(), ref ) );
             }
             else
             {
+                logger.info(
+                        "Adding self-referential parent relationship for: {} to signify project has no parent, but is parsable.",
+                        builder.getProjectRef() );
                 builder.withParent( new SimpleParentRelationship( builder.getProjectRef() ) );
             }
         }
