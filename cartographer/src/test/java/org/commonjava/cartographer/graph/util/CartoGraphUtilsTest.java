@@ -31,6 +31,7 @@ import org.commonjava.cartographer.testutil.TestCartoCoreProvider;
 import org.commonjava.cartographer.graph.MavenModelProcessor;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.internal.TransferManagerImpl;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
@@ -106,8 +107,10 @@ public class CartoGraphUtilsTest
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
         final ExecutorService batchExecutor = Executors.newFixedThreadPool( 2 );
-        final DownloadHandler dh = new DownloadHandler( nfc, executor );
-        final UploadHandler uh = new UploadHandler( nfc, executor );
+
+        TransportManagerConfig transportManagerConfig = new TransportManagerConfig();
+        final DownloadHandler dh = new DownloadHandler( nfc, transportManagerConfig, executor );
+        final UploadHandler uh = new UploadHandler( nfc, transportManagerConfig, executor );
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
