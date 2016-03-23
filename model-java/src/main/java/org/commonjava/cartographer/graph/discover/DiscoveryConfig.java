@@ -15,13 +15,16 @@
  */
 package org.commonjava.cartographer.graph.discover;
 
-import org.commonjava.cartographer.graph.mutator.MutatorSelector;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.maven.galley.maven.rel.ModelProcessorConfig;
 import org.commonjava.maven.galley.model.Location;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DiscoveryConfig
@@ -50,7 +53,8 @@ public class DiscoveryConfig
         return new DiscoveryConfig();
     }
 
-    private DiscoveryConfig(){
+    private DiscoveryConfig()
+    {
         this.enabled = false;
         this.discoverySource = null;
     }
@@ -61,13 +65,13 @@ public class DiscoveryConfig
     }
 
     public DiscoveryConfig( final String discoverySource )
-        throws URISyntaxException
+            throws URISyntaxException
     {
         this.discoverySource = new URI( discoverySource );
     }
 
     public DiscoveryConfig( final Location location )
-        throws URISyntaxException
+            throws URISyntaxException
     {
         this.discoverySource = new URI( location.getUri() );
         this.discoveryLocations = Collections.singletonList( location );
@@ -131,7 +135,7 @@ public class DiscoveryConfig
 
     public Collection<String> getEnabledPatchers()
     {
-        return patchers == null ? Collections.<String> emptySet() : patchers;
+        return patchers == null ? Collections.<String>emptySet() : patchers;
     }
 
     public List<? extends Location> getLocations()
@@ -141,8 +145,9 @@ public class DiscoveryConfig
 
     public void setLocations( final Collection<? extends Location> locations )
     {
-        this.discoveryLocations =
-            ( locations instanceof List ) ? (List<? extends Location>) locations : new ArrayList<Location>( locations );
+        this.discoveryLocations = ( locations instanceof List ) ?
+                (List<? extends Location>) locations :
+                new ArrayList<Location>( locations );
     }
 
     public boolean isStoreRelationships()
@@ -185,4 +190,10 @@ public class DiscoveryConfig
         return includeManagedPlugins;
     }
 
+    public ModelProcessorConfig getProcessorConfig()
+    {
+        return new ModelProcessorConfig().setIncludeBuildSection( includeBuildSection )
+                                         .setIncludeManagedDependencies( includeManagedDependencies )
+                                         .setIncludeManagedPlugins( includeManagedPlugins );
+    }
 }
