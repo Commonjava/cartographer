@@ -145,12 +145,6 @@ public class PomRequestBuilder<T extends PomRequestBuilder<T, R>, R extends PomR
     }
 
     @Override
-    public T withLocalUrls( boolean localUrls )
-    {
-        return super.withLocalUrls( localUrls );
-    }
-
-    @Override
     public T withGraphs( GraphComposition graphs )
     {
         return super.withGraphs( graphs );

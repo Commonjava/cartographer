@@ -22,6 +22,7 @@ import org.commonjava.cartographer.ops.*;
  * Created by jdcasey on 8/14/15.
  */
 public interface Cartographer
+    extends AutoCloseable
 {
     ObjectMapper getObjectMapper();
 
@@ -34,7 +35,4 @@ public interface Cartographer
     MetadataOps getMetadata();
 
     ResolveOps getResolver();
-
-    void close()
-            throws CartoDataException;
 }
