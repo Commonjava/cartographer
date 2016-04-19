@@ -23,6 +23,7 @@ import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
@@ -56,6 +57,7 @@ public class DefaultGraphAggregator
     private ProjectRelationshipDiscoverer discoverer;
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( daemon = true, named = "carto-aggregator", priority = 9, threads = 8 )
     private ExecutorService executor;
 

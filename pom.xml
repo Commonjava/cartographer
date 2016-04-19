@@ -43,7 +43,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.16.0</atlasVersion>
-    <galleyVersion>0.11.3</galleyVersion>
+    <galleyVersion>0.12.1-SNAPSHOT</galleyVersion>
     <javaVersion>1.8</javaVersion>
   </properties>
 
@@ -62,7 +62,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>17</version>
+        <version>20-SNAPSHOT</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -141,17 +141,17 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-maven</artifactId>
+        <version>${galleyVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-transport-httpclient</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-transport-filearc</artifactId>
-        <version>${galleyVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.maven.galley</groupId>
-        <artifactId>galley-maven</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
       <dependency>

@@ -16,7 +16,6 @@
 package org.commonjava.cartographer.INTERNAL.graph.discover;
 
 import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.cartographer.graph.MavenModelProcessor;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.graph.discover.meta.MetadataScannerSupport;
@@ -24,6 +23,7 @@ import org.commonjava.cartographer.graph.discover.patch.PatcherSupport;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
@@ -31,6 +31,7 @@ import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.rel.MavenModelProcessor;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
@@ -138,7 +139,19 @@ public class DiscovererImpl
         DiscoveryResult result = null;
         if ( pomView != null )
         {
-            result = modelProcessor.readRelationships( pomView, discoveryConfig.getDiscoverySource(), discoveryConfig );
+            try
+            {
+                EProjectDirectRelationships rels =
+                        modelProcessor.readRelationships( pomView, discoveryConfig.getDiscoverySource(),
+                                                          discoveryConfig.getProcessorConfig() );
+
+                result = new DiscoveryResult( discoveryConfig.getDiscoverySource(), specific, rels.getExactAllRelationships() );
+            }
+            catch ( GalleyMavenException e )
+            {
+                throw new CartoDataException( "Failed to read relationships from POM: %s. Reason: %s", e, pomView,
+                                              e.getMessage() );
+            }
         }
 
         if ( result != null )

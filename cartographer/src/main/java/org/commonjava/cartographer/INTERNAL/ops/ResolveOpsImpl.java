@@ -26,6 +26,7 @@ import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscove
 import org.commonjava.cartographer.graph.fn.MultiGraphFunction;
 import org.commonjava.cartographer.ops.ResolveOps;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.filter.AnyFilter;
@@ -78,6 +79,7 @@ public class ResolveOpsImpl
     private RecipeResolver recipeResolver;
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( daemon = true, named = "carto-graph-ops", priority = 9, threads = 16 )
     private ExecutorService executor;
 
