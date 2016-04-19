@@ -52,8 +52,6 @@ public class RepositoryContentRequest
     @JsonIgnore
     private transient Set<Location> excludedSourceLocations;
     
-    private boolean localUrls;
-
     @Override
     public String toString()
     {
@@ -153,16 +151,6 @@ public class RepositoryContentRequest
         normalize( extras );
         normalize( metas );
         normalize( excludedSourceLocations );
-    }
-
-    public boolean getLocalUrls()
-    {
-        return localUrls;
-    }
-
-    public void setLocalUrls( final boolean localUrls )
-    {
-        this.localUrls = localUrls;
     }
 
 }

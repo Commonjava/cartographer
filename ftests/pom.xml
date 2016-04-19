@@ -20,7 +20,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.commonjava.maven.cartographer</groupId>
+    <groupId>org.commonjava.cartographer</groupId>
     <artifactId>cartographer-parent</artifactId>
     <version>0.10.4-SNAPSHOT</version>
   </parent>
@@ -34,11 +34,11 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.commonjava.maven.cartographer</groupId>
+      <groupId>org.commonjava.cartographer</groupId>
       <artifactId>cartographer</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.cartographer</groupId>
+      <groupId>org.commonjava.cartographer</groupId>
       <artifactId>cartographer-tck</artifactId>
     </dependency>
     <dependency>
@@ -68,7 +68,7 @@
               <reuseForks>false</reuseForks>
               <redirectTestOutputToFile>${test-redirectOutput}</redirectTestOutputToFile>
               <dependenciesToScan>
-                <dependency>org.commonjava.maven.cartographer:cartographer-tck</dependency>
+                <dependency>org.commonjava.cartographer:cartographer-tck</dependency>
               </dependenciesToScan> 
             </configuration>
         </plugin>

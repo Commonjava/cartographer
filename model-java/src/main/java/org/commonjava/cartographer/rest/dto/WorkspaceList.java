@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
+ * Copyright (C) 2011 Red Hat, Inc. (jdcasey@commonjava.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.cartographer;
+package org.commonjava.cartographer.rest.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.commonjava.cartographer.ops.*;
+import java.util.Set;
 
 /**
- * Created by jdcasey on 8/14/15.
+ * Created by jdcasey on 8/12/15.
  */
-public interface Cartographer
-    extends AutoCloseable
+public class WorkspaceList
 {
-    ObjectMapper getObjectMapper();
 
-    CalculationOps getCalculator();
+    private Set<String> workspaces;
 
-    GraphOps getGrapher();
+    public WorkspaceList(){}
 
-    GraphRenderingOps getRenderer();
+    public WorkspaceList( Set<String> workspaces )
+    {
+        this.workspaces = workspaces;
+    }
 
-    MetadataOps getMetadata();
+    public Set<String> getWorkspaces()
+    {
+        return workspaces;
+    }
 
-    ResolveOps getResolver();
+    public void setWorkspaces( Set<String> workspaces )
+    {
+        this.workspaces = workspaces;
+    }
 }

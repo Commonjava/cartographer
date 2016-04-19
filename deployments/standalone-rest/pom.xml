@@ -20,44 +20,35 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.commonjava.cartographer</groupId>
-    <artifactId>cartographer-parent</artifactId>
+    <groupId>org.commonjava.cartographer.deploy</groupId>
+    <artifactId>cartographer-deployments-parent</artifactId>
     <version>0.10.4-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cartographer-tck</artifactId>
+  <artifactId>cartographer-standalone-rest</artifactId>
+
+  <name>Cartographer Standalone REST Deployment</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-rest</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.commonjava.cartographer</groupId>
       <artifactId>cartographer</artifactId>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>compile</scope>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>compile</scope>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-spi</artifactId>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>http-testserver</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-neo4j-embedded</artifactId>
-      <scope>compile</scope>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-model-java</artifactId>
     </dependency>
   </dependencies>
 </project>

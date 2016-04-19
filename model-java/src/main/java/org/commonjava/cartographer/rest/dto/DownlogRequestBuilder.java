@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
+ * Copyright (C) 2011 Red Hat, Inc. (jdcasey@commonjava.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.cartographer.request.build;
+package org.commonjava.cartographer.rest.dto;
 
 import org.commonjava.cartographer.request.ExtraCT;
 import org.commonjava.cartographer.request.GraphComposition;
-import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.cartographer.request.build.RepositoryContentRequestBuilder;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
@@ -27,72 +27,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PomRequestBuilder<T extends PomRequestBuilder<T, R>, R extends PomRequest>
-    extends RepositoryContentRequestBuilder<T, R>
+/**
+ * Created by jdcasey on 8/12/15.
+ */
+public class DownlogRequestBuilder<T extends DownlogRequestBuilder<T, R>, R extends DownlogRequest>
+        extends RepositoryContentRequestBuilder<T, R>
 {
 
-    public static final class StandalonePRB
-        extends PomRequestBuilder<StandalonePRB, PomRequest>
+    public static final class StandaloneDownlogBuilder
+                    extends DownlogRequestBuilder<StandaloneDownlogBuilder, DownlogRequest>
     {
     }
 
-    public static StandalonePRB newPomRequestBuilder()
+    public static StandaloneDownlogBuilder newDownlogRequestBuilder()
     {
-        return new StandalonePRB();
+        return new StandaloneDownlogBuilder();
     }
 
-    private boolean generateVersionRanges;
+    private boolean pathOnly;
 
-    private ProjectVersionRef output;
+    private String linePrefix;
 
-    /**
-     * Flag saying that all the deps from dependency graph should be placed in
-     * the dependencyManagement section. If false standard dependencies section
-     * will be used.
-     */
-    private boolean graphToManagedDeps;
-
-    public boolean isGenerateVersionRanges()
+    public T withPathOnly( boolean pathOnly )
     {
-        return generateVersionRanges;
-    }
-
-    public T withGenerateVersionRanges( final boolean generateVersionRanges )
-    {
-        this.generateVersionRanges = generateVersionRanges;
+        this.pathOnly = pathOnly;
         return self;
     }
 
-    public ProjectVersionRef getOutput()
+    public T withLinePrefix( String linePrefix )
     {
-        return output;
-    }
-
-    public T withOutput( final ProjectVersionRef outputGav )
-    {
-        this.output = outputGav;
-        return self;
-    }
-
-    /**
-     * @return the flag saying that all the deps from dependency graph should be
-     *         placed in the dependencyManagement section. If false standard
-     *         dependencies section will be used.
-     */
-    public boolean isGraphToManagedDeps()
-    {
-        return graphToManagedDeps;
-    }
-
-    /**
-     * @param graphToManagedDeps
-     *            the flag saying that all the deps from dependency graph should
-     *            be placed in the dependencyManagement section. If false
-     *            standard dependencies section will be used
-     */
-    public T withGraphToManagedDeps( final boolean graphToManagedDeps )
-    {
-        this.graphToManagedDeps = graphToManagedDeps;
+        this.linePrefix = linePrefix;
         return self;
     }
 
@@ -100,17 +64,16 @@ public class PomRequestBuilder<T extends PomRequestBuilder<T, R>, R extends PomR
     @Override
     public R build()
     {
-        final R recipe = (R) new PomRequest();
+        final R recipe = (R) new DownlogRequest();
         configure( recipe );
 
         return recipe;
     }
 
-    protected void configure( final R recipe )
+    protected void confgure( R recipe )
     {
-        recipe.setGenerateVersionRanges( generateVersionRanges );
-        recipe.setGraphToManagedDeps( graphToManagedDeps );
-        recipe.setOutput( output );
+        recipe.setPathOnly( pathOnly );
+        recipe.setLinePrefix( linePrefix );
         super.configure( recipe );
     }
 
