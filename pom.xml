@@ -25,7 +25,7 @@
     <version>10</version>
   </parent>
 
-  <groupId>org.commonjava.maven.cartographer</groupId>
+  <groupId>org.commonjava.cartographer</groupId>
   <artifactId>cartographer-parent</artifactId>
   <version>0.10.4-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -45,6 +45,10 @@
     <atlasVersion>0.16.0</atlasVersion>
     <galleyVersion>0.12.1-SNAPSHOT</galleyVersion>
     <javaVersion>1.8</javaVersion>
+
+    <propulsorVersion>0.1-SNAPSHOT</propulsorVersion>
+    <configVersion>0.8</configVersion>
+    <jhttpcVersion>1.2-SNAPSHOT</jhttpcVersion>
   </properties>
 
   <modules>
@@ -55,6 +59,9 @@
     <module>tck</module>
     <module>ftests</module>
     <module>cdi-embedder</module>
+    <module>rest</module>
+    <module>rest-client-java</module>
+    <module>deployments</module>
   </modules>
 
   <dependencyManagement>
@@ -68,31 +75,43 @@
       </dependency>
       
       <dependency>
-        <groupId>org.commonjava.maven.cartographer</groupId>
+        <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-model-java</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>
-        <groupId>org.commonjava.maven.cartographer</groupId>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-rest</artifactId>
+        <version>0.10.4-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-rest-client-java</artifactId>
+        <version>0.10.4-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-api</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>
-        <groupId>org.commonjava.maven.cartographer</groupId>
+        <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-spi</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>
-        <groupId>org.commonjava.maven.cartographer</groupId>
+        <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>
-        <groupId>org.commonjava.maven.cartographer</groupId>
+        <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-tck</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
@@ -171,7 +190,52 @@
         <artifactId>galley-cdi-embedder</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
-      
+
+      <dependency>
+        <groupId>org.commonjava.propulsor</groupId>
+        <artifactId>propulsor-core</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.propulsor</groupId>
+        <artifactId>propulsor-undertow</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.propulsor</groupId>
+        <artifactId>propulsor-resteasy</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.propulsor.client</groupId>
+        <artifactId>propulsor-client-http</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>configuration-api</artifactId>
+        <version>${configVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>configuration-dotconf</artifactId>
+        <version>${configVersion}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>jhttpc</artifactId>
+        <version>${jhttpcVersion}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.enterprise</groupId>
+        <artifactId>cdi-api</artifactId>
+        <version>1.2</version>
+        <scope>provided</scope>
+      </dependency>
+
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-interpolation</artifactId>

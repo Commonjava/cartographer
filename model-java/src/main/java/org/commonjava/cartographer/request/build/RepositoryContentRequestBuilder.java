@@ -48,8 +48,6 @@ public class RepositoryContentRequestBuilder<T extends RepositoryContentRequestB
 
     private transient Set<Location> excludedSourceLocations;
 
-    private boolean localUrls;
-
     public Set<String> getExcludedSources()
     {
         return excludedSources;
@@ -105,17 +103,6 @@ public class RepositoryContentRequestBuilder<T extends RepositoryContentRequestB
         return self;
     }
 
-    public boolean getLocalUrls()
-    {
-        return localUrls;
-    }
-
-    public T withLocalUrls( final boolean localUrls )
-    {
-        this.localUrls = localUrls;
-        return self;
-    }
-
     @SuppressWarnings( "unchecked" )
     @Override
     public R build()
@@ -133,7 +120,6 @@ public class RepositoryContentRequestBuilder<T extends RepositoryContentRequestB
         recipe.setMetas( metas );
         recipe.setExcludedSourceLocations( excludedSourceLocations );
         recipe.setExcludedSources( excludedSources );
-        recipe.setLocalUrls( localUrls );
         super.configure( recipe );
     }
 
