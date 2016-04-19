@@ -156,11 +156,6 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
-        <artifactId>galley-maven</artifactId>
-        <version>${galleyVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-test-harness-core</artifactId>
         <version>${galleyVersion}</version>
         <scope>test</scope>
