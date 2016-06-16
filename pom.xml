@@ -43,7 +43,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <atlasVersion>0.16.0</atlasVersion>
-    <galleyVersion>0.12.1-SNAPSHOT</galleyVersion>
+    <galleyVersion>0.13.0</galleyVersion>
     <javaVersion>1.8</javaVersion>
 
     <propulsorVersion>0.1-SNAPSHOT</propulsorVersion>
@@ -69,7 +69,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>20-SNAPSHOT</version>
+        <version>21</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
