@@ -29,6 +29,10 @@ import java.io.File;
 public class CartoDeploymentConfig
 {
 
+    public static final String CARTO_CONFIG_DIR_SYSPROP = "cartographer.config.dir";
+
+    public static final String DEFAULT_CARTO_CONFIG = "/etc/cartographer/main.conf";
+
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private static final String DEFAULT_DEF_WEBFILTER_PRESET = "build-requires";
@@ -38,6 +42,10 @@ public class CartoDeploymentConfig
     private String defaultWebFilterPreset = DEFAULT_DEF_WEBFILTER_PRESET;
     
     private File workBasedir;
+
+    private File configDir;
+
+    private boolean configured;
 
     public File getDataBasedir()
     {
@@ -72,4 +80,32 @@ public class CartoDeploymentConfig
         this.defaultWebFilterPreset = preset;
     }
 
+    public File getConfigDir()
+    {
+        return configDir;
+    }
+
+    public void setConfigDir( File configDir )
+    {
+        this.configDir = configDir;
+    }
+
+    public void configurationDone()
+    {
+        configured = true;
+    }
+
+    private void checkConfigured()
+    {
+        if ( !configured )
+        {
+            throw new IllegalStateException( "The cartographer system has not been configured! "
+                                                     + "This is a sign that something is in the wrong order in the boot sequence!!" );
+        }
+    }
+
+    public String getValidationErrors()
+    {
+        return null;
+    }
 }
