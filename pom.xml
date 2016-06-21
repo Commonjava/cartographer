@@ -62,6 +62,7 @@
     <module>rest</module>
     <module>rest-client-java</module>
     <module>deployments</module>
+    <module>rest-ftests</module>
   </modules>
 
   <dependencyManagement>
@@ -113,6 +114,12 @@
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-tck</artifactId>
+        <version>0.10.4-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.cartographer.deploy</groupId>
+        <artifactId>cartographer-standalone-rest</artifactId>
         <version>0.10.4-SNAPSHOT</version>
       </dependency>
 
