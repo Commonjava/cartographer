@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.commons.lang.StringUtils.join;
 
 @SectionName( ConfigurationSectionListener.DEFAULT_SECTION )
 @ApplicationScoped
@@ -31,16 +35,22 @@ public class CartoDeploymentConfig
 
     public static final String CARTO_CONFIG_DIR_SYSPROP = "cartographer.config.dir";
 
+    public static final String CARTO_DATA_DIR_SYSPROP = "data.dir";
+
+    public static final String CARTO_WORK_DIR_SYSPROP = "work.dir";
+
+    public static final String DEFAULT_WEBFILTER_PRESET = "default.webfilter.preset";
+
     public static final String DEFAULT_CARTO_CONFIG = "/etc/cartographer/main.conf";
 
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
     private static final String DEFAULT_DEF_WEBFILTER_PRESET = "build-requires";
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private File dataBasedir;
 
     private String defaultWebFilterPreset = DEFAULT_DEF_WEBFILTER_PRESET;
-    
+
     private File workBasedir;
 
     private File configDir;
@@ -52,7 +62,7 @@ public class CartoDeploymentConfig
         return dataBasedir;
     }
 
-    @ConfigName( "data.dir" )
+    @ConfigName( CartoDeploymentConfig.CARTO_DATA_DIR_SYSPROP )
     public void setDataBasedir( File dataBasedir )
     {
         this.dataBasedir = dataBasedir;
@@ -63,7 +73,7 @@ public class CartoDeploymentConfig
         return workBasedir;
     }
 
-    @ConfigName( "work.dir" )
+    @ConfigName( CartoDeploymentConfig.CARTO_WORK_DIR_SYSPROP )
     public void setWorkBasedir( File workBasedir )
     {
         this.workBasedir = workBasedir;
@@ -74,7 +84,7 @@ public class CartoDeploymentConfig
         return defaultWebFilterPreset;
     }
 
-    @ConfigName( "default.webfilter.preset" )
+    @ConfigName( CartoDeploymentConfig.DEFAULT_WEBFILTER_PRESET )
     public void setDefaultWebFilterPreset( final String preset )
     {
         this.defaultWebFilterPreset = preset;
@@ -95,6 +105,33 @@ public class CartoDeploymentConfig
         configured = true;
     }
 
+    public String getValidationErrors()
+    {
+        List<String> errors = new ArrayList<>();
+        
+        if ( isEmpty( getDataBasedir() ) )
+        {
+            errors.add( String.format( "Cartographer File '%s' is required.", CARTO_DATA_DIR_SYSPROP ) );
+        }
+
+        if ( isEmpty( getWorkBasedir() ) )
+        {
+            errors.add( String.format( "Cartographer File '%s' is required.", CARTO_WORK_DIR_SYSPROP ) );
+        }
+
+        if ( isEmpty( getConfigDir() ) )
+        {
+            errors.add( String.format( "Cartographer File '%s' is required.", CARTO_CONFIG_DIR_SYSPROP ) );
+        }
+
+        if ( !errors.isEmpty() )
+        {
+            return join( errors, "\n" );
+        }
+
+        return null;
+    }
+
     private void checkConfigured()
     {
         if ( !configured )
@@ -104,8 +141,19 @@ public class CartoDeploymentConfig
         }
     }
 
-    public String getValidationErrors()
+    private boolean isEmpty( File file )
     {
-        return null;
+        if ( null == file )
+        {
+            return true;
+        }
+        else if ( !file.exists() && !file.mkdirs() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
