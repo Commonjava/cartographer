@@ -48,7 +48,7 @@
 
     <propulsorVersion>0.1-SNAPSHOT</propulsorVersion>
     <configVersion>0.8</configVersion>
-    <jhttpcVersion>1.2-SNAPSHOT</jhttpcVersion>
+    <jhttpcVersion>1.2</jhttpcVersion>
   </properties>
 
   <modules>
