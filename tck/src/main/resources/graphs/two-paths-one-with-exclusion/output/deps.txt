@@ -1,0 +1,6 @@
+org.foo:consumer:1:pom
+org.bar:dep:1.1:jar
+org.bar:dep2:1.1:jar
+org.bar:excluded-dep:1.1:jar
+org.bar:transitive-dep:1.1:jar
+org.bar:parent:1.1:pom

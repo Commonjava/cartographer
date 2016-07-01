@@ -1,0 +1,38 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.bar</groupId>
+    <artifactId>dep</artifactId>
+    <version>1.1</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+	            <groupId>org.bar</groupId>
+	            <artifactId>transitive-dep</artifactId>
+	            <version>${project.version}</version>
+	            <exclusions>
+	                <exclusion>
+	                    <groupId>org.bar</groupId>
+	                    <artifactId>excluded-dep</artifactId>
+	                </exclusion>
+	            </exclusions>
+            </dependency>
+	        <dependency>
+	            <groupId>org.bar</groupId>
+	            <artifactId>dep2</artifactId>
+                <version>${project.version}</version>
+	        </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bar</groupId>
+            <artifactId>transitive-dep</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bar</groupId>
+            <artifactId>dep2</artifactId>
+        </dependency>
+    </dependencies>
+</project>
