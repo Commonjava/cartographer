@@ -61,8 +61,8 @@ public class ScopeWithEmbeddedProjectsFilter
     {
         this( scope, acceptManaged, null );
     }
-    
-    ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged, Set<ProjectRef> exc )
+
+    ScopeWithEmbeddedProjectsFilter( final DependencyScope scope, final boolean acceptManaged, final Set<ProjectRef> exc )
     {
         DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
         this.acceptManaged = acceptManaged;
@@ -153,10 +153,10 @@ public class ScopeWithEmbeddedProjectsFilter
                     logger.debug( "[FILT-OFFx2]: {}", lastRelationship );
                     return StructuralRelationshipsFilter.INSTANCE;
                 }
-                
+
                 Set<ProjectRef> exc = null;
                 boolean excChanged = false;
-                
+
                 // if there are new excludes, ALWAYS construct a new child filter.
                 if ( dr.getExcludes() != null && !dr.getExcludes().isEmpty() )
                 {
@@ -188,6 +188,12 @@ public class ScopeWithEmbeddedProjectsFilter
                 }
             }
         }
+    }
+
+    @Override
+    public Set<ProjectRef> getDepExcludes()
+    {
+        return excludes;
     }
 
     @Override

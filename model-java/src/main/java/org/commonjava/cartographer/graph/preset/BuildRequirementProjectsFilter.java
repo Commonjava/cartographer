@@ -59,7 +59,7 @@ public class BuildRequirementProjectsFilter
         this( acceptManaged, null );
     }
 
-    public BuildRequirementProjectsFilter( final boolean acceptManaged , Set<ProjectRef> excludes  )
+    public BuildRequirementProjectsFilter( final boolean acceptManaged , final Set<ProjectRef> excludes  )
     {
         this.acceptManaged = acceptManaged;
         this.excludes = excludes;
@@ -144,6 +144,12 @@ public class BuildRequirementProjectsFilter
                 return new ScopeWithEmbeddedProjectsFilter( DependencyScope.runtime, acceptManaged, exc );
             }
         }
+    }
+
+    @Override
+    public Set<ProjectRef> getDepExcludes()
+    {
+        return excludes;
     }
 
     @Override
