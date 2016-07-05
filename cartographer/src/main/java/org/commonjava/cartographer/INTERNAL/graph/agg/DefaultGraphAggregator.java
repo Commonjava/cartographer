@@ -28,9 +28,11 @@ import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
+import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.slf4j.Logger;
@@ -82,7 +84,7 @@ public class DefaultGraphAggregator
             logger.debug( "Loading existing cycle participants..." );
             //            final Set<ProjectVersionRef> cycleParticipants = loadExistingCycleParticipants( net );
 
-            final Set<ProjectVersionRef> seen = new HashSet<ProjectVersionRef>();
+            final Map<ProjectVersionRef, Set<ProjectRef>> seen = new HashMap<>();
 
             logger.debug( "Loading initial set of GAVs to be resolved..." );
             final List<DiscoveryTodo> pending = loadInitialPending( graph, seen );
@@ -129,7 +131,8 @@ public class DefaultGraphAggregator
     }
 
     private Set<DiscoveryTodo> discover( final Set<DiscoveryTodo> todos, final AggregationOptions config,
-                                         final Set<ProjectVersionRef> missing, final Set<ProjectVersionRef> seen,
+                                         final Set<ProjectVersionRef> missing,
+                                         final Map<ProjectVersionRef, Set<ProjectRef>> seen,
                                          final int pass )
         throws CartoDataException
     {
@@ -160,27 +163,29 @@ public class DefaultGraphAggregator
     }
 
     /**
-     * Convert the current set of {@link DiscoveryTodo}'s into a set of 
-     * {@link DiscoveryRunnable}'s after first ensuring their corresponding GAVs 
-     * aren't already present, listed as missing, or listed as participants in a 
+     * Convert the current set of {@link DiscoveryTodo}'s into a set of
+     * {@link DiscoveryRunnable}'s after first ensuring their corresponding GAVs
+     * aren't already present, listed as missing, or listed as participants in a
      * relationship cycle.
-     * 
+     *
      * Then, execute all of these runnables and wait for processing to complete
      * before passing them back for output processing.
-     * 
+     *
      * @param todos The current set of {@link DiscoveryTodo}'s to process
      * @param config Configuration for how discovery should proceed
-     * @param missing The accumulated list of confirmed-missing GAVs (NOT things 
+     * @param missing The accumulated list of confirmed-missing GAVs (NOT things
      * that have yet to be discovered)
+     * @param seen map of seen projects pointing at the set of dependency exclusions
+     * used by the filter
      * @param pass For diagnostic/logging purposes, the number of discovery passes
-     * since discovery was initiated by the caller (part of the graph may have been 
+     * since discovery was initiated by the caller (part of the graph may have been
      * pre-existing)
-     * @return The executed set of {@link DiscoveryRunnable} instances that contain 
+     * @return The executed set of {@link DiscoveryRunnable} instances that contain
      * output to be processed and incorporated in the graph.
      */
     private Set<DiscoveryRunnable> executeTodoBatch( final Set<DiscoveryTodo> todos, final AggregationOptions config,
                                                      final Set<ProjectVersionRef> missing,
-                                                     final Set<ProjectVersionRef> seen,
+                                                     final Map<ProjectVersionRef, Set<ProjectRef>> seen,
                                                      /*final Set<ProjectVersionRef> cycleParticipants,*/final int pass )
     {
         final Set<DiscoveryRunnable> runnables = new HashSet<DiscoveryRunnable>( todos.size() );
@@ -202,7 +207,7 @@ public class DefaultGraphAggregator
             //                continue;
             //            }
             // WAS: net.containsProject(todoRef) ...this is pretty expensive, since it requires traversal. Instead, we track as we go.
-            else if ( seen.contains( todoRef ) )
+            else if ( seen.containsKey( todoRef ) && todo.getDepExcludes().containsAll( seen.get( todoRef ) ) )
             {
                 logger.info( "{}.{}. Skipping already-discovered reference: {}", pass, idx++, todoRef );
                 continue;
@@ -239,30 +244,31 @@ public class DefaultGraphAggregator
     }
 
     /**
-     * Process the output from a discovery runnable (discovery of relationships 
+     * Process the output from a discovery runnable (discovery of relationships
      * related to a given GAV). This includes:
-     * 
+     *
      * <ul>
      *   <li>Adding any accumulated metadata for the GAV</li>
      *   <li>Determining which new relationships to store in the graph db related to the relationships in this result</li>
      *   <li>Generating the next set of {@link DiscoveryTodo}'s related to the relationships in this result</li>
      * </ul>
-     * 
-     * @param r The runnable containing discovery output to process for a specific 
+     *
+     * @param r The runnable containing discovery output to process for a specific
      * input GAV
-     * @param nextTodos The accumulated next crop of {@link DiscoveryTodo}'s, which 
-     * MAY be augmented by output from this discovery runnable 
+     * @param nextTodos The accumulated next crop of {@link DiscoveryTodo}'s, which
+     * MAY be augmented by output from this discovery runnable
      * @param config Configuration for how discovery should proceed
-     * @param seen 
-     * @param pass For diagnostic/logging purposes, the number of discovery passes 
+     * @param seen map of seen projects pointing at the set of dependency exclusions used by the filter
+     * @param pass For diagnostic/logging purposes, the number of discovery passes
      * since discovery was initiated by the caller (part of the graph may have been pre-existing)
-     * @return true if output contained a valid result, or false to indicate the 
+     * @return true if output contained a valid result, or false to indicate the
      * GAV should be marked missing.
-     * @throws CartoDataException 
+     * @throws CartoDataException
      */
     private boolean processDiscoveryOutput( final DiscoveryRunnable r,
                                             final Map<ProjectVersionRef, DiscoveryTodo> nextTodos,
-                                            final DiscoveryConfig config, final Set<ProjectVersionRef> seen,
+                                            final DiscoveryConfig config,
+                                            final Map<ProjectVersionRef, Set<ProjectRef>> seen,
                                             final int pass )
         throws CartoDataException
     {
@@ -311,7 +317,14 @@ public class DefaultGraphAggregator
             {
                 final Map<GraphPath<?>, GraphPathInfo> parentPathMap = todo.getParentPathMap();
 
-                seen.add( todo.getRef() );
+                if ( seen.containsKey( todo.getRef() ) )
+                {
+                    seen.get( todo.getRef() ).retainAll( todo.getDepExcludes() );
+                }
+                else
+                {
+                    seen.put( todo.getRef(), todo.getDepExcludes() );
+                }
 
                 final int index = r.getIndex();
 
@@ -328,7 +341,17 @@ public class DefaultGraphAggregator
                 {
                     final ProjectVersionRef relTarget = rel.getTarget()
                                                            .asProjectVersionRef();
-                    if ( !seen.contains( relTarget ) )
+                    Set<ProjectRef> currentExc;
+                    if ( rel instanceof DependencyRelationship )
+                    {
+                        currentExc = new HashSet<>( todo.getDepExcludes() );
+                        currentExc.addAll( ( (DependencyRelationship) rel ).getExcludes() );
+                    }
+                    else
+                    {
+                        currentExc = todo.getDepExcludes();
+                    }
+                    if ( !seen.containsKey( relTarget ) || !currentExc.containsAll( seen.get( relTarget ) ) )
                     {
                         for ( final Entry<GraphPath<?>, GraphPathInfo> entry : parentPathMap.entrySet() )
                         {
@@ -343,7 +366,10 @@ public class DefaultGraphAggregator
 
                             final ProjectVersionRef selectedTarget = selected.getTarget()
                                                                              .asProjectVersionRef();
-                            if ( seen.contains( selectedTarget ) )
+                            pathInfo = pathInfo.getChildPathInfo( selected );
+                            Set<ProjectRef> exc = getDepExcludes( pathInfo );
+
+                            if ( seen.containsKey( selectedTarget ) && exc.containsAll( seen.get( selectedTarget ) ) )
                             {
                                 continue;
                             }
@@ -357,12 +383,10 @@ public class DefaultGraphAggregator
                                 continue;
                             }
 
-                            pathInfo = pathInfo.getChildPathInfo( selected );
-
                             DiscoveryTodo nextTodo = nextTodos.get( selectedTarget );
                             if ( nextTodo == null )
                             {
-                                nextTodo = new DiscoveryTodo( selectedTarget, path, pathInfo, graph );
+                                nextTodo = new DiscoveryTodo( selectedTarget, path, pathInfo, graph, exc );
                                 nextTodos.put( selectedTarget, nextTodo );
 
                                 logger.info( "DISCOVER += {}", selectedTarget );
@@ -370,6 +394,7 @@ public class DefaultGraphAggregator
                             else
                             {
                                 nextTodo.addParentPath( path, pathInfo );
+                                nextTodo.getDepExcludes().retainAll( exc );
                             }
                         }
 
@@ -429,6 +454,16 @@ public class DefaultGraphAggregator
         }
     }
 
+    private Set<ProjectRef> getDepExcludes( final GraphPathInfo pathInfo )
+    {
+        Set<ProjectRef> exc = pathInfo.getFilter().getDepExcludes();
+        if ( exc == null )
+        {
+            exc = new HashSet<>();
+        }
+        return exc;
+    }
+
     //    private void addToCycleParticipants( final Set<ProjectRelationship<?>> rejectedRelationships, final Set<ProjectVersionRef> cycleParticipants )
     //    {
     //        for ( final ProjectRelationship<?> rejected : rejectedRelationships )
@@ -475,7 +510,8 @@ public class DefaultGraphAggregator
     //        return participants;
     //    }
 
-    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph, final Set<ProjectVersionRef> seen )
+    private List<DiscoveryTodo> loadInitialPending( final RelationshipGraph graph,
+                                                    final Map<ProjectVersionRef, Set<ProjectRef>> seen )
     {
         logger.info( "Using root-level mutator: {}", graph.getMutator() );
 
@@ -509,13 +545,34 @@ public class DefaultGraphAggregator
             if ( !pathRefs.isEmpty() )
             {
                 logger.info( "Already seen += {}", new JoinString( ", ", pathRefs ) );
-                seen.addAll( pathRefs );
             }
 
             DiscoveryTodo todo = initialPending.get( ref );
             if ( todo == null )
             {
-                todo = new DiscoveryTodo( ref, path, pathInfo, graph );
+                List<ProjectRelationship<?, ?>> relationships = graph.getRelationships( path );
+                Set<ProjectRef> excludes = new HashSet<>();
+                for ( ProjectRelationship<?, ?> relationship : relationships )
+                {
+                    if ( relationship instanceof DependencyRelationship )
+                    {
+                        excludes.addAll( ( ( DependencyRelationship ) relationship ).getExcludes() );
+                    }
+                    if ( relationship != relationships.get( relationships.size() - 1 ) )
+                    {
+                        ProjectVersionRef relTarget = relationship.getTarget().asProjectVersionRef();
+                        if ( seen.containsKey( relTarget ) )
+                        {
+                            seen.get( relTarget ).retainAll( excludes );
+                        }
+                        else
+                        {
+                            seen.put( relTarget, new HashSet<>( excludes ) );
+                        }
+                    }
+                }
+
+                todo = new DiscoveryTodo( ref, path, pathInfo, graph, excludes );
                 initialPending.put( ref, todo );
 
                 logger.info( "INIT-DISCOVER += {}", ref );

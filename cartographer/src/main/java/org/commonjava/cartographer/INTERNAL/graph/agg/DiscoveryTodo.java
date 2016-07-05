@@ -18,10 +18,13 @@ package org.commonjava.cartographer.INTERNAL.graph.agg;
 import org.commonjava.maven.atlas.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.model.GraphPath;
 import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 final class DiscoveryTodo
 {
@@ -31,17 +34,20 @@ final class DiscoveryTodo
 
     private RelationshipGraph graph;
 
+    private Set<ProjectRef> depExcludes;
+
     public DiscoveryTodo( final ProjectVersionRef ref )
     {
         this.ref = ref;
     }
 
     public DiscoveryTodo( final ProjectVersionRef ref, final GraphPath<?> path, final GraphPathInfo pathInfo,
-                          final RelationshipGraph graph )
+                          final RelationshipGraph graph, final Set<ProjectRef> depExcludes )
     {
         this.ref = ref;
         this.graph = graph;
         this.parentPaths = new HashMap<GraphPath<?>, GraphPathInfo>();
+        this.depExcludes = depExcludes;
         parentPaths.put( path, pathInfo );
     }
 
@@ -61,6 +67,7 @@ final class DiscoveryTodo
         final int prime = 31;
         int result = 1;
         result = prime * result + ( ( ref == null ) ? 0 : ref.hashCode() );
+        result = prime * result + ( ( depExcludes == null ) ? 0 : depExcludes.hashCode() );
         return result;
     }
 
@@ -91,6 +98,18 @@ final class DiscoveryTodo
         {
             return false;
         }
+        if ( depExcludes == null )
+        {
+            if ( other.depExcludes != null )
+            {
+                return false;
+            }
+        }
+        else if ( !depExcludes.equals( other.depExcludes ) )
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -118,6 +137,11 @@ final class DiscoveryTodo
         }
 
         parentPaths.put( path, pathInfo );
+    }
+
+    public Set<ProjectRef> getDepExcludes()
+    {
+        return depExcludes == null ? Collections.emptySet() : depExcludes;
     }
 
 }

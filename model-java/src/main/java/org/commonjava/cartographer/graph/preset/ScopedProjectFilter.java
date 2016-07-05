@@ -63,7 +63,7 @@ public class ScopedProjectFilter
         this( scope, acceptManaged, null );
     }
 
-    public ScopedProjectFilter( final DependencyScope scope , final boolean acceptManaged, 
+    public ScopedProjectFilter( final DependencyScope scope , final boolean acceptManaged,
                                 final Set<ProjectRef> excludes )
     {
         DependencyScope filterScope = scope == null ? DependencyScope.runtime : scope;
@@ -170,6 +170,12 @@ public class ScopedProjectFilter
                 return this;
             }
         }
+    }
+
+    @Override
+    public Set<ProjectRef> getDepExcludes()
+    {
+        return excludes;
     }
 
     @Override

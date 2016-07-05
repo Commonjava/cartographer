@@ -22,6 +22,7 @@ import java.util.Set;
 import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 
 public class GroupIdFilter
     implements ProjectRelationshipFilter
@@ -48,6 +49,12 @@ public class GroupIdFilter
     {
         //        return new GroupIdFilter( groupId + ".child" );
         return this;
+    }
+
+    @Override
+    public Set<ProjectRef> getDepExcludes()
+    {
+        return null;
     }
 
     @Override
