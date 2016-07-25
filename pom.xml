@@ -49,6 +49,7 @@
     <propulsorVersion>0.1-SNAPSHOT</propulsorVersion>
     <configVersion>0.8</configVersion>
     <jhttpcVersion>1.2</jhttpcVersion>
+    <indyVersion>0.99.4-SNAPSHOT</indyVersion>
   </properties>
 
   <modules>
@@ -217,6 +218,11 @@
         <groupId>org.commonjava.propulsor.client</groupId>
         <artifactId>propulsor-client-http</artifactId>
         <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.indy</groupId>
+        <artifactId>indy-client-core-java</artifactId>
+        <version>${indyVersion}</version>
       </dependency>
 
       <dependency>
