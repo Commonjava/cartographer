@@ -43,6 +43,8 @@ public class CartoDeploymentConfig
 
     public static final String DEFAULT_CARTO_CONFIG = "/etc/cartographer/main.conf";
 
+    public static final String INDY_URL_KEY = "indy.url";
+
     private static final String DEFAULT_DEF_WEBFILTER_PRESET = "build-requires";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -54,6 +56,8 @@ public class CartoDeploymentConfig
     private File workBasedir;
 
     private File configDir;
+
+    private String indyUrl;
 
     private boolean configured;
 
@@ -88,6 +92,17 @@ public class CartoDeploymentConfig
     public void setDefaultWebFilterPreset( final String preset )
     {
         this.defaultWebFilterPreset = preset;
+    }
+
+    public String getIndyUrl()
+    {
+        return indyUrl;
+    }
+
+    @ConfigName( CartoDeploymentConfig.INDY_URL_KEY )
+    public void setIndyUrl (String indyUrl )
+    {
+        this.indyUrl = indyUrl;
     }
 
     public File getConfigDir()
