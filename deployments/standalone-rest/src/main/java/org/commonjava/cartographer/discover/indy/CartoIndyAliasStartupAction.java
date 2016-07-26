@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.cartographer.discover;
+package org.commonjava.cartographer.discover.indy;
 
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
 import org.commonjava.cartographer.conf.CartoDeploymentConfig;
@@ -28,7 +28,7 @@ import javax.inject.Inject;
 
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 
-public class CartoAliasStartupAction
+public class CartoIndyAliasStartupAction
         implements StartupAction
 {
 

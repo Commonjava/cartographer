@@ -43,7 +43,7 @@ public class CartoDeploymentConfig
 
     public static final String DEFAULT_CARTO_CONFIG = "/etc/cartographer/main.conf";
 
-    public static final String DEFAULT_INDY_URL = "indy.url";
+    public static final String INDY_URL_KEY = "indy.url";
 
     private static final String DEFAULT_DEF_WEBFILTER_PRESET = "build-requires";
 
@@ -99,7 +99,7 @@ public class CartoDeploymentConfig
         return indyUrl;
     }
 
-    @ConfigName( CartoDeploymentConfig.DEFAULT_INDY_URL )
+    @ConfigName( CartoDeploymentConfig.INDY_URL_KEY )
     public void setIndyUrl (String indyUrl )
     {
         this.indyUrl = indyUrl;
