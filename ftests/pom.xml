@@ -27,11 +27,6 @@
 
   <artifactId>cartographer-ftests</artifactId>
 
-  <properties>
-    <test-forkCount>1C</test-forkCount>
-    <test-redirectOutput>true</test-redirectOutput>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.commonjava.cartographer</groupId>
@@ -59,20 +54,15 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <forkCount>${test-forkCount}</forkCount>
-              <reuseForks>false</reuseForks>
-              <redirectTestOutputToFile>${test-redirectOutput}</redirectTestOutputToFile>
-              <dependenciesToScan>
-                <dependency>org.commonjava.cartographer:cartographer-tck</dependency>
-              </dependenciesToScan> 
-            </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <dependenciesToScan>
+            <dependency>org.commonjava.cartographer:cartographer-tck</dependency>
+          </dependenciesToScan>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

@@ -19,7 +19,10 @@ package org.commonjava.maven.cartographer.ftest;
 import org.apache.commons.io.FileUtils;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
+import org.commonjava.cartographer.boot.Options;
 import org.commonjava.cartographer.client.ClientCartographer;
+import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
+import org.commonjava.propulsor.boot.BootOptions;
 import org.commonjava.propulsor.boot.BootStatus;
 import org.commonjava.propulsor.boot.Booter;
 import org.commonjava.util.jhttpc.HttpFactory;
@@ -32,16 +35,19 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ServiceLoader;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import org.jboss.weld.environment.se.WeldContainer;
+
 public class LocalTestDriver
         implements CartoTCKDriver
 {
 
-    private CartoBootOptions options;
+    private Options options;
 
     private BootStatus bootStatus;
 
@@ -55,7 +61,7 @@ public class LocalTestDriver
 
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private File configDir;
+//    private File configDir;
 
     private Cartographer carto;
 
@@ -69,21 +75,25 @@ public class LocalTestDriver
 
         temp.create();
 
-        configDir = temp.newFolder( "local-carto-etc" );
+//        configDir = temp.newFolder( "local-carto-etc" );
+//
+//        File mainConf = new File( configDir, "etc/main.conf" );
+//        mainConf.getParentFile().mkdirs();
+//
+//        FileUtils.write( mainConf, "koji.url=https://koji.myco.com/kojihub\n" + "pncl.url=https://pncl.myco.com/\n"
+//                + "koji.client.pem.password = mypassword" );
+//
+//        System.out.println(
+//                "Wrote configuration: " + mainConf + " with configuration:\n\n" + FileUtils.readFileToString(
+//                        mainConf ) );
 
-        File mainConf = new File( configDir, "etc/main.conf" );
-        mainConf.getParentFile().mkdirs();
+        final ServiceLoader<BootOptions> loader = ServiceLoader.load( BootOptions.class );
+        final BootOptions opts = loader.iterator()
+                                          .next();
 
-        FileUtils.write( mainConf, "koji.url=https://koji.myco.com/kojihub\n" + "pncl.url=https://pncl.myco.com/\n"
-                + "koji.client.pem.password = mypassword" );
-
-        System.out.println(
-                "Wrote configuration: " + mainConf + " with configuration:\n\n" + FileUtils.readFileToString(
-                        mainConf ) );
-
-        options = new CartoBootOptions();
+        options = (Options) opts;
         options.setPort( -1 );
-        options.setHomeDir( configDir.getAbsolutePath() );
+        options.setHomeDir( temp.newFolder( "carto-home" ).getAbsolutePath() );
 
         booter = new Booter();
         bootStatus = booter.start( options );
@@ -101,8 +111,11 @@ public class LocalTestDriver
 
         assertThat( bootStatus.isSuccess(), equalTo( true ) );
 
+        WeldContainer container = booter.getContainer();
+        sourceManager = container.instance().select( SourceManagerImpl.class ).get();
+
         passwordManager = new MemoryPasswordManager();
-        siteConfig = new SiteConfigBuilder( "local-test", formatUrl().toString() ).build();
+        siteConfig = new SiteConfigBuilder( "local-test", formatUrl().toString() ).withRequestTimeoutSeconds( 30 ).build();
         httpFactory = new HttpFactory( passwordManager );
 
         carto = new ClientCartographer( siteConfig, httpFactory );
@@ -156,7 +169,7 @@ public class LocalTestDriver
             throws MalformedURLException
     {
         checkStarted();
-        return UrlUtils.buildUrl( String.format( "http://localhost:%d", getPort() ), pathParts );
+        return UrlUtils.buildUrl( String.format( "http://localhost:%d/api", getPort() ), pathParts );
     }
 
     private void checkStarted()

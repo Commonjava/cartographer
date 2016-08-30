@@ -21,13 +21,18 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import org.commonjava.cartographer.rest.CartoRESTException;
-import org.commonjava.cartographer.rest.conf.CartographerRESTConfig;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.CartoRequestException;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.cartographer.graph.preset.CommonPresetParameters;
 import org.commonjava.cartographer.ops.GraphRenderingOps;
-import org.commonjava.cartographer.request.*;
+import org.commonjava.cartographer.request.GraphCalculationType;
+import org.commonjava.cartographer.request.GraphComposition;
+import org.commonjava.cartographer.request.GraphDescription;
+import org.commonjava.cartographer.request.MultiRenderRequest;
+import org.commonjava.cartographer.request.PomRequest;
+import org.commonjava.cartographer.request.RepositoryContentRequest;
+import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.util.PresetParamParser;
 import org.commonjava.cartographer.rest.util.RecipeHelper;
 import org.commonjava.cartographer.rest.util.RequestAdvisor;
@@ -39,7 +44,12 @@ import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,7 +65,7 @@ public class RenderingController
     private RequestAdvisor requestAdvisor;
 
     @Inject
-    private CartographerRESTConfig config;
+    private CartographerConfig config;
 
     @Inject
     private RecipeHelper configHelper;

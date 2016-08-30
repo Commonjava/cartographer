@@ -15,6 +15,7 @@
  */
 package org.commonjava.cartographer.embed;
 
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
@@ -24,6 +25,7 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,7 @@ public class TestCDIProvider
 
     private FileCacheProviderConfig config;
 
-    private File dbDir;
+    private CartographerConfig cartoConfig;
 
     @PostConstruct
     public void start()
@@ -46,8 +48,10 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            dbDir = temp.newFolder( "db" );
             config = new FileCacheProviderConfig( temp.newFolder() ).withAliasLinking( true );
+
+            cartoConfig = new CartographerConfig();
+            cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
         }
         catch ( IOException e )
         {
@@ -62,17 +66,18 @@ public class TestCDIProvider
     }
 
     @Produces
-    @Named( "graph-db.dir" )
-    public File getGraphDbDir()
-    {
-        return dbDir;
-    }
-
-    @Produces
     @Default
     public FileCacheProviderConfig getConfig()
     {
 
         return config;
+    }
+
+    @Produces
+    @Default
+    @TestInstance
+    public CartographerConfig getCartoConfig()
+    {
+        return cartoConfig;
     }
 }

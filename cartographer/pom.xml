@@ -134,6 +134,10 @@
       <artifactId>atservice-processor</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>configuration-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
     </dependency>

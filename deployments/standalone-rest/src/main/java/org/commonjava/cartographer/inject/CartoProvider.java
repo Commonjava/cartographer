@@ -16,6 +16,7 @@
 package org.commonjava.cartographer.inject;
 
 import org.commonjava.cartographer.conf.CartoDeploymentConfig;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.slf4j.Logger;
@@ -35,47 +36,24 @@ public class CartoProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    @Inject
     private CartoDeploymentConfig config;
-
-    private RelationshipGraphFactory graphFactory;
 
     protected CartoProvider()
     {
     }
 
-    public CartoProvider( final CartoDeploymentConfig config )
-    {
-        this.config = config;
-        init();
-    }
-
     @PostConstruct
     public void init()
     {
-        logger.debug( "SETUP: RelationshipGraphFactory" );
-        this.graphFactory =
-            new RelationshipGraphFactory( new FileNeo4jConnectionFactory( config.getDataBasedir(), true ) );
-    }
-
-    @PreDestroy
-    public void shutdown()
-    {
-        try
-        {
-            this.graphFactory.close();
-        }
-        catch ( IOException e )
-        {
-            logger.error("Failed ot close graph factory", e );
-        }
+        this.config = new CartoDeploymentConfig();
     }
 
     @Produces
     @Default
-    public RelationshipGraphFactory getGraphFactory()
+    @ApplicationScoped
+    public CartoDeploymentConfig getCartographerConfig()
     {
-        return graphFactory;
+        return config;
     }
 
 }

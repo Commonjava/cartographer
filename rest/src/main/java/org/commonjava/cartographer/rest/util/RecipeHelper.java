@@ -17,12 +17,12 @@ package org.commonjava.cartographer.rest.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.cartographer.request.AbstractGraphRequest;
-import org.commonjava.cartographer.rest.dto.DownlogRequest;
 import org.commonjava.cartographer.request.GraphBasedRequest;
 import org.commonjava.cartographer.request.GraphComposition;
 import org.commonjava.cartographer.rest.CartoRESTException;
-import org.commonjava.cartographer.rest.conf.CartographerRESTConfig;
+import org.commonjava.cartographer.rest.dto.DownlogRequest;
 import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +42,13 @@ public class RecipeHelper
     private ObjectMapper mapper;
 
     @Inject
-    private CartographerRESTConfig config;
+    private CartographerConfig config;
 
     protected RecipeHelper()
     {
     }
 
-    public RecipeHelper( final CartographerRESTConfig config, final ObjectMapper mapper )
+    public RecipeHelper( final CartographerConfig config, final ObjectMapper mapper )
     {
         this.config = config;
         this.mapper = mapper;

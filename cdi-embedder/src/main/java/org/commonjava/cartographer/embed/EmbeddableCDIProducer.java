@@ -15,20 +15,24 @@
  */
 package org.commonjava.cartographer.embed;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
+import org.commonjava.cartographer.ObjectMapperModuleSet;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.File;
 
 /**
  * Created by jdcasey on 9/14/15.
@@ -38,18 +42,30 @@ public class EmbeddableCDIProducer
 {
 
     @Inject
-    @Named( "graph-db.dir" )
-    private File graphDbDir;
+    private CartographerConfig config;
+
+    @Inject
+    private Instance<ObjectMapperModuleSet> moduleSetInstances;
+
+    @Inject
+    private ObjectMapper objectMapper;
 
     private RelationshipGraphFactory graphFactory;
 
-    private DiscoverySourceManager sourceManager;
+    private SourceManagerImpl sourceManager;
 
     @PostConstruct
     public void postConstruct()
     {
-        graphFactory = new RelationshipGraphFactory( new FileNeo4jConnectionFactory( graphDbDir, false ));
+        graphFactory = new RelationshipGraphFactory( new FileNeo4jConnectionFactory( config.getDataBasedir(), false ));
         sourceManager = new SourceManagerImpl();
+
+        if ( moduleSetInstances != null )
+        {
+            moduleSetInstances.forEach( ( moduleSet ) -> moduleSet.getSerializerModules()
+                                                                  .forEach( ( module ) -> objectMapper.registerModule(
+                                                                          module ) ) );
+        }
     }
 
     @PreDestroy
@@ -70,9 +86,8 @@ public class EmbeddableCDIProducer
 
     @Default
     @Produces
-    public DiscoverySourceManager getSourceManager()
+    public SourceManagerImpl getSourceManager()
     {
         return sourceManager;
     }
-
 }

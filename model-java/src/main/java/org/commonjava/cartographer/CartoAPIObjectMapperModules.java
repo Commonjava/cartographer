@@ -27,6 +27,7 @@ import java.util.Arrays;
  */
 @ApplicationScoped
 public class CartoAPIObjectMapperModules
+        implements ObjectMapperModuleSet
 {
 
     private final ProjectVersionRefSerializerModule refModule;
@@ -39,6 +40,7 @@ public class CartoAPIObjectMapperModules
         relModule = ProjectRelationshipSerializerModule.INSTANCE;
     }
 
+    @Override
     public Iterable<Module> getSerializerModules()
     {
         return Arrays.asList( refModule, relModule );
