@@ -19,6 +19,11 @@ import org.commonjava.cartographer.conf.CartoDeploymentConfig;
 import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.propulsor.deploy.undertow.ui.UIConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +43,19 @@ public class CartoProvider
 
     private CartoDeploymentConfig config;
 
+    private PartyLineCacheProvider cacheProvider;
+
+    private UIConfiguration uiConfiguration;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager eventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
+
     protected CartoProvider()
     {
     }
@@ -45,7 +63,18 @@ public class CartoProvider
     @PostConstruct
     public void init()
     {
-        this.config = new CartoDeploymentConfig();
+        config = new CartoDeploymentConfig();
+
+        uiConfiguration = new UIConfiguration();
+        uiConfiguration.setEnabled( false );
+    }
+
+    @Produces
+    @Default
+    @ApplicationScoped
+    public UIConfiguration getUiConfiguration()
+    {
+        return uiConfiguration;
     }
 
     @Produces
@@ -56,4 +85,17 @@ public class CartoProvider
         return config;
     }
 
+    @Produces
+    @Default
+    @ApplicationScoped
+    public synchronized PartyLineCacheProvider getCacheProvider()
+    {
+        if ( cacheProvider == null )
+        {
+            cacheProvider = new PartyLineCacheProvider( config.getCacheBasedir(), pathGenerator, eventManager,
+                                                        transferDecorator );
+        }
+
+        return cacheProvider;
+    }
 }

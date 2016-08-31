@@ -16,6 +16,7 @@
 package org.commonjava.cartographer.graph.mutator;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
@@ -23,6 +24,7 @@ import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
 
 @Named( "managed-mutator" )
+@Alternative
 @ApplicationScoped
 @Service( MutatorFactory.class )
 public class ManagedDependencyGraphMutatorFactory implements MutatorFactory

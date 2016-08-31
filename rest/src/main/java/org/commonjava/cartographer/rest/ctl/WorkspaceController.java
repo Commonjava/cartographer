@@ -20,9 +20,11 @@ import org.commonjava.cartographer.rest.dto.WorkspaceList;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Set;
 
+@ApplicationScoped
 public class WorkspaceController
 {
 

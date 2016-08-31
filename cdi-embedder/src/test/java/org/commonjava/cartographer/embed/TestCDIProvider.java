@@ -16,7 +16,11 @@
 package org.commonjava.cartographer.embed;
 
 import org.commonjava.cartographer.conf.CartographerConfig;
-import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -38,9 +42,18 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private FileCacheProviderConfig config;
-
     private CartographerConfig cartoConfig;
+
+    private PartyLineCacheProvider cacheProvider;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager eventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
 
     @PostConstruct
     public void start()
@@ -48,10 +61,11 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            config = new FileCacheProviderConfig( temp.newFolder() ).withAliasLinking( true );
-
             cartoConfig = new CartographerConfig();
             cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
+
+            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
+                                                        transferDecorator );
         }
         catch ( IOException e )
         {
@@ -67,17 +81,15 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public FileCacheProviderConfig getConfig()
+    public CartographerConfig getCartoConfig()
     {
-
-        return config;
+        return cartoConfig;
     }
 
     @Produces
     @Default
-    @TestInstance
-    public CartographerConfig getCartoConfig()
+    public PartyLineCacheProvider getCacheProvider()
     {
-        return cartoConfig;
+        return cacheProvider;
     }
 }

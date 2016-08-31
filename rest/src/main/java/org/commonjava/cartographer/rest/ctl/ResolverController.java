@@ -25,9 +25,11 @@ import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.util.RecipeHelper;
 import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@ApplicationScoped
 public class ResolverController
 {
 

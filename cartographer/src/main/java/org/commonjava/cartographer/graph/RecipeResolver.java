@@ -39,11 +39,13 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
+@ApplicationScoped
 public class RecipeResolver
 {
 

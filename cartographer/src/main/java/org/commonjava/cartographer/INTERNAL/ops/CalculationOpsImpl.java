@@ -17,6 +17,7 @@ package org.commonjava.cartographer.INTERNAL.ops;
 
 import java.util.*;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cartographer.request.GraphAnalysisRequest;
@@ -37,6 +38,7 @@ import org.commonjava.cartographer.graph.fn.MultiGraphFunction;
 import org.commonjava.cartographer.graph.fn.ValueHolder;
 import org.commonjava.cartographer.result.GraphDifference;
 
+@ApplicationScoped
 public class CalculationOpsImpl
                 implements CalculationOps
 {

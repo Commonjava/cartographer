@@ -26,6 +26,7 @@ import org.commonjava.cartographer.result.MetadataResult;
 import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -38,6 +39,7 @@ import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationC
 @Path( "/api/depgraph/meta" )
 @Consumes( { application_json } )
 @Produces( { application_json } )
+@ApplicationScoped
 public class MetadataResource
         implements RestResources
 {

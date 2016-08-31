@@ -186,6 +186,11 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
+        <artifactId>galley-cache-simple</artifactId>
+        <version>${galleyVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-maven</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
@@ -296,8 +301,7 @@
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
         <artifactId>weld-se</artifactId>
-        <version>1.1.8.Final</version>
-        <scope>test</scope>
+        <version>2.3.2.Final</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

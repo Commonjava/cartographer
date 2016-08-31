@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import java.util.*;
@@ -30,6 +31,7 @@ import java.util.*;
 import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.TRANSFER_CTX_KEY;
 
+@ApplicationScoped
 public class MetadataScannerSupport
 {
 

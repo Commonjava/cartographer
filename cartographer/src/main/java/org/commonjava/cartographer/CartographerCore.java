@@ -15,6 +15,7 @@
  */
 package org.commonjava.cartographer;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cartographer.CartoDataException;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
+@ApplicationScoped
 public class CartographerCore
                 implements Cartographer
 {

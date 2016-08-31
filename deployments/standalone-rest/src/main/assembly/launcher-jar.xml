@@ -18,13 +18,16 @@
   
   <dependencySets>
     <dependencySet>
+      <useProjectArtifact>true</useProjectArtifact>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+      <useStrictFiltering>true</useStrictFiltering>
       <scope>runtime</scope>
       <includes>
-        <include>com.redhat*</include>
         <include>org.commonjava*</include>
       </includes>
       <excludes>
-        <exclude></exclude>
+        <exclude>org.commonjava.maven.atlas*</exclude>
+        <exclude>org.commonjava.util:configuration*</exclude>
       </excludes>
       <outputDirectory>/</outputDirectory>
       <unpack>true</unpack>

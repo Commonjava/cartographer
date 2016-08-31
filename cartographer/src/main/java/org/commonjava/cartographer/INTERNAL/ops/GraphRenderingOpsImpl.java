@@ -49,12 +49,14 @@ import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.util.*;
 
 import static org.commonjava.cartographer.INTERNAL.graph.agg.AggregationUtils.collectProjectReferences;
 
+@ApplicationScoped
 public class GraphRenderingOpsImpl
                 implements GraphRenderingOps
 {

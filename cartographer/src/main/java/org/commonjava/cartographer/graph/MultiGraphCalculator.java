@@ -27,6 +27,7 @@ import org.commonjava.cartographer.request.GraphCalculation;
 import org.commonjava.cartographer.request.GraphComposition;
 import org.commonjava.cartographer.request.GraphDescription;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import java.util.Set;
 /**
  * Created by jdcasey on 8/11/15.
  */
+@ApplicationScoped
 public class MultiGraphCalculator
 {
 

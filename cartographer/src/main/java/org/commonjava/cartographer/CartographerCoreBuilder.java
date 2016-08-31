@@ -19,38 +19,50 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.commonjava.cartographer.graph.mutator.ManagedDependencyGraphMutatorFactory;
-import org.commonjava.cartographer.graph.mutator.MutatorSelector;
-import org.commonjava.cartographer.graph.mutator.NoOpGraphMutatorFactory;
-import org.commonjava.cartographer.graph.preset.*;
-import org.commonjava.cartographer.ops.*;
-import org.commonjava.cdi.util.weft.NamedThreadFactory;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectRelationshipSerializerModule;
-import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectVersionRefSerializerModule;
-import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
-import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
-import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.cartographer.INTERNAL.graph.agg.DefaultGraphAggregator;
-import org.commonjava.cartographer.INTERNAL.ops.*;
-import org.commonjava.cartographer.graph.GraphResolver;
-import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
 import org.commonjava.cartographer.INTERNAL.graph.discover.DiscovererImpl;
-import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
-import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
+import org.commonjava.cartographer.INTERNAL.ops.CalculationOpsImpl;
+import org.commonjava.cartographer.INTERNAL.ops.GraphOpsImpl;
+import org.commonjava.cartographer.INTERNAL.ops.GraphRenderingOpsImpl;
+import org.commonjava.cartographer.INTERNAL.ops.MetadataOpsImpl;
+import org.commonjava.cartographer.INTERNAL.ops.ResolveOpsImpl;
+import org.commonjava.cartographer.graph.GraphResolver;
+import org.commonjava.cartographer.graph.MultiGraphCalculator;
+import org.commonjava.cartographer.graph.RecipeResolver;
 import org.commonjava.cartographer.graph.discover.meta.LicenseScanner;
 import org.commonjava.cartographer.graph.discover.meta.MetadataScanner;
 import org.commonjava.cartographer.graph.discover.meta.MetadataScannerSupport;
 import org.commonjava.cartographer.graph.discover.meta.ScmUrlScanner;
 import org.commonjava.cartographer.graph.discover.patch.DepgraphPatcher;
 import org.commonjava.cartographer.graph.discover.patch.PatcherSupport;
-import org.commonjava.cartographer.event.NoOpCartoEventManager;
-import org.commonjava.cartographer.graph.MultiGraphCalculator;
-import org.commonjava.cartographer.graph.RecipeResolver;
+import org.commonjava.cartographer.graph.mutator.ManagedDependencyGraphMutatorFactory;
+import org.commonjava.cartographer.graph.mutator.MutatorSelector;
+import org.commonjava.cartographer.graph.mutator.NoOpGraphMutatorFactory;
+import org.commonjava.cartographer.graph.preset.BuildRequirementProjectsFilterFactory;
+import org.commonjava.cartographer.graph.preset.PresetFactory;
+import org.commonjava.cartographer.graph.preset.PresetSelector;
+import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilterFactory;
+import org.commonjava.cartographer.graph.preset.ScopedProjectFilterFactory;
+import org.commonjava.cartographer.ops.CalculationOps;
+import org.commonjava.cartographer.ops.GraphOps;
+import org.commonjava.cartographer.ops.GraphRenderingOps;
+import org.commonjava.cartographer.ops.MetadataOps;
+import org.commonjava.cartographer.ops.ResolveOps;
+import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
+import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
+import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
+import org.commonjava.cdi.util.weft.NamedThreadFactory;
+import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
+import org.commonjava.maven.atlas.graph.spi.RelationshipGraphConnectionFactory;
+import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectRelationshipSerializerModule;
+import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectVersionRefSerializerModule;
+import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.filearc.FileTransport;
 import org.commonjava.maven.galley.filearc.ZipJarTransport;
 import org.commonjava.maven.galley.maven.ArtifactManager;
@@ -106,8 +118,6 @@ public class CartographerCoreBuilder
 
     private ProjectRelationshipDiscoverer discoverer;
 
-    private NoOpCartoEventManager events;
-
     private ExecutorService aggregatorExecutor;
 
     private ExecutorService resolveExecutor;
@@ -156,7 +166,11 @@ public class CartographerCoreBuilder
                     throws CartoDataException
     {
         this.maven = null;
-        this.mavenBuilder = new GalleyMavenBuilder( resolverCacheDir );
+        this.mavenBuilder = new GalleyMavenBuilder(
+                ( pathGenerator, transferDecorator, eventManager ) -> new PartyLineCacheProvider( resolverCacheDir,
+                                                                                                  pathGenerator,
+                                                                                                  eventManager,
+                                                                                                  transferDecorator ) );
         this.connectionFactory = connectionFactory;
     }
 
@@ -249,12 +263,6 @@ public class CartographerCoreBuilder
             {
                 throw new CartoDataException( "Failed to initialize missing Galley components: %s", e, e.getMessage() );
             }
-        }
-
-        // TODO: This needs to be replaced with a real implementation.
-        if ( events == null )
-        {
-            events = new NoOpCartoEventManager();
         }
 
         aggregatorThreads = aggregatorThreads < 2 ? 2 : aggregatorThreads;
@@ -513,11 +521,6 @@ public class CartographerCoreBuilder
         return globalHttpConfig;
     }
 
-    public NoOpCartoEventManager getCartoEvents()
-    {
-        return events;
-    }
-
     public ExecutorService getAggregatorExecutor()
     {
         return aggregatorExecutor;
@@ -542,12 +545,6 @@ public class CartographerCoreBuilder
     public CartographerCoreBuilder withGlobalHttpConfig( final GlobalHttpConfiguration globalHttpConfig )
     {
         this.globalHttpConfig = globalHttpConfig;
-        return this;
-    }
-
-    public CartographerCoreBuilder withCartoEvents( final NoOpCartoEventManager events )
-    {
-        this.events = events;
         return this;
     }
 
@@ -866,19 +863,6 @@ public class CartographerCoreBuilder
     {
         checkMaven();
         mavenBuilder.withPasswordManager( passwordManager );
-        return this;
-    }
-
-    public File getCacheDir()
-    {
-        checkMaven();
-        return mavenBuilder.getCacheDir();
-    }
-
-    public CartographerCoreBuilder withCacheDir( final File cacheDir )
-    {
-        checkMaven();
-        mavenBuilder.withCacheDir( cacheDir );
         return this;
     }
 

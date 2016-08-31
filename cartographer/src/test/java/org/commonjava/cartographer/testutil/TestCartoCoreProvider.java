@@ -30,7 +30,6 @@ import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
-import org.commonjava.cartographer.graph.util.CartoEventGraphListenerFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -104,7 +103,7 @@ public class TestCartoCoreProvider
         nfc = new NoOpNotFoundCache();
 
         connectionFactory = new FileNeo4jConnectionFactory( dbDir, false );
-        graphFactory = new RelationshipGraphFactory( connectionFactory, new CartoEventGraphListenerFactory() );
+        graphFactory = new RelationshipGraphFactory( connectionFactory );
         passwords = new MemoryPasswordManager();
         http = new HttpImpl( passwords );
     }
