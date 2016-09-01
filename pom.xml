@@ -186,11 +186,6 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
-        <artifactId>galley-cache-simple</artifactId>
-        <version>${galleyVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-maven</artifactId>
         <version>${galleyVersion}</version>
       </dependency>
