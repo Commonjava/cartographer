@@ -42,9 +42,10 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private CartographerConfig cartoConfig;
-
     private PartyLineCacheProvider cacheProvider;
+
+    @Inject
+    private CartographerConfig cartoConfig;
 
     @Inject
     private PathGenerator pathGenerator;
@@ -61,11 +62,6 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            cartoConfig = new CartographerConfig();
-            cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
-
-            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
-                                                        transferDecorator );
         }
         catch ( IOException e )
         {
@@ -81,15 +77,14 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public CartographerConfig getCartoConfig()
+    public synchronized PartyLineCacheProvider getCacheProvider()
     {
-        return cartoConfig;
-    }
-
-    @Produces
-    @Default
-    public PartyLineCacheProvider getCacheProvider()
-    {
+        // we do this here to give the configuration time to be populated by the configurator.
+        if ( cacheProvider == null )
+        {
+            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
+                                                        transferDecorator );
+        }
         return cacheProvider;
     }
 }

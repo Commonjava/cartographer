@@ -53,4 +53,19 @@
       <artifactId>cartographer-model-java</artifactId>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <modules>
+        <module>docker</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>docker</id>
+      <modules>
+        <module>docker</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

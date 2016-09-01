@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.commonjava.cartographer.deploy</groupId>
+    <artifactId>cartographer-deployments-parent</artifactId>
+    <version>0.10.4-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>cartographer-docker</artifactId>
+  <packaging>docker</packaging>
+
+  <name>Cartographer Docker Image</name>
+
+  <properties>
+    <tagVer>dev</tagVer>
+    <imageName>cartographer</imageName>
+    <carto-waitFor>Cartographer listening on 0.0.0.0:8082</carto-waitFor>
+
+    <dockerRegistry>docker.io</dockerRegistry>
+    <dockerUser>commonjava</dockerUser>
+    <dockerStartTimeout>60000</dockerStartTimeout>
+
+    <dockerNetworkMode>bridge</dockerNetworkMode>
+    <dockerNetwork>default</dockerNetwork>
+
+    <gogs-waitFor>Listen: http://0.0.0.0:3000</gogs-waitFor>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.commonjava.cartographer.deploy</groupId>
+      <artifactId>cartographer-standalone-rest</artifactId>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.15.14</version>
+        <extensions>true</extensions>
+
+        <configuration>
+          <skip>${disableLauncher}</skip>
+          <authConfig>
+            <push>
+              <username>${dockerUser}</username>
+              <password>${docker.password}</password>
+            </push>
+          </authConfig>
+          <images>
+            <image>
+              <name>${dockerRegistry}/${dockerUser}/gogs-test-appliance</name>
+              <alias>gogs-test-appliance</alias>
+              <build>
+                <from>gogs/gogs</from>
+                <assembly>
+                  <mode>dir</mode>
+                  <basedir>/data</basedir>
+                  <inline>
+                    <fileSets>
+                      <fileSet>
+                        <directory>src/test/gogs-data</directory>
+                        <outputDirectory>/</outputDirectory>
+                        <useDefaultExcludes>false</useDefaultExcludes>
+                      </fileSet>
+                    </fileSets>
+                  </inline>
+                </assembly>
+                
+                <tags>
+                  <tag>latest</tag>
+                </tags>
+              </build>
+              <run>
+                <ports>
+                  <port>gogs.port:3000</port>
+                </ports>
+                <wait>
+                  <log>${gogs-waitFor}</log>
+                </wait>
+                <log>
+                  <file>${project.build.directory}/gogs.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                  <alias>gogs</alias>
+                </network>
+              </run>
+            </image>
+            <image>
+              <name>git-clone-test</name>
+              <build>
+                <from>centos</from>
+                <runCmds>
+                  <run>yum -y install git</run>
+                </runCmds>
+                <workdir>/checkout</workdir>
+                <cmd><![CDATA[git clone http://gogs-test-appliance:3000/commonjava/carto-config.git && (cd carto-config && pwd)]]></cmd>
+              </build>
+              <run>
+                <links>
+                  <link>gogs-test-appliance:gogs-test-appliance</link>
+                </links>
+                <log>
+                  <file>${project.build.directory}/git-test.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                </network>
+                <wait>
+                  <log>/checkout/carto-config</log>
+                  <time>${dockerStartTimeout}</time>
+                </wait>
+              </run>
+            </image>
+            <image>
+              <name>${dockerRegistry}/${dockerUser}/${imageName}</name>
+              <alias>vanilla</alias>
+              <build>
+                <dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
+                <assembly>
+                  <mode>dir</mode>
+                  <inline>
+                    <dependencySets>
+                      <dependencySet>
+                        <scope>provided</scope>
+                        <includes>
+                          <include>org.commonjava.cartographer.deploy:cartographer-standalone-rest</include>
+                        </includes>
+                        <outputDirectory>/tmp</outputDirectory>
+                        <outputFileNameMapping>cartographer.tar.gz</outputFileNameMapping>
+                      </dependencySet>
+                    </dependencySets>
+                    
+                    <fileSets>
+                      <fileSet>
+                        <directory>${project.basedir}/src/main/image</directory>
+                        <outputDirectory>/</outputDirectory>
+                      </fileSet>
+                    </fileSets>
+                  </inline>
+                </assembly>
+
+                <tags>
+                  <tag>${tagVer}</tag>
+                </tags>
+              </build>
+              <run>
+                <ports>
+                  <port>vanilla.port:8080</port>
+                </ports>
+                <wait>
+                  <log>${carto-waitFor}</log>
+                  <time>${dockerStartTimeout}</time>
+                </wait>
+                <log>
+                  <file>${project.build.directory}/vanilla.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                </network>
+              </run>
+            </image>
+            <image>
+              <name>${dockerRegistry}/${dockerUser}/${imageName}</name>
+              <alias>git-root</alias>
+              <run>
+                <env>
+                  <INDY_ETC_URL>http://gogs:3000/commonjava/carto-config.git</INDY_ETC_URL>
+                </env>
+                <ports>
+                  <port>git-root.port:8080</port>
+                </ports>
+                <links>
+                  <link>gogs-test-appliance:gogs</link>
+                </links>
+                <wait>
+                  <log>${carto-waitFor}</log>
+                  <time>${dockerStartTimeout}</time>
+                </wait>
+                <log>
+                  <file>${project.build.directory}/git-root.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                </network>
+              </run>
+            </image>
+            <image>
+              <name>${dockerRegistry}/${dockerUser}/${imageName}</name>
+              <alias>git-branch</alias>
+              <run>
+                <env>
+                  <INDY_ETC_URL>http://gogs:3000/commonjava/carto-config.git</INDY_ETC_URL>
+                  <INDY_ETC_BRANCH>test-branch</INDY_ETC_BRANCH>
+                </env>
+                <ports>
+                  <port>git-branch.port:8080</port>
+                </ports>
+                <links>
+                  <link>gogs-test-appliance:gogs</link>
+                </links>
+                <wait>
+                  <log>${carto-waitFor}</log>
+                  <time>${dockerStartTimeout}</time>
+                </wait>
+                <log>
+                  <file>${project.build.directory}/git-branch.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                </network>
+              </run>
+            </image>
+            <image>
+              <name>${dockerRegistry}/${dockerUser}/${imageName}</name>
+              <alias>git-subpath</alias>
+              <run>
+                <env>
+                  <INDY_ETC_URL>http://gogs:3000/commonjava/carto-config.git</INDY_ETC_URL>
+                  <INDY_ETC_SUBPATH>subpath</INDY_ETC_SUBPATH>
+                </env>
+                <ports>
+                  <port>git-subpath.port:8080</port>
+                </ports>
+                <links>
+                  <link>gogs-test-appliance:gogs</link>
+                </links>
+                <wait>
+                  <log>${carto-waitFor}</log>
+                  <time>${dockerStartTimeout}</time>
+                </wait>
+                <log>
+                  <file>${project.build.directory}/git-subpath.log</file>
+                </log>
+                <network>
+                  <mode>${dockerNetworkMode}</mode>
+                  <name>${dockerNetwork}</name>
+                </network>
+              </run>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+        <tagVer>${project.version}</tagVer>
+      </properties>
+    </profile>
+  </profiles>
+</project>

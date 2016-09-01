@@ -16,24 +16,30 @@
 package org.commonjava.cartographer.discover.indy;
 
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
-import org.commonjava.cartographer.conf.CartoDeploymentConfig;
+import org.commonjava.cartographer.conf.CartoAliasConfig;
 import org.commonjava.indy.client.core.Indy;
 import org.commonjava.indy.client.core.IndyClientException;
 import org.commonjava.indy.model.core.dto.EndpointView;
 import org.commonjava.indy.model.core.dto.EndpointViewListing;
 import org.commonjava.propulsor.lifecycle.AppLifecycleException;
 import org.commonjava.propulsor.lifecycle.StartupAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.net.www.ApplicationLaunchException;
 
 import javax.inject.Inject;
 
+import java.util.Map;
+
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 
-public class CartoIndyAliasStartupAction
+public class CartoAliasingStartupAction
         implements StartupAction
 {
 
     @Inject
-    private CartoDeploymentConfig config;
+    private CartoAliasConfig config;
 
     @Inject
     private SourceManagerImpl sourceManager;
@@ -42,24 +48,39 @@ public class CartoIndyAliasStartupAction
     public void start()
             throws AppLifecycleException
     {
-        String baseUrl = config.getIndyUrl();
-        if ( null == baseUrl || baseUrl.isEmpty() )
-        {
-            return;
-        }
+        Logger logger = LoggerFactory.getLogger( getClass() );
 
-        try
+        String baseUrl = config.getIndyUrl();
+        if ( !isEmpty( baseUrl ) )
         {
-            Indy indy = new Indy( baseUrl ).connect();
-            EndpointViewListing endpoints = indy.stats().getAllEndpoints();
-            for ( EndpointView epv : endpoints.getItems() )
+            try
             {
-                sourceManager.withAlias( epv.getKey(), epv.getResourceUri() );
+                Indy indy = new Indy( baseUrl ).connect();
+                EndpointViewListing endpoints = indy.stats().getAllEndpoints();
+                for ( EndpointView epv : endpoints.getItems() )
+                {
+                    logger.info( "Alias Indy '{}' => {}", epv.getKey(), epv.getResourceUri() );
+                    sourceManager.withAlias( epv.getKey(), epv.getResourceUri() );
+                }
+            }
+            catch ( IndyClientException e )
+            {
+                throw new AppLifecycleException( "Failed to read repositories from Indy at: %s. Reason: %s", e, baseUrl,
+                                                 e.getMessage() );
             }
         }
-        catch ( IndyClientException e )
+        else
         {
-            throwError( e );
+            logger.info( "No Indy server configured. Skipping auto-aliasing step." );
+        }
+
+        Map<String, String> explicitAliases = config.getExplicitAliases();
+        if ( explicitAliases != null )
+        {
+            explicitAliases.forEach( ( alias, url ) -> {
+                logger.info( "Alias '{}' => {}", alias, url );
+                sourceManager.withAlias( alias, url );
+            } );
         }
     }
 

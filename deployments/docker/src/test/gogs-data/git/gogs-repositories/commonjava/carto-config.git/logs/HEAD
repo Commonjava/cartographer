@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 4e499cb3b00974799966deecaa7db7dddb45b7ea John Casey <jdcasey@commonjava.org> 1472766629 -0500	commit (initial): initial vanilla config
+4e499cb3b00974799966deecaa7db7dddb45b7ea 329ec663abbbb01cc0c6f65784a0d5b4433c410f John Casey <jdcasey@commonjava.org> 1472766659 -0500	commit: adding same config to subpath
+329ec663abbbb01cc0c6f65784a0d5b4433c410f 329ec663abbbb01cc0c6f65784a0d5b4433c410f John Casey <jdcasey@commonjava.org> 1472766684 -0500	checkout: moving from master to test-branch

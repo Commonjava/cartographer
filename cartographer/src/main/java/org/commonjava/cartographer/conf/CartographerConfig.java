@@ -21,6 +21,7 @@ import org.commonjava.web.config.section.ConfigurationSectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 import java.io.File;
@@ -29,8 +30,7 @@ import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.join;
 
-@Alternative
-@Named
+@ApplicationScoped
 @SectionName( ConfigurationSectionListener.DEFAULT_SECTION )
 public class CartographerConfig
 {

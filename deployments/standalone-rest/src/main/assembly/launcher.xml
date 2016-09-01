@@ -33,15 +33,20 @@
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <scope>runtime</scope>
-      <includes>
-        <include>org.commonjava.maven.atlas*</include>
-        <include>org.commonjava.util:configuration*</include>
-      </includes>
       <excludes>
         <exclude>org.commonjava.cartographer*</exclude>
         <exclude>org.commonjava*</exclude>
         <exclude>ch.qos.logback:logback-classic</exclude>
       </excludes>
+      <outputDirectory>lib/thirdparty</outputDirectory>
+    </dependencySet>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <scope>runtime</scope>
+      <includes>
+        <include>org.commonjava.maven.atlas*</include>
+        <include>org.commonjava.util:configuration*</include>
+      </includes>
       <outputDirectory>lib/thirdparty</outputDirectory>
     </dependencySet>
   </dependencySets>
