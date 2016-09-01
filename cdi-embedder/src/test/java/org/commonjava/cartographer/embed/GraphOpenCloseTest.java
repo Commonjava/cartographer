@@ -22,11 +22,13 @@ import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Test;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 /**
  * Created by jdcasey on 9/14/15.
  */
+@ApplicationScoped
 public class GraphOpenCloseTest extends AbstractEmbeddableCDIProducerTest
 {
     @Inject

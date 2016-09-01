@@ -22,6 +22,7 @@ import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.ctl.RenderingController;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,6 +33,7 @@ import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
 @Path( "/api/depgraph/render" )
+@ApplicationScoped
 public class GraphRenderingResource
         implements RestResources
 {

@@ -27,6 +27,7 @@ import org.commonjava.propulsor.deploy.resteasy.RestResources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -40,6 +41,7 @@ import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationC
 @Path( "/api/depgraph/calc" )
 @Consumes( { "application/json", "application/indy*+json" } )
 @Produces( { "application/json", "application/indy*+json" } )
+@ApplicationScoped
 public class CalculatorResource
         implements RestResources
 {

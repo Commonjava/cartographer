@@ -36,6 +36,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
@@ -43,7 +44,8 @@ import java.util.Map;
 import java.util.Set;
 
 @ApplicationScoped
-@Named( "default-carto-discoverer" )
+@Named
+@Alternative
 public class DiscovererImpl
     implements ProjectRelationshipDiscoverer
 {

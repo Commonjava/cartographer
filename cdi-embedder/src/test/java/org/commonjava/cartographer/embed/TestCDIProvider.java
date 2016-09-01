@@ -15,7 +15,12 @@
  */
 package org.commonjava.cartographer.embed;
 
-import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.cartographer.conf.CartographerConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -24,6 +29,7 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
@@ -36,9 +42,18 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private FileCacheProviderConfig config;
+    private CartographerConfig cartoConfig;
 
-    private File dbDir;
+    private PartyLineCacheProvider cacheProvider;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager eventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
 
     @PostConstruct
     public void start()
@@ -46,8 +61,11 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            dbDir = temp.newFolder( "db" );
-            config = new FileCacheProviderConfig( temp.newFolder() ).withAliasLinking( true );
+            cartoConfig = new CartographerConfig();
+            cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
+
+            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
+                                                        transferDecorator );
         }
         catch ( IOException e )
         {
@@ -62,17 +80,16 @@ public class TestCDIProvider
     }
 
     @Produces
-    @Named( "graph-db.dir" )
-    public File getGraphDbDir()
+    @Default
+    public CartographerConfig getCartoConfig()
     {
-        return dbDir;
+        return cartoConfig;
     }
 
     @Produces
     @Default
-    public FileCacheProviderConfig getConfig()
+    public PartyLineCacheProvider getCacheProvider()
     {
-
-        return config;
+        return cacheProvider;
     }
 }

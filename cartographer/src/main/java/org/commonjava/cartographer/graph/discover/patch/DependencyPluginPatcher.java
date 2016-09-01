@@ -30,12 +30,14 @@ import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.net.URI;
 import java.util.*;
 
 import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
 
+@ApplicationScoped
 public class DependencyPluginPatcher
     implements DepgraphPatcher
 {

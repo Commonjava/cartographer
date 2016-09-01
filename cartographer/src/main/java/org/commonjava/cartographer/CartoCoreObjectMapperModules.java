@@ -32,6 +32,7 @@ import java.util.Arrays;
  */
 @ApplicationScoped
 public class CartoCoreObjectMapperModules
+    implements ObjectMapperModuleSet
 {
 
     private final NeoSpecificProjectVersionRefSerializerModule neoRefModule;
@@ -44,6 +45,7 @@ public class CartoCoreObjectMapperModules
         neoRefModule = NeoSpecificProjectVersionRefSerializerModule.INSTANCE;
     }
 
+    @Override
     public Iterable<Module> getSerializerModules()
     {
         return Arrays.asList( neoRelModule, neoRefModule );

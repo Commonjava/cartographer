@@ -27,9 +27,11 @@ import org.commonjava.cartographer.result.MappedProjectResult;
 import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@ApplicationScoped
 public class ProjectController
 {
     @Inject

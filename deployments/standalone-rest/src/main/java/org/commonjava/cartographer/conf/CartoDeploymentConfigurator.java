@@ -21,6 +21,8 @@ import org.commonjava.propulsor.config.Configurator;
 import org.commonjava.propulsor.config.ConfiguratorException;
 import org.commonjava.web.config.ConfigurationException;
 import org.commonjava.web.config.dotconf.DotConfConfigurationReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,42 +38,41 @@ public class CartoDeploymentConfigurator
         implements Configurator
 {
     @Inject
-    private CartoDeploymentConfig cartoDeploymentConfig;
+    private CartographerConfig cartoConfig;
 
     @Override
     public void load( BootOptions options )
             throws ConfiguratorException
     {
         String config = options.getConfig();
-        if ( StringUtils.isEmpty( config ) )
-        {
-            config = cartoDeploymentConfig.DEFAULT_CARTO_CONFIG;
-        }
         File configFile = new File( config );
-        if ( configFile.isDirectory() )
-        {
-            configFile = new File( configFile, "main.conf" );
-        }
-        System.setProperty( cartoDeploymentConfig.CARTO_CONFIG_DIR_SYSPROP,
-                            configFile.getParentFile().getAbsolutePath() );
+
+        cartoConfig.setConfigDir( configFile.getAbsoluteFile().getParentFile() );
+        cartoConfig.setHomeDir( new File( options.getHomeDir() ) );
+
         if ( !configFile.exists() )
         {
             // TODO: Make resilient enough to write default configs.
-            throw new ConfiguratorException( "Missing configuration: %s", configFile );
+            Logger logger = LoggerFactory.getLogger( getClass() );
+            logger.warn( "Cannot find configuration file: {}. Using application defaults.", configFile );
+
+//            throw new ConfiguratorException( "Missing configuration: %s", configFile );
         }
-        File dir = configFile.getAbsoluteFile().getParentFile();
-        cartoDeploymentConfig.setConfigDir( dir );
-        try (InputStream in = new FileInputStream( configFile ))
+        else
         {
-            new DotConfConfigurationReader( cartoDeploymentConfig ).loadConfiguration( in );
+            try (InputStream in = new FileInputStream( configFile ))
+            {
+                new DotConfConfigurationReader( cartoConfig ).loadConfiguration( in );
+            }
+            catch ( ConfigurationException | IOException e )
+            {
+                throw new ConfiguratorException( "Failed to read configuration: %s. Reason: %s", e, configFile,
+                                                 e.getMessage() );
+            }
         }
-        catch ( ConfigurationException | IOException e )
-        {
-            throw new ConfiguratorException( "Failed to read configuration: %s. Reason: %s", e, configFile,
-                                             e.getMessage() );
-        }
-        cartoDeploymentConfig.configurationDone();
-        String validationErrors = cartoDeploymentConfig.getValidationErrors();
+
+        cartoConfig.configurationDone();
+        String validationErrors = cartoConfig.getValidationErrors();
         if ( isNotEmpty( validationErrors ) )
         {
             throw new ConfiguratorException( "Cartographer configuration is not complete!\n\n%s", validationErrors );

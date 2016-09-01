@@ -62,6 +62,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashSet;
@@ -69,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@ApplicationScoped
 public class GraphOpsImpl
                 implements GraphOps
 {

@@ -16,9 +16,9 @@
 package org.commonjava.cartographer.rest.util;
 
 import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
 import org.commonjava.cartographer.graph.preset.PresetSelector;
-import org.commonjava.cartographer.rest.conf.CartographerRESTConfig;
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.filter.DependencyFilter;
 import org.commonjava.maven.atlas.graph.filter.ExtensionFilter;
@@ -49,7 +49,7 @@ public class RequestAdvisor
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
-    protected CartographerRESTConfig config;
+    protected CartographerConfig config;
 
     @Inject
     protected PresetSelector presetSelector;

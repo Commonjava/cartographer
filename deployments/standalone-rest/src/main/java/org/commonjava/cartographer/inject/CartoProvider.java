@@ -16,8 +16,14 @@
 package org.commonjava.cartographer.inject;
 
 import org.commonjava.cartographer.conf.CartoDeploymentConfig;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.propulsor.deploy.undertow.ui.UIConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,47 +41,61 @@ public class CartoProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    @Inject
     private CartoDeploymentConfig config;
 
-    private RelationshipGraphFactory graphFactory;
+    private PartyLineCacheProvider cacheProvider;
+
+    private UIConfiguration uiConfiguration;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager eventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
 
     protected CartoProvider()
     {
     }
 
-    public CartoProvider( final CartoDeploymentConfig config )
-    {
-        this.config = config;
-        init();
-    }
-
     @PostConstruct
     public void init()
     {
-        logger.debug( "SETUP: RelationshipGraphFactory" );
-        this.graphFactory =
-            new RelationshipGraphFactory( new FileNeo4jConnectionFactory( config.getDataBasedir(), true ) );
-    }
+        config = new CartoDeploymentConfig();
 
-    @PreDestroy
-    public void shutdown()
-    {
-        try
-        {
-            this.graphFactory.close();
-        }
-        catch ( IOException e )
-        {
-            logger.error("Failed ot close graph factory", e );
-        }
+        uiConfiguration = new UIConfiguration();
+        uiConfiguration.setEnabled( false );
     }
 
     @Produces
     @Default
-    public RelationshipGraphFactory getGraphFactory()
+    @ApplicationScoped
+    public UIConfiguration getUiConfiguration()
     {
-        return graphFactory;
+        return uiConfiguration;
     }
 
+    @Produces
+    @Default
+    @ApplicationScoped
+    public CartoDeploymentConfig getCartographerConfig()
+    {
+        return config;
+    }
+
+    @Produces
+    @Default
+    @ApplicationScoped
+    public synchronized PartyLineCacheProvider getCacheProvider()
+    {
+        if ( cacheProvider == null )
+        {
+            cacheProvider = new PartyLineCacheProvider( config.getCacheBasedir(), pathGenerator, eventManager,
+                                                        transferDecorator );
+        }
+
+        return cacheProvider;
+    }
 }

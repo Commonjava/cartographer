@@ -20,6 +20,7 @@ import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.ctl.ResolverController;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -31,6 +32,7 @@ import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationC
 
 @Path( "/api/depgraph/graph" )
 @Consumes( { application_json } )
+@ApplicationScoped
 public class ResolverResource
         implements RestResources
 {

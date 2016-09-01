@@ -29,9 +29,11 @@ import org.commonjava.cartographer.result.MetadataResult;
 import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@ApplicationScoped
 public class MetadataController
 {
 

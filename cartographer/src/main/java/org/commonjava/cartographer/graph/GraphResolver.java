@@ -46,6 +46,7 @@ import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.*;
@@ -53,6 +54,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@ApplicationScoped
 public class GraphResolver
 {
 

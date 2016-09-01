@@ -20,6 +20,7 @@ import org.commonjava.cartographer.rest.ctl.WorkspaceController;
 import org.commonjava.cartographer.rest.dto.WorkspaceList;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,6 +35,7 @@ import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationC
 
 @Path( "/api/depgraph/ws" )
 @Produces( { application_json } )
+@ApplicationScoped
 public class WorkspaceResource
         implements RestResources
 {

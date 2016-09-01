@@ -33,9 +33,11 @@ import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@ApplicationScoped
 public class GraphController
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );

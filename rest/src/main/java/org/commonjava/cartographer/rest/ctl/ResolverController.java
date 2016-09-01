@@ -18,16 +18,18 @@ package org.commonjava.cartographer.rest.ctl;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.CartoRequestException;
+import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.cartographer.graph.GraphResolver;
 import org.commonjava.cartographer.request.MultiGraphRequest;
 import org.commonjava.cartographer.rest.CartoRESTException;
-import org.commonjava.cartographer.rest.conf.CartographerRESTConfig;
 import org.commonjava.cartographer.rest.util.RecipeHelper;
 import org.commonjava.propulsor.deploy.undertow.util.ApplicationStatus;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@ApplicationScoped
 public class ResolverController
 {
 
@@ -35,7 +37,7 @@ public class ResolverController
     private GraphResolver resolver;
 
     @Inject
-    private CartographerRESTConfig config;
+    private CartographerConfig config;
 
     @Inject
     private RecipeHelper configHelper;

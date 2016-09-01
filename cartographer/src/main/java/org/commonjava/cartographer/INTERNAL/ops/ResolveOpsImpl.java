@@ -45,6 +45,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.*;
@@ -54,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.commonjava.cartographer.INTERNAL.graph.agg.AggregationUtils.collectProjectVersionReferences;
 
+@ApplicationScoped
 public class ResolveOpsImpl
                 implements ResolveOps
 {
