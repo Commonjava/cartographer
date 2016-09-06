@@ -18,7 +18,7 @@ FROM centos
 
 MAINTAINER John Casey <jdcasey@commonjava.org>
 
-VOLUME /var/lib/cartographer/work /var/lib/cartographer/cache /var/lib/cartographer/data /var/log/cartographer /etc/cartographer /tmp/cartographer /tmp/ssh-config
+VOLUME /var/lib/cartographer/work /var/lib/cartographer/cache /var/lib/cartographer/data /tmp/cartographer /tmp/ssh-config
 
 EXPOSE 8082 8000
 

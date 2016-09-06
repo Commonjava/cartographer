@@ -18,6 +18,7 @@ package org.commonjava.cartographer.embed;
 import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -42,7 +43,7 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private PartyLineCacheProvider cacheProvider;
+    private PartyLineCacheProviderFactory cacheProviderFactory;
 
     @Inject
     private CartographerConfig cartoConfig;
@@ -62,11 +63,15 @@ public class TestCDIProvider
         try
         {
             temp.create();
+            cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
+            cartoConfig.configurationDone();
         }
         catch ( IOException e )
         {
             Assert.fail( "Failed to init temp folder fro file cache." );
         }
+
+        cacheProviderFactory = new PartyLineCacheProviderFactory( cartoConfig.getCacheBasedir() );
     }
 
     @PreDestroy
@@ -77,14 +82,8 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public synchronized PartyLineCacheProvider getCacheProvider()
+    public PartyLineCacheProviderFactory getCacheProviderFactory()
     {
-        // we do this here to give the configuration time to be populated by the configurator.
-        if ( cacheProvider == null )
-        {
-            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
-                                                        transferDecorator );
-        }
-        return cacheProvider;
+        return cacheProviderFactory;
     }
 }

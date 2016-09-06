@@ -27,12 +27,17 @@ import org.commonjava.cartographer.graph.mutator.ManagedDependencyGraphMutatorFa
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.maven.galley.GalleyInitException;
+import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
 import org.commonjava.maven.galley.filearc.FileTransportConfig;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.maven.rel.MavenModelProcessor;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.slf4j.Logger;
@@ -77,6 +82,15 @@ public class EmbeddableCDIProducer
     @Inject
     private PathGenerator pathGenerator;
 
+    @Inject
+    private TransferDecorator transferDecorator;
+
+    @Inject
+    private FileEventManager fileEventManager;
+
+    @Inject
+    private CacheProviderFactory cacheProviderFactory;
+
     private RelationshipGraphFactory graphFactory;
 
     private SourceManagerImpl sourceManager;
@@ -88,6 +102,8 @@ public class EmbeddableCDIProducer
     private GlobalHttpConfiguration globalHttpConfiguration;
 
     private ManagedDependencyGraphMutatorFactory mutatorFactory;
+
+    private CacheProvider cacheProvider;
 
     @PostConstruct
     public void postConstruct()
@@ -160,5 +176,24 @@ public class EmbeddableCDIProducer
     public ManagedDependencyGraphMutatorFactory getMutatorFactory()
     {
         return mutatorFactory;
+    }
+
+    @Produces
+    @Default
+    public synchronized CacheProvider getCacheProvider()
+    {
+        if ( cacheProvider == null )
+        {
+            try
+            {
+                cacheProvider = cacheProviderFactory.create( pathGenerator, transferDecorator, fileEventManager );
+            }
+            catch ( GalleyInitException e )
+            {
+                throw new IllegalStateException( "Failed to create CacheProvider: " + e.getMessage(), e );
+            }
+        }
+
+        return cacheProvider;
     }
 }
