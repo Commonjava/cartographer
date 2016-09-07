@@ -20,6 +20,8 @@ MAINTAINER John Casey <jdcasey@commonjava.org>
 
 VOLUME /var/lib/cartographer/work /var/lib/cartographer/cache /var/lib/cartographer/data /tmp/cartographer /tmp/ssh-config
 
+USER root
+
 EXPOSE 8082 8000
 
 ENV GIT_SSL_NO_VERIFY true
