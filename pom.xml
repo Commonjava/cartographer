@@ -42,15 +42,15 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <atlasVersion>0.16.2-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.13.2-SNAPSHOT</galleyVersion>
+    <atlasVersion>0.16.2</atlasVersion>
+    <galleyVersion>0.13.2</galleyVersion>
     <javaVersion>1.8</javaVersion>
 
-    <propulsorVersion>0.1-SNAPSHOT</propulsorVersion>
+    <propulsorVersion>1.0</propulsorVersion>
     <configVersion>0.8</configVersion>
     <indyVersion>1.0.0</indyVersion>
     <jhttpcVersion>1.3</jhttpcVersion>
-    <weftVersion>1.2-SNAPSHOT</weftVersion>
+    <weftVersion>1.2</weftVersion>
 
     <it-skip>true</it-skip>
 
