@@ -27,7 +27,7 @@
 
   <groupId>org.commonjava.cartographer</groupId>
   <artifactId>cartographer-parent</artifactId>
-  <version>0.11.0</version>
+  <version>0.11.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Cartographer Project-Discovery API</name>
@@ -37,7 +37,7 @@
     <connection>scm:git:https://github.com/Commonjava/cartographer.git</connection>
     <developerConnection>scm:git:git@github.com:Commonjava/cartographer.git</developerConnection>
     <url>http://github.com/Commonjava/cartographer</url>
-    <tag>cartographer-parent-0.11.0</tag>
+    <tag>HEAD</tag>
   </scm>
   
   <properties>
@@ -87,60 +87,60 @@
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-model-java</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-rest</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-rest-client-java</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-cdi-embedder</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-api</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-spi</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-tck</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>org.commonjava.cartographer.deploy</groupId>
         <artifactId>cartographer-standalone-rest</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.cartographer.deploy</groupId>
         <artifactId>cartographer-standalone-rest</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.1-SNAPSHOT</version>
         <type>tar.gz</type>
         <scope>provided</scope>
       </dependency>
