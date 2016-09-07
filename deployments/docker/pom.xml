@@ -111,7 +111,8 @@
               </run>
             </image>
             <image>
-              <name>git-clone-test</name>
+              <name>${dockerRegistry}/${dockerUser}/git-clone-test</name>
+              <alias>git-clone-test</alias>
               <build>
                 <from>centos</from>
                 <runCmds>
