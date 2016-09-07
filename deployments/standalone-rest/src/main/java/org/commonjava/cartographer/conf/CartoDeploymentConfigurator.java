@@ -20,16 +20,23 @@ import org.commonjava.propulsor.boot.BootOptions;
 import org.commonjava.propulsor.config.Configurator;
 import org.commonjava.propulsor.config.ConfiguratorException;
 import org.commonjava.web.config.ConfigurationException;
+import org.commonjava.web.config.ConfigurationListener;
 import org.commonjava.web.config.dotconf.DotConfConfigurationReader;
+import org.commonjava.web.config.io.ConfigFileUtils;
+import org.commonjava.web.config.section.BeanSectionListener;
+import org.commonjava.web.config.section.ConfigurationSectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
@@ -39,6 +46,12 @@ public class CartoDeploymentConfigurator
 {
     @Inject
     private CartographerConfig cartoConfig;
+
+    @Inject
+    private Instance<ConfigurationSectionListener> configListeners;
+
+    @Inject
+    private Instance<CartoSubConfig> subConfigs;
 
     @Override
     public void load( BootOptions options )
@@ -60,9 +73,22 @@ public class CartoDeploymentConfigurator
         }
         else
         {
-            try (InputStream in = new FileInputStream( configFile ))
+            try (InputStream stream = ConfigFileUtils.readFileWithIncludes( config, System.getProperties() ) )
             {
-                new DotConfConfigurationReader( cartoConfig ).loadConfiguration( in );
+                List<ConfigurationSectionListener<?>> listeners = new ArrayList<>();
+                listeners.add( new BeanSectionListener( cartoConfig  ) );
+
+                if ( configListeners != null )
+                {
+                    configListeners.forEach( (listener)->listeners.add( listener ) );
+                }
+
+                if ( subConfigs != null )
+                {
+                    subConfigs.forEach( subConfig -> listeners.add( new BeanSectionListener<>( subConfig ) ) );
+                }
+
+                new DotConfConfigurationReader( listeners ).loadConfiguration( stream );
             }
             catch ( ConfigurationException | IOException e )
             {

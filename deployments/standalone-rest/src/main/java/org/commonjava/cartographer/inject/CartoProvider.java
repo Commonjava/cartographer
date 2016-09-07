@@ -15,11 +15,9 @@
  */
 package org.commonjava.cartographer.inject;
 
-import org.commonjava.cartographer.conf.CartoDeploymentConfig;
 import org.commonjava.cartographer.conf.CartographerConfig;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -28,74 +26,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import java.io.IOException;
 
 @ApplicationScoped
 public class CartoProvider
 {
 
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    private CartoDeploymentConfig config;
-
-    private PartyLineCacheProvider cacheProvider;
-
-    private UIConfiguration uiConfiguration;
+    private PartyLineCacheProviderFactory cacheProviderFactory;
 
     @Inject
-    private PathGenerator pathGenerator;
-
-    @Inject
-    private FileEventManager eventManager;
-
-    @Inject
-    private TransferDecorator transferDecorator;
+    private CartographerConfig config;
 
     protected CartoProvider()
     {
     }
 
-    @PostConstruct
-    public void init()
-    {
-        config = new CartoDeploymentConfig();
-
-        uiConfiguration = new UIConfiguration();
-        uiConfiguration.setEnabled( false );
-    }
-
     @Produces
     @Default
     @ApplicationScoped
-    public UIConfiguration getUiConfiguration()
+    public synchronized PartyLineCacheProviderFactory getCacheProviderFactory()
     {
-        return uiConfiguration;
-    }
-
-    @Produces
-    @Default
-    @ApplicationScoped
-    public CartoDeploymentConfig getCartographerConfig()
-    {
-        return config;
-    }
-
-    @Produces
-    @Default
-    @ApplicationScoped
-    public synchronized PartyLineCacheProvider getCacheProvider()
-    {
-        if ( cacheProvider == null )
+        // we do this here to give the configuration time to be populated by the configurator.
+        if ( cacheProviderFactory == null )
         {
-            cacheProvider = new PartyLineCacheProvider( config.getCacheBasedir(), pathGenerator, eventManager,
-                                                        transferDecorator );
+            cacheProviderFactory = new PartyLineCacheProviderFactory( config.getCacheBasedir() );
         }
 
-        return cacheProvider;
+        return cacheProviderFactory;
     }
 }

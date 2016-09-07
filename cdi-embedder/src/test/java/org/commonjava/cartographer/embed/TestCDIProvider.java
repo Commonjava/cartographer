@@ -18,6 +18,7 @@ package org.commonjava.cartographer.embed;
 import org.commonjava.cartographer.conf.CartographerConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -42,9 +43,10 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private CartographerConfig cartoConfig;
+    private PartyLineCacheProviderFactory cacheProviderFactory;
 
-    private PartyLineCacheProvider cacheProvider;
+    @Inject
+    private CartographerConfig cartoConfig;
 
     @Inject
     private PathGenerator pathGenerator;
@@ -61,16 +63,15 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            cartoConfig = new CartographerConfig();
             cartoConfig.setHomeDir( temp.newFolder( "carto-home" ) );
-
-            cacheProvider = new PartyLineCacheProvider( cartoConfig.getCacheBasedir(), pathGenerator, eventManager,
-                                                        transferDecorator );
+            cartoConfig.configurationDone();
         }
         catch ( IOException e )
         {
             Assert.fail( "Failed to init temp folder fro file cache." );
         }
+
+        cacheProviderFactory = new PartyLineCacheProviderFactory( cartoConfig.getCacheBasedir() );
     }
 
     @PreDestroy
@@ -81,15 +82,8 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public CartographerConfig getCartoConfig()
+    public PartyLineCacheProviderFactory getCacheProviderFactory()
     {
-        return cartoConfig;
-    }
-
-    @Produces
-    @Default
-    public PartyLineCacheProvider getCacheProvider()
-    {
-        return cacheProvider;
+        return cacheProviderFactory;
     }
 }
