@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava.cartographer.deploy</groupId>
     <artifactId>cartographer-deployments-parent</artifactId>
-    <version>0.10.4-SNAPSHOT</version>
+    <version>0.11.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>cartographer-docker</artifactId>
