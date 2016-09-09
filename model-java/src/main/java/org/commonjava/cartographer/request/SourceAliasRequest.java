@@ -13,34 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.cartographer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.commonjava.cartographer.ops.*;
-
-import java.util.Map;
+package org.commonjava.cartographer.request;
 
 /**
- * Created by jdcasey on 8/14/15.
+ * Created by jdcasey on 9/9/16.
  */
-public interface Cartographer
-    extends AutoCloseable
+public class SourceAliasRequest
 {
-    ObjectMapper getObjectMapper();
+    private String alias;
 
-    CalculationOps getCalculator();
+    private String url;
 
-    GraphOps getGrapher();
+    public SourceAliasRequest(){}
 
-    GraphRenderingOps getRenderer();
+    public SourceAliasRequest( String alias, String url )
+    {
+        this.alias = alias;
+        this.url = url;
+    }
 
-    MetadataOps getMetadata();
+    public String getAlias()
+    {
+        return alias;
+    }
 
-    ResolveOps getResolver();
+    public void setAlias( String alias )
+    {
+        this.alias = alias;
+    }
 
-    Map<String, String> getSourceAliasMap()
-            throws CartoException;
+    public String getUrl()
+    {
+        return url;
+    }
 
-    boolean addSourceAlias( String alias, String url )
-            throws CartoException;
+    public void setUrl( String url )
+    {
+        this.url = url;
+    }
 }

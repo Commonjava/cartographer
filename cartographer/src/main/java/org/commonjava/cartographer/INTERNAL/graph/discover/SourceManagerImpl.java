@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +68,23 @@ public class SourceManagerImpl
     {
         aliases.put( alias, url );
         return this;
+    }
+
+    /**
+     * Alias the given URL with a new short-handed key for use in various cartographer recipes.
+     *
+     * @param alias
+     * @param url
+     */
+    public boolean addSourceAlias( final String alias, final String url )
+    {
+        if ( aliases.containsKey( alias ) )
+        {
+            return false;
+        }
+
+        aliases.put( alias, url );
+        return true;
     }
 
     /**
@@ -177,6 +195,12 @@ public class SourceManagerImpl
     public String getFormatHint()
     {
         return "Any valid URL supported by a configured galley transport";
+    }
+
+    @Override
+    public Map<String, String> getAliasMap()
+    {
+        return Collections.unmodifiableMap( aliases );
     }
 
     @Override

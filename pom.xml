@@ -46,9 +46,9 @@
     <galleyVersion>0.13.2</galleyVersion>
     <javaVersion>1.8</javaVersion>
 
-    <propulsorVersion>1.0</propulsorVersion>
+    <propulsorVersion>1.1-SNAPSHOT</propulsorVersion>
     <configVersion>0.8</configVersion>
-    <indyVersion>1.0.0</indyVersion>
+    <indyVersion>1.1.0-SNAPSHOT</indyVersion>
     <jhttpcVersion>1.3</jhttpcVersion>
     <weftVersion>1.2</weftVersion>
 
@@ -61,6 +61,10 @@
 
 
   <modules>
+    <!-- try to force these to run as soon as they're able -->
+    <module>ftests</module>
+    <module>rest-ftests</module>
+
     <module>model-java</module>
     <module>api</module>
     <module>cartographer</module>
@@ -70,8 +74,6 @@
     <module>rest</module>
     <module>rest-client-java</module>
     <module>deployments</module>
-    <module>ftests</module>
-    <module>rest-ftests</module>
   </modules>
 
   <dependencyManagement>
@@ -94,6 +96,13 @@
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-rest</artifactId>
         <version>0.11.1-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-rest-ftests</artifactId>
+        <version>0.12.0-SNAPSHOT</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -369,6 +378,11 @@
               <id>integration-tests</id>
               <goals>
                 <goal>integration-test</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>verify-all-tests</id>
+              <goals>
                 <goal>verify</goal>
               </goals>
             </execution>

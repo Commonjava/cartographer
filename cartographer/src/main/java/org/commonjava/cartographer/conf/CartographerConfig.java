@@ -109,7 +109,7 @@ public class CartographerConfig
 
     public File getConfigDir()
     {
-        return configDir;
+        return getDir( configDir, "etc" );
     }
 
     public void setConfigDir( File configDir )

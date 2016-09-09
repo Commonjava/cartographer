@@ -28,6 +28,7 @@ import javax.enterprise.inject.Produces;
 @SectionName( CartoWeftConfig.SECTION_NAME )
 public class CartoWeftConfig
         extends MapSectionListener
+        implements CartoSubConfig
 {
 
     public static final String SECTION_NAME = "threadpools";
