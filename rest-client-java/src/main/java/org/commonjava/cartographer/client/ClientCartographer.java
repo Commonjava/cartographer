@@ -25,6 +25,8 @@ import org.commonjava.cartographer.ops.ResolveOps;
 import org.commonjava.cartographer.request.AbstractGraphRequest;
 import org.commonjava.cartographer.request.GraphAnalysisRequest;
 import org.commonjava.cartographer.request.MultiGraphRequest;
+import org.commonjava.cartographer.request.SourceAliasRequest;
+import org.commonjava.cartographer.result.SourceAliasMapResult;
 import org.commonjava.propulsor.client.http.ClientHttpException;
 import org.commonjava.propulsor.client.http.ClientHttpSupport;
 import org.commonjava.util.jhttpc.HttpFactory;
@@ -32,6 +34,7 @@ import org.commonjava.util.jhttpc.auth.ClientAuthenticator;
 import org.commonjava.util.jhttpc.auth.PasswordManager;
 import org.commonjava.util.jhttpc.model.SiteConfig;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,7 +49,7 @@ public class ClientCartographer
 
     private CartographerRESTClient client;
 
-    private Map<String, String> sourceAliases;
+//    private Map<String, String> sourceAliases;
 
     public ClientCartographer( ClientHttpSupport http )
     {
@@ -81,54 +84,62 @@ public class ClientCartographer
         this.internalClient = false;
     }
 
-    public synchronized ClientCartographer setSourceAliases( Map<String, String> sourceAliases )
+    public boolean addSourceAlias( String alias, String url )
+            throws CartoClientException
     {
-        if ( sourceAliases != null )
+        try
         {
-            this.sourceAliases = sourceAliases;
+            return client.addSourceAlias( alias, url );
         }
-        return this;
+        catch ( ClientHttpException e )
+        {
+            throw new CartoClientException( "Failed to add source alias from: '%s' to: '%s'. Reason: %s", e, alias, url,
+                                            e.getMessage() );
+        }
     }
 
-    public synchronized ClientCartographer setSourceAlias( String alias, String source )
+    public Map<String, String> getSourceAliasMap()
+            throws CartoClientException
     {
-        if ( sourceAliases == null )
+        try
         {
-            sourceAliases = new HashMap<>();
+            SourceAliasMapResult result = client.getSourceAliasMap();
+            return result == null ? Collections.emptyMap() : result.getAliases();
         }
-
-        sourceAliases.put(alias, source );
-        return this;
+        catch ( ClientHttpException e )
+        {
+            throw new CartoClientException( "Failed to retrieve source-alias map. Reason: %s", e, e.getMessage() );
+        }
     }
 
     <T extends AbstractGraphRequest> T normalizeRequest( T request )
     {
-        request.setSource( deAlias( request.getSource() ) );
+//        request.setSource( deAlias( request.getSource() ) );
         return request;
     }
 
     <T extends GraphAnalysisRequest> T normalizeRequests( T request )
     {
-        for ( MultiGraphRequest req: request.getGraphRequests() )
-        {
-            req.setSource( deAlias( req.getSource() ) );
-        }
+//        for ( MultiGraphRequest req: request.getGraphRequests() )
+//        {
+//            req.setSource( deAlias( req.getSource() ) );
+//        }
         return request;
     }
 
-    String deAlias( String source )
-    {
-        if ( sourceAliases != null )
-        {
-            String deref = sourceAliases.get( source );
-            if ( deref != null )
-            {
-                return deref;
-            }
-        }
-
-        return source;
-    }
+//    String deAlias( String source )
+//    {
+//        if ( sourceAliases != null )
+//        {
+//            String deref = sourceAliases.get( source );
+//            if ( deref != null )
+//            {
+//                return deref;
+//            }
+//        }
+//
+//        return source;
+//    }
 
     @Override
     public ObjectMapper getObjectMapper()

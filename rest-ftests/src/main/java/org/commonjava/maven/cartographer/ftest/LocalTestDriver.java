@@ -16,11 +16,11 @@
 package org.commonjava.maven.cartographer.ftest;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
 import org.commonjava.cartographer.boot.Options;
 import org.commonjava.cartographer.client.ClientCartographer;
-import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.propulsor.boot.BootOptions;
 import org.commonjava.propulsor.boot.BootStatus;
 import org.commonjava.propulsor.boot.Booter;
@@ -30,12 +30,18 @@ import org.commonjava.util.jhttpc.auth.PasswordManager;
 import org.commonjava.util.jhttpc.model.SiteConfig;
 import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
 import org.commonjava.util.jhttpc.util.UrlUtils;
+import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 
+import static org.commonjava.maven.cartographer.ftest.testutil.TestFileUtils.readResource;
+import static org.commonjava.maven.cartographer.ftest.testutil.TestFileUtils.writeConfigFile;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -45,6 +51,10 @@ import org.jboss.weld.environment.se.WeldContainer;
 public class LocalTestDriver
         implements CartoTCKDriver
 {
+
+    public static final String MAIN_CONF = "main.conf";
+
+    public static final String TEST_MAIN_CONF = "test-main.conf";
 
     private Options options;
 
@@ -60,11 +70,21 @@ public class LocalTestDriver
 
     private TemporaryFolder temp = new TemporaryFolder();
 
-//    private File configDir;
-
     private Cartographer carto;
 
     private SourceManagerImpl sourceManager;
+
+    private Consumer<File> configurator = defaultConfigWriter();
+
+    public Consumer<File> defaultConfigWriter()
+    {
+        return (configDir)->writeConfigFile( configDir, MAIN_CONF, readResource( TEST_MAIN_CONF ) );
+    }
+
+    public void setConfigurator( Consumer<File> configurator )
+    {
+        this.configurator = configurator;
+    }
 
     @Override
     public Cartographer start( TemporaryFolder temp )
@@ -74,17 +94,11 @@ public class LocalTestDriver
 
         temp.create();
 
-//        configDir = temp.newFolder( "local-carto-etc" );
-//
-//        File mainConf = new File( configDir, "etc/main.conf" );
-//        mainConf.getParentFile().mkdirs();
-//
-//        FileUtils.write( mainConf, "koji.url=https://koji.myco.com/kojihub\n" + "pncl.url=https://pncl.myco.com/\n"
-//                + "koji.client.pem.password = mypassword" );
-//
-//        System.out.println(
-//                "Wrote configuration: " + mainConf + " with configuration:\n\n" + FileUtils.readFileToString(
-//                        mainConf ) );
+        File homeDir = temp.newFolder( "carto-home" );
+        File configDir = new File( homeDir, "etc" );
+        configDir.mkdirs();
+
+        configurator.accept( configDir );
 
         final ServiceLoader<BootOptions> loader = ServiceLoader.load( BootOptions.class );
         final BootOptions opts = loader.iterator()
@@ -92,7 +106,10 @@ public class LocalTestDriver
 
         options = (Options) opts;
         options.setPort( -1 );
-        options.setHomeDir( temp.newFolder( "carto-home" ).getAbsolutePath() );
+        options.setHomeDir( homeDir.getAbsolutePath() );
+
+        // Should not need this; the configurator should be smart enough to try ${carto.home}/etc/main.conf on its own.
+//        options.setConfig( new File( configDir, MAIN_CONF ).getAbsolutePath() );
 
         booter = new Booter();
         bootStatus = booter.start( options );

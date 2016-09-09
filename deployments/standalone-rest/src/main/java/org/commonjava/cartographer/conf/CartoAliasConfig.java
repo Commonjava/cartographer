@@ -39,6 +39,7 @@ import static org.apache.commons.lang.StringUtils.join;
 @ApplicationScoped
 public class CartoAliasConfig
         extends MapSectionListener
+        implements CartoSubConfig
 {
     public static final String INDY_URL_KEY = "indy.url";
 
