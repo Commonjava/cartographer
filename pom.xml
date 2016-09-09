@@ -56,7 +56,7 @@
 
     <it-skip>true</it-skip>
 
-    <test-forkCount>1C</test-forkCount>
+    <test-forkCount>4</test-forkCount>
     <it-forkCount>${test-forkCount}</it-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
   </properties>
@@ -419,6 +419,13 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>ci</id>
+      <properties>
+        <test-forkCount>4</test-forkCount>
+        <it-forkCount>2</it-forkCount>
+      </properties>
+    </profile>
     <profile>
       <id>run-its</id>
       <properties>
