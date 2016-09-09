@@ -42,10 +42,11 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
+    <javaVersion>1.8</javaVersion>
+    
     <atlasVersion>0.16.2</atlasVersion>
     <galleyVersion>0.13.2</galleyVersion>
     <partylineVersion>0.9-SNAPSHOT</partylineVersion>
-    <javaVersion>1.8</javaVersion>
 
     <propulsorVersion>1.1-SNAPSHOT</propulsorVersion>
     <configVersion>0.8</configVersion>
@@ -161,7 +162,7 @@
         <artifactId>partyline</artifactId>
         <version>${partylineVersion}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-identities</artifactId>
