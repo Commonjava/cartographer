@@ -15,35 +15,42 @@
  */
 package org.commonjava.cartographer.spi.graph.discover;
 
+import org.commonjava.cartographer.CartoDataException;
+import org.commonjava.cartographer.CartoException;
+import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.maven.galley.model.Location;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-
-import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.maven.galley.model.Location;
+import java.util.Map;
 
 public interface DiscoverySourceManager
 {
 
     Location createLocation( Object source )
-        throws CartoDataException;
+            throws CartoDataException;
 
     List<? extends Location> createLocations( Object... sources )
-        throws CartoDataException;
+            throws CartoDataException;
 
     List<? extends Location> createLocations( Collection<Object> sources )
-        throws CartoDataException;
+            throws CartoDataException;
 
     URI createSourceURI( String source )
-        throws CartoDataException;
+            throws CartoDataException;
 
     boolean activateWorkspaceSources( ViewParams params, String... sources )
-        throws CartoDataException;
+            throws CartoDataException;
 
     boolean activateWorkspaceSources( ViewParams params, Collection<? extends Location> locations )
-        throws CartoDataException;
+            throws CartoDataException;
 
     String getFormatHint();
 
+    Map<String, String> getAliasMap()
+            throws CartoException;
+
+    boolean addSourceAlias( String alias, String url )
+            throws CartoException;
 }

@@ -51,6 +51,12 @@
       <artifactId>cartographer-standalone-rest</artifactId>
       <type>tar.gz</type>
     </dependency>
+
+    <!-- force the rest-ftests module to build first! -->
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-rest-ftests</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -166,6 +172,7 @@
                   </inline>
                 </assembly>
 
+                <optimise>true</optimise>
                 <tags>
                   <tag>${tagVer}</tag>
                 </tags>

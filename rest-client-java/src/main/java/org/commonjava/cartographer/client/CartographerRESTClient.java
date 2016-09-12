@@ -34,6 +34,7 @@ import org.commonjava.cartographer.request.ProjectGraphRelationshipsRequest;
 import org.commonjava.cartographer.request.ProjectGraphRequest;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
 import org.commonjava.cartographer.request.SingleGraphRequest;
+import org.commonjava.cartographer.request.SourceAliasRequest;
 import org.commonjava.cartographer.request.build.GraphAnalysisRequestBuilder;
 import org.commonjava.cartographer.request.build.GraphCompositionBuilder;
 import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
@@ -62,6 +63,7 @@ import org.commonjava.cartographer.result.MetadataResult;
 import org.commonjava.cartographer.result.ProjectErrors;
 import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.cartographer.result.ProjectPathsResult;
+import org.commonjava.cartographer.result.SourceAliasMapResult;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -79,6 +81,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -444,5 +447,29 @@ public class CartographerRESTClient
         {
             http.close();
         }
+    }
+
+    public boolean addSourceAlias( String alias, String url )
+            throws ClientHttpException, CartoClientException
+    {
+        SourceAliasRequest req = new SourceAliasRequest( alias, url );
+        Map<String, String> headers = new HashMap<>();
+        headers.put( "Accept", "application/json" );
+        headers.put( "Content-Type", "application/json" );
+
+        try(HttpResources resources = http.postRaw( "admin/sources/aliases", req, headers ))
+        {
+            return resources.getResponse().getStatusLine().getStatusCode() == 200;
+        }
+        catch ( IOException e )
+        {
+            throw new CartoClientException( "Failed to add source alias. Reason: %s", e, e.getMessage() );
+        }
+    }
+
+    public SourceAliasMapResult getSourceAliasMap()
+            throws ClientHttpException
+    {
+        return http.get( "admin/sources/aliases", SourceAliasMapResult.class );
     }
 }

@@ -16,11 +16,13 @@
 package org.commonjava.cartographer.conf;
 
 import org.apache.commons.lang.StringUtils;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.propulsor.boot.BootOptions;
 import org.commonjava.propulsor.config.Configurator;
 import org.commonjava.propulsor.config.ConfiguratorException;
 import org.commonjava.web.config.ConfigurationException;
 import org.commonjava.web.config.ConfigurationListener;
+import org.commonjava.web.config.DefaultConfigurationListener;
 import org.commonjava.web.config.dotconf.DotConfConfigurationReader;
 import org.commonjava.web.config.io.ConfigFileUtils;
 import org.commonjava.web.config.section.BeanSectionListener;
@@ -48,53 +50,60 @@ public class CartoDeploymentConfigurator
     private CartographerConfig cartoConfig;
 
     @Inject
-    private Instance<ConfigurationSectionListener> configListeners;
-
-    @Inject
     private Instance<CartoSubConfig> subConfigs;
 
     @Override
     public void load( BootOptions options )
             throws ConfiguratorException
     {
+        Logger logger = LoggerFactory.getLogger( getClass() );
+
         String config = options.getConfig();
         File configFile = new File( config );
 
-        cartoConfig.setConfigDir( configFile.getAbsoluteFile().getParentFile() );
         cartoConfig.setHomeDir( new File( options.getHomeDir() ) );
 
         if ( !configFile.exists() )
         {
-            // TODO: Make resilient enough to write default configs.
-            Logger logger = LoggerFactory.getLogger( getClass() );
-            logger.warn( "Cannot find configuration file: {}. Using application defaults.", configFile );
+            File homeConfigFile = new File( cartoConfig.getConfigDir(), "main.conf" );
 
+            // TODO: Make resilient enough to write default configs.
+            logger.warn( "Cannot find configuration file: {}. Trying: {}", configFile, homeConfigFile );
+
+            if ( homeConfigFile.exists() )
+            {
+                logger.warn( "Using configuration file from home directory: {}", homeConfigFile );
+                configFile = homeConfigFile;
+            }
+            else
+            {
+                logger.warn( "Cannot find home directory configuration file: {}. Using built-in application defaults.", homeConfigFile );
+                return;
+            }
 //            throw new ConfiguratorException( "Missing configuration: %s", configFile );
         }
-        else
+
+        cartoConfig.setConfigDir( configFile.getAbsoluteFile().getParentFile() );
+
+        try (InputStream stream = ConfigFileUtils.readFileWithIncludes( configFile, System.getProperties() ) )
         {
-            try (InputStream stream = ConfigFileUtils.readFileWithIncludes( config, System.getProperties() ) )
+            DefaultConfigurationListener configListener = new DefaultConfigurationListener( new BeanSectionListener( cartoConfig ));
+
+            if ( subConfigs != null )
             {
-                List<ConfigurationSectionListener<?>> listeners = new ArrayList<>();
-                listeners.add( new BeanSectionListener( cartoConfig  ) );
-
-                if ( configListeners != null )
+                for ( CartoSubConfig subConfig : subConfigs )
                 {
-                    configListeners.forEach( (listener)->listeners.add( listener ) );
+                    logger.debug( "Adding configuration section listener for: {}", subConfig );
+                    configListener.with(subConfig);
                 }
-
-                if ( subConfigs != null )
-                {
-                    subConfigs.forEach( subConfig -> listeners.add( new BeanSectionListener<>( subConfig ) ) );
-                }
-
-                new DotConfConfigurationReader( listeners ).loadConfiguration( stream );
             }
-            catch ( ConfigurationException | IOException e )
-            {
-                throw new ConfiguratorException( "Failed to read configuration: %s. Reason: %s", e, configFile,
-                                                 e.getMessage() );
-            }
+
+            new DotConfConfigurationReader( configListener ).loadConfiguration( stream );
+        }
+        catch ( ConfigurationException | IOException e )
+        {
+            throw new ConfiguratorException( "Failed to read configuration: %s. Reason: %s", e, configFile,
+                                             e.getMessage() );
         }
 
         cartoConfig.configurationDone();

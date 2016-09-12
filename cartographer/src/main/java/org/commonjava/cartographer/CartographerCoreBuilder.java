@@ -373,7 +373,7 @@ public class CartographerCoreBuilder
         {
             return new CartographerCore( maven == null ? mavenBuilder.build() : maven, calculationOps, graphOps,
                                      graphRenderingOps, metadataOps, resolveOps, graphFactory, resolver, calculator,
-                                     objectMapper );
+                                         sourceManager, objectMapper );
         }
         catch ( final GalleyInitException e )
         {
