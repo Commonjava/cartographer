@@ -86,7 +86,8 @@
   <properties>
     <it-docker-skip>true</it-docker-skip>
     <dockerUser>commonjava</dockerUser>
-    <indyImage>docker.io/${dockerUser}/indy-min:latest</indyImage>
+    <!-- <indyImage>docker.io/${dockerUser}/indy-min:latest</indyImage> -->
+    <indyImage>docker.io/${dockerUser}/indy-savant:latest</indyImage>
     <indyWaitFor>Indy listening on 0.0.0.0:8080</indyWaitFor>
 
     <dockerNetwork>default</dockerNetwork>
