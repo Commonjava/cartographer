@@ -41,6 +41,32 @@
       <artifactId>cartographer-rest-client-java</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.commonjava.indy</groupId>
+      <artifactId>indy-client-core-java</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>jhttpc</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>compile</scope>
@@ -57,16 +83,157 @@
     </dependency>
   </dependencies>
 
+  <properties>
+    <it-docker-skip>true</it-docker-skip>
+    <dockerUser>commonjava</dockerUser>
+    <!-- <indyImage>docker.io/${dockerUser}/indy-min:latest</indyImage> -->
+    <indyImage>docker.io/${dockerUser}/indy-savant:latest</indyImage>
+    <indyWaitFor>Indy listening on 0.0.0.0:8080</indyWaitFor>
+
+    <dockerNetwork>default</dockerNetwork>
+    <dockerNetworkMode>bridge</dockerNetworkMode>
+    <dockerStartTimeout>180000</dockerStartTimeout>
+
+    <indy-port>8080</indy-port>
+    <indy-host>${docker.container.indy.ip}</indy-host>
+  </properties>
+
   <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <dependenciesToScan>
-            <dependency>org.commonjava.cartographer:cartographer-tck</dependency>
-          </dependenciesToScan>
-        </configuration>
-      </plugin>
-    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>0.15.16</version>
+          <configuration>
+            <images>
+              <image>
+                <alias>indy</alias>
+                <name>${indyImage}</name>
+                <run>
+                  <wait>
+                    <log>${indyWaitFor}</log>
+                    <time>${dockerStartTimeout}</time>
+                  </wait>
+                  <ports>
+                    <port>indy-http:80</port>
+                  </ports>
+                  <log>
+                    <file>${project.build.directory}/indy.log</file>
+                  </log>
+                  <network>
+                    <mode>${dockerNetworkMode}</mode>
+                    <name>${dockerNetwork}</name>
+                    <alias>indy</alias>
+                  </network>
+                </run>
+              </image>
+            </images>
+          </configuration>
+          <executions>
+            <execution>
+              <id>docker-maint</id>
+              <goals>
+                <goal>start</goal>
+                <goal>stop</goal>
+                <goal>remove</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+          <executions>
+            <execution>
+              <id>record-docker-properties</id>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <phase>pre-integration-test</phase>
+              <configuration>
+                <target>
+                  <!--suppress MavenModelInspection -->
+                  <echo file="${project.build.directory}/docker.properties">
+                    <![CDATA[
+  indy.host=${indy-host}
+  indy.port=${indy-port}
+  ]]>
+                  </echo>
+                </target>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>functional-tests</id>
+              <goals>
+                <goal>integration-test</goal>
+              </goals>
+              <configuration>
+                <excludedGroups>org.commonjava.maven.cartographer.ftest.testutil.DockerDriven</excludedGroups>
+                <dependenciesToScan>
+                  <dependency>org.commonjava.cartographer:cartographer-tck</dependency>
+                </dependenciesToScan>
+              </configuration>
+            </execution>
+            <execution>
+              <id>integration-tests</id>
+              <configuration>
+                <skip>${it-docker-skip}</skip>
+                <systemPropertiesFile>${project.build.directory}/docker.properties</systemPropertiesFile>
+                <groups>org.commonjava.maven.cartographer.ftest.testutil.DockerDriven</groups>
+                <testSourceDirectory>src/main/java</testSourceDirectory>
+                <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <properties>
+        <it-docker-skip>false</it-docker-skip>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>ci</id>
+      <properties>
+        <dockerNetworkMode>custom</dockerNetworkMode>
+        <dockerNetwork>ci-network</dockerNetwork>
+
+        <indy-port>8080</indy-port>
+        <indy-host>${docker.container.indy.net.ci-network.ip}</indy-host>
+      </properties>
+    </profile>
+    <profile>
+      <id>run-its</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

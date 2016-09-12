@@ -20,7 +20,9 @@ import javax.inject.Inject;
 
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.Cartographer;
+import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
 import org.commonjava.cartographer.ops.*;
+import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.atlas.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
 import org.commonjava.cartographer.graph.GraphResolver;
@@ -30,6 +32,7 @@ import org.commonjava.maven.galley.maven.GalleyMaven;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Map;
 
 @ApplicationScoped
 public class CartographerCore
@@ -65,12 +68,15 @@ public class CartographerCore
     @Inject
     private GraphResolver graphResolver;
 
+    @Inject
+    private DiscoverySourceManager sourceManager;
+
     protected CartographerCore(){}
 
     public CartographerCore( final GalleyMaven galleyMaven, final CalculationOps calculator, final GraphOps grapher,
                              final GraphRenderingOps renderer, final MetadataOps metadata, final ResolveOps resolver,
                              final RelationshipGraphFactory graphFactory, final GraphResolver graphResolver,
-                             final MultiGraphCalculator graphCalculator, final ObjectMapper objectMapper )
+                             final MultiGraphCalculator graphCalculator, final DiscoverySourceManager sourceManager, final ObjectMapper objectMapper )
     {
         this.galleyMaven = galleyMaven;
         this.calculator = calculator;
@@ -81,6 +87,7 @@ public class CartographerCore
         this.graphFactory = graphFactory;
         this.graphResolver = graphResolver;
         this.graphCalculator = graphCalculator;
+        this.sourceManager = sourceManager;
         this.objectMapper = objectMapper;
     }
 
@@ -128,6 +135,20 @@ public class CartographerCore
     public RelationshipGraphFactory getGraphFactory()
     {
         return graphFactory;
+    }
+
+    @Override
+    public Map<String, String> getSourceAliasMap()
+            throws CartoException
+    {
+        return sourceManager.getAliasMap();
+    }
+
+    @Override
+    public boolean addSourceAlias( String alias, String url )
+            throws CartoException
+    {
+        return sourceManager.addSourceAlias( alias, url );
     }
 
     @Override
