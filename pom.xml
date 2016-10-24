@@ -46,9 +46,9 @@
     
     <atlasVersion>0.16.2</atlasVersion>
     <galleyVersion>0.13.2</galleyVersion>
-    <partylineVersion>0.9-SNAPSHOT</partylineVersion>
+    <partylineVersion>1.7.1</partylineVersion>
 
-    <propulsorVersion>1.1-SNAPSHOT</propulsorVersion>
+    <propulsorVersion>1.1</propulsorVersion>
     <configVersion>0.8</configVersion>
     <!-- <indyVersion>1.1.0-SNAPSHOT</indyVersion> -->
     <indyVersion>1.0.0</indyVersion>
