@@ -26,9 +26,9 @@
   </appender>
   
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>${carto.home}/var/log/carto/carto.log</file>
+      <file>${carto.home}/var/log/cartographer/cartographer.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>${carto.home}/var/log/carto/carto.%i.log</fileNamePattern>
+        <fileNamePattern>${carto.home}/var/log/cartographer/cartographer.%i.log</fileNamePattern>
 
         <maxHistory>20</maxHistory>
       </rollingPolicy>
