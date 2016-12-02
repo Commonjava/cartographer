@@ -27,7 +27,7 @@ BASEDIR=`dirname ${BASEDIR}`
 # echo "basedir: ${BASEDIR}"
 
 CARTO_LOCALLIB_DIR=${CARTO_LOCALLIB_DIR:-${BASEDIR}/lib/local}
-CARTO_LOGCONF_DIR=${CARTO_LOGCONF_DIR:-${BASEDIR}/etc/carto/logging}
+CARTO_LOGCONF_DIR=${CARTO_LOGCONF_DIR:-${BASEDIR}/etc/cartographer/logging}
 
 echo "Loading logging config from: ${CARTO_LOGCONF_DIR}"
 
@@ -51,7 +51,7 @@ if [ $? != 0 ]; then
   JAVA=${JAVA_HOME}/bin/java
 fi
 
-CARTO_ENV=${CARTO_ENV:-${BASEDIR}/etc/carto/env.sh}
+CARTO_ENV=${CARTO_ENV:-${BASEDIR}/etc/cartographer/env.sh}
 test -f ${CARTO_ENV} && source ${CARTO_ENV}
 
 #JAVA_DEBUG_OPTS="-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"
