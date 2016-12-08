@@ -15,10 +15,9 @@
  */
 package org.commonjava.cartographer.embed;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.ViewParams;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.junit.Test;
 

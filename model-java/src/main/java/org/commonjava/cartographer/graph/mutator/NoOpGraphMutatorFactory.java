@@ -20,8 +20,8 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.NoOpGraphMutator;
+import org.commonjava.cartographer.graph.mutate.GraphMutator;
+import org.commonjava.cartographer.graph.mutate.NoOpGraphMutator;
 
 @Named( "noop-mutator" )
 @Alternative

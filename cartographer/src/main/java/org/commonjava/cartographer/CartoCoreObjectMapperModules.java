@@ -16,15 +16,10 @@
 package org.commonjava.cartographer;
 
 import com.fasterxml.jackson.databind.Module;
-import org.commonjava.maven.atlas.graph.jackson.ProjectRelationshipSerializerModule;
-import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectRelationshipSerializerModule;
-import org.commonjava.maven.atlas.graph.spi.neo4j.io.NeoSpecificProjectVersionRefSerializerModule;
-import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
+import org.commonjava.cartographer.graph.spi.neo4j.io.NeoSpecificProjectRelationshipSerializerModule;
+import org.commonjava.cartographer.graph.spi.neo4j.io.NeoSpecificProjectVersionRefSerializerModule;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Produces;
-import javax.inject.Named;
 import java.util.Arrays;
 
 /**

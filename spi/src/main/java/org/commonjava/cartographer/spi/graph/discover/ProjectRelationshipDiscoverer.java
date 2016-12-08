@@ -18,9 +18,8 @@ package org.commonjava.cartographer.spi.graph.discover;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 
 public interface ProjectRelationshipDiscoverer
 {

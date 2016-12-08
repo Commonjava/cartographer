@@ -24,14 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.filter.StructuralRelationshipsFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.StructuralRelationshipsFilter;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 
 //TODO: Find a way to store selections appropriately in depgraph. BUT, they have to be isolately appropriately to classloader...

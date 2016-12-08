@@ -19,9 +19,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.filter.RelationshipTypeFilter;
+import org.commonjava.cartographer.graph.filter.AnyFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.RelationshipTypeFilter;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 
 public class ProjectGraphRelationshipsRequest

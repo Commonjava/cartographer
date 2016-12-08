@@ -21,7 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 
 @Named( "build-env" )
 @ApplicationScoped

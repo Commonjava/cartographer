@@ -23,7 +23,7 @@ import java.util.*;
 
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
-import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.cartographer.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;

@@ -20,7 +20,7 @@ import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.CartographerCoreBuilder;
 import org.commonjava.cartographer.request.build.GraphCompositionBuilder;
 import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.cartographer.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.cartographer.request.PomRequest;
 import org.commonjava.cartographer.request.build.PomRequestBuilder;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;

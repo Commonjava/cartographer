@@ -27,9 +27,9 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 
 import org.apache.commons.io.FileUtils;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.cartographer.graph.RelationshipGraphException;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;

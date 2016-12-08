@@ -15,7 +15,7 @@
  */
 package org.commonjava.cartographer.graph.util;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
 import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;

@@ -20,14 +20,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.cartographer.spi.graph.discover.ProjectRelationshipDiscoverer;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

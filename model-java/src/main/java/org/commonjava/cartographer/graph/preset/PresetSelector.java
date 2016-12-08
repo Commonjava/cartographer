@@ -24,7 +24,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

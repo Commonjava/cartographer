@@ -17,8 +17,8 @@ package org.commonjava.cartographer.request;
 
 import java.util.*;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.mutate.GraphMutator;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 

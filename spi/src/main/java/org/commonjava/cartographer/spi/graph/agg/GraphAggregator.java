@@ -17,7 +17,7 @@ package org.commonjava.cartographer.spi.graph.agg;
 
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.graph.agg.AggregationOptions;
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraph;
 
 public interface GraphAggregator
 {

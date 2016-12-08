@@ -55,8 +55,8 @@
       <artifactId>http-testserver</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-driver-neo4j-embedded</artifactId>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-relationships-driver-neo4j-embedded</artifactId>
       <scope>compile</scope>
     </dependency>
   </dependencies>

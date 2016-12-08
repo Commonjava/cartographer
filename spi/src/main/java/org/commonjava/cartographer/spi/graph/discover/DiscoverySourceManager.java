@@ -17,7 +17,7 @@ package org.commonjava.cartographer.spi.graph.discover;
 
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.CartoException;
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.cartographer.graph.ViewParams;
 import org.commonjava.maven.galley.model.Location;
 
 import java.net.URI;

@@ -16,7 +16,7 @@
 package org.commonjava.cartographer.request.build;
 
 import org.commonjava.cartographer.graph.preset.CommonPresetParameters;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.request.GraphDescription;

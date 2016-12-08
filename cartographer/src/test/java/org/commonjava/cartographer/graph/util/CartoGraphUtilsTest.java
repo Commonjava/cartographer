@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
 import org.commonjava.cartographer.INTERNAL.graph.agg.DefaultGraphAggregator;
 import org.commonjava.cartographer.spi.graph.agg.GraphAggregator;
 import org.commonjava.cartographer.INTERNAL.graph.discover.DiscovererImpl;

@@ -17,8 +17,8 @@ package org.commonjava.cartographer.rest.ctl;
 
 import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.dto.WorkspaceList;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.RelationshipGraphException;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

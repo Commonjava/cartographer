@@ -18,13 +18,9 @@ package org.commonjava.cartographer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.cartographer.CartoDataException;
-import org.commonjava.cartographer.Cartographer;
-import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;
 import org.commonjava.cartographer.ops.*;
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
 import org.commonjava.cartographer.graph.GraphResolver;
 import org.commonjava.cartographer.graph.MultiGraphCalculator;
 import org.commonjava.maven.galley.maven.GalleyMaven;

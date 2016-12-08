@@ -36,7 +36,7 @@ import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.util.PresetParamParser;
 import org.commonjava.cartographer.rest.util.RecipeHelper;
 import org.commonjava.cartographer.rest.util.RequestAdvisor;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;

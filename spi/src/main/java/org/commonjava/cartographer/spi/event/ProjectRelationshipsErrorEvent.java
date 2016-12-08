@@ -15,7 +15,7 @@
  */
 package org.commonjava.cartographer.spi.event;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 
 public class ProjectRelationshipsErrorEvent

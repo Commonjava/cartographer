@@ -20,8 +20,8 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.atservice.annotation.Service;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.mutate.ManagedDependencyMutator;
+import org.commonjava.cartographer.graph.mutate.GraphMutator;
+import org.commonjava.cartographer.graph.mutate.ManagedDependencyMutator;
 
 @Named( "managed-mutator" )
 @Alternative
