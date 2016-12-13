@@ -15,6 +15,7 @@
  */
 package org.commonjava.cartographer.graph.discover.patch;
 
+import static org.commonjava.maven.atlas.graph.rel.RelationshipConstants.POM_ROOT_URI;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -25,8 +26,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
-import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.cartographer.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -93,7 +93,7 @@ public class DistributionPomPatcherTest
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in pom root!", rel.getPomLocation(),
-                        equalTo( RelationshipUtils.POM_ROOT_URI ) );
+                        equalTo( POM_ROOT_URI ) );
         }
     }
 
@@ -172,7 +172,7 @@ public class DistributionPomPatcherTest
             assertThat( rel + " is not of scope embedded!", ( (DependencyRelationship) rel ).getScope(),
                         equalTo( DependencyScope.embedded ) );
             assertThat( rel + " is not declared in the pom root!", rel.getPomLocation(),
-                        equalTo( RelationshipUtils.POM_ROOT_URI ) );
+                        equalTo( POM_ROOT_URI ) );
         }
     }
 }

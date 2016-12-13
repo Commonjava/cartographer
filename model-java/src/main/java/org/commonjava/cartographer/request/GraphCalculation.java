@@ -15,7 +15,7 @@
  */
 package org.commonjava.cartographer.request;
 
-import static org.commonjava.maven.atlas.graph.util.RelationshipUtils.targets;
+import static org.commonjava.cartographer.graph.util.RelationshipUtils.targets;
 
 import java.util.List;
 import java.util.Set;

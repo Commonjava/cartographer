@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.commonjava.cartographer.graph.preset.ScopeWithEmbeddedProjectsFilter;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.graph.rel.*;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;

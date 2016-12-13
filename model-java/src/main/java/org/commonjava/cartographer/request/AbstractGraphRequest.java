@@ -16,14 +16,12 @@
 package org.commonjava.cartographer.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.commonjava.maven.atlas.graph.filter.ExcludingFilter;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ExcludingFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.CartoRequestException;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 
 import java.net.URISyntaxException;

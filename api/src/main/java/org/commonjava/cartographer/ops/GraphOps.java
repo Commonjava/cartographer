@@ -17,7 +17,7 @@ package org.commonjava.cartographer.ops;
 
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.result.*;
-import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
+import org.commonjava.cartographer.graph.traverse.model.BuildOrder;
 import org.commonjava.cartographer.CartoRequestException;
 import org.commonjava.cartographer.request.PathsRequest;
 import org.commonjava.cartographer.request.ProjectGraphRelationshipsRequest;

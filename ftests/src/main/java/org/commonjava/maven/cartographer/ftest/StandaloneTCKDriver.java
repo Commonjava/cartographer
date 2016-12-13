@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.cartographer.ftest;
 
-import org.commonjava.maven.atlas.graph.spi.neo4j.FileNeo4jConnectionFactory;
+import org.commonjava.cartographer.graph.spi.neo4j.FileNeo4jConnectionFactory;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.CartographerCoreBuilder;
 import org.commonjava.cartographer.INTERNAL.graph.discover.SourceManagerImpl;

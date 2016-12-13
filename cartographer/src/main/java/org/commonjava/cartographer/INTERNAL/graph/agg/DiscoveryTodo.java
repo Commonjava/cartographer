@@ -15,9 +15,9 @@
  */
 package org.commonjava.cartographer.INTERNAL.graph.agg;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.model.GraphPath;
-import org.commonjava.maven.atlas.graph.model.GraphPathInfo;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.model.GraphPath;
+import org.commonjava.cartographer.graph.model.GraphPathInfo;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 

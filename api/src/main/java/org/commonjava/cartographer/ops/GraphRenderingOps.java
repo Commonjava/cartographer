@@ -18,9 +18,8 @@ package org.commonjava.cartographer.ops;
 import org.apache.maven.model.Model;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
-import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
+import org.commonjava.cartographer.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.cartographer.CartoRequestException;
-import org.commonjava.cartographer.request.MultiGraphRequest;
 import org.commonjava.cartographer.request.MultiRenderRequest;
 import org.commonjava.cartographer.request.PomRequest;
 

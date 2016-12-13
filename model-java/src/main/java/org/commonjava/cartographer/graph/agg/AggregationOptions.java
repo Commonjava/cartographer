@@ -15,16 +15,16 @@
  */
 package org.commonjava.cartographer.graph.agg;
 
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
-import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.cartographer.graph.filter.AnyFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.util.RelationshipUtils;
 import org.commonjava.cartographer.graph.discover.DiscoveryConfig;
-import org.commonjava.cartographer.graph.mutator.MutatorSelector;
 import org.commonjava.cartographer.graph.preset.ScopedProjectFilter;
 
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+
+import static org.commonjava.maven.atlas.graph.rel.RelationshipConstants.UNKNOWN_SOURCE_URI;
 
 public class AggregationOptions
 {
@@ -37,7 +37,7 @@ public class AggregationOptions
 
     private boolean discoveryEnabled = false;
 
-    private URI discoverySource = RelationshipUtils.UNKNOWN_SOURCE_URI;
+    private URI discoverySource = UNKNOWN_SOURCE_URI;
 
     // TODO: Revisit this default timeout!!!
     private long discoveryTimeoutMillis = TimeUnit.MILLISECONDS.convert( 10, TimeUnit.SECONDS );

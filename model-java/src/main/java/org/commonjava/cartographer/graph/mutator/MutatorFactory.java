@@ -15,7 +15,7 @@
  */
 package org.commonjava.cartographer.graph.mutator;
 
-import org.commonjava.maven.atlas.graph.mutate.GraphMutator;
+import org.commonjava.cartographer.graph.mutate.GraphMutator;
 
 public interface MutatorFactory
 {

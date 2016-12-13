@@ -24,7 +24,7 @@ import org.commonjava.cartographer.ops.GraphRenderingOps;
 import org.commonjava.cartographer.request.MultiRenderRequest;
 import org.commonjava.cartographer.request.PomRequest;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
-import org.commonjava.maven.atlas.graph.traverse.print.StructureRelationshipPrinter;
+import org.commonjava.cartographer.graph.traverse.print.StructureRelationshipPrinter;
 import org.commonjava.propulsor.client.http.ClientHttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -19,7 +19,7 @@ import org.commonjava.cartographer.graph.discover.DiscoveryResult;
 import org.commonjava.maven.atlas.graph.rel.DependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
-import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
+import org.commonjava.cartographer.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.*;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
@@ -36,6 +36,7 @@ import java.util.*;
 
 import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.cartographer.INTERNAL.graph.discover.DiscoveryContextConstants.POM_VIEW_CTX_KEY;
+import static org.commonjava.maven.atlas.graph.rel.RelationshipConstants.POM_ROOT_URI;
 
 @ApplicationScoped
 public class DependencyPluginPatcher
@@ -132,7 +133,7 @@ public class DependencyPluginPatcher
                     {
                         if ( !DependencyScope.runtime.implies( dep.getScope() )
                             && ( dep.getPomLocation()
-                                    .equals( pomLocation ) || dep.getPomLocation() == RelationshipUtils.POM_ROOT_URI ) )
+                                    .equals( pomLocation ) || dep.getPomLocation() == POM_ROOT_URI ) )
                         {
                             logger.debug( "Correcting scope for: {}", dep );
 

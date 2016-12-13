@@ -16,9 +16,7 @@
 package org.commonjava.cartographer.graph;
 
 import org.commonjava.cartographer.request.build.GraphDescriptionBuilder;
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.ViewParams;
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
+import org.commonjava.cartographer.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;

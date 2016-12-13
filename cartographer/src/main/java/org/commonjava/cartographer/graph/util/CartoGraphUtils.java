@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraphException;
 import org.commonjava.maven.atlas.graph.rel.ParentRelationship;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.RelationshipType;
-import org.commonjava.maven.atlas.graph.traverse.AncestryTraversal;
-import org.commonjava.maven.atlas.graph.traverse.TraversalType;
+import org.commonjava.cartographer.graph.traverse.AncestryTraversal;
+import org.commonjava.cartographer.graph.traverse.TraversalType;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.CartoDataException;

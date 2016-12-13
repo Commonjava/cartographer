@@ -27,12 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraphFactory;
+import org.commonjava.cartographer.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.model.EProjectDirectRelationships;
 import org.commonjava.maven.atlas.graph.rel.*;
-import org.commonjava.maven.atlas.graph.util.RelationshipUtils;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;

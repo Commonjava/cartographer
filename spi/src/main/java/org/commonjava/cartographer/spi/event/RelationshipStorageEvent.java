@@ -17,7 +17,7 @@ package org.commonjava.cartographer.spi.event;
 
 import java.util.Collection;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraph;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 
 public class RelationshipStorageEvent

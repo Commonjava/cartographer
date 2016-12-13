@@ -44,8 +44,8 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <javaVersion>1.8</javaVersion>
     
-    <atlasVersion>0.16.2</atlasVersion>
-    <galleyVersion>0.13.2</galleyVersion>
+    <atlasVersion>0.16.3-SNAPSHOT</atlasVersion>
+    <galleyVersion>0.13.4-SNAPSHOT</galleyVersion>
     <partylineVersion>1.9.1-SNAPSHOT</partylineVersion>
 
     <propulsorVersion>1.1</propulsorVersion>
@@ -77,6 +77,7 @@
     <module>rest</module>
     <module>rest-client-java</module>
     <module>deployments</module>
+    <module>relationships</module>
   </modules>
 
   <dependencyManagement>
@@ -164,6 +165,7 @@
         <version>${partylineVersion}</version>
       </dependency>
 
+      <!-- Atlas -->
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-identities</artifactId>
@@ -176,17 +178,6 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
-        <artifactId>atlas-driver-neo4j-embedded</artifactId>
-        <version>${atlasVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.maven.atlas</groupId>
-        <artifactId>atlas-driver-jung</artifactId>
-        <version>${atlasVersion}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-bindings-jackson-identities</artifactId>
         <version>${atlasVersion}</version>
       </dependency>
@@ -195,7 +186,42 @@
         <artifactId>atlas-bindings-jackson-relationships</artifactId>
         <version>${atlasVersion}</version>
       </dependency>
-      
+
+      <!-- Atlas => Cartographer -->
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-relationships-api</artifactId>
+        <version>0.12.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-relationships-driver-jung</artifactId>
+        <version>0.12.1-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-relationships-driver-neo4j-embedded</artifactId>
+        <version>0.12.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.cartographer</groupId>
+        <artifactId>cartographer-relationships-drivers-tck</artifactId>
+        <version>0.12.1-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j</artifactId>
+        <version>1.9.6</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.jung</groupId>
+        <artifactId>jung-graph-impl</artifactId>
+        <version>2.0.1</version>
+      </dependency>
+
+      <!-- Galley -->
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-api</artifactId>

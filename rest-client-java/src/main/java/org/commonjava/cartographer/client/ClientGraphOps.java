@@ -29,7 +29,7 @@ import org.commonjava.cartographer.result.MappedProjectsResult;
 import org.commonjava.cartographer.result.ProjectErrors;
 import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.cartographer.result.ProjectPathsResult;
-import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
+import org.commonjava.cartographer.graph.traverse.model.BuildOrder;
 import org.commonjava.propulsor.client.http.ClientHttpException;
 
 /**

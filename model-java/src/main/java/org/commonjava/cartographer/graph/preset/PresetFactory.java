@@ -17,7 +17,7 @@ package org.commonjava.cartographer.graph.preset;
 
 import java.util.Map;
 
-import org.commonjava.maven.atlas.graph.filter.ProjectRelationshipFilter;
+import org.commonjava.cartographer.graph.filter.ProjectRelationshipFilter;
 
 public interface PresetFactory
 {

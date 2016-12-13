@@ -24,8 +24,8 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.filter.AnyFilter;
+import org.commonjava.cartographer.graph.RelationshipGraphException;
+import org.commonjava.cartographer.graph.filter.AnyFilter;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.CartoRequestException;
 import org.commonjava.cartographer.CartoDataException;

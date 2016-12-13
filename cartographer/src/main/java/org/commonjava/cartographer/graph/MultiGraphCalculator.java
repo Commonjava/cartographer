@@ -16,10 +16,6 @@
 package org.commonjava.cartographer.graph;
 
 import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.RelationshipGraphException;
-import org.commonjava.maven.atlas.graph.RelationshipGraphFactory;
-import org.commonjava.maven.atlas.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.cartographer.CartoDataException;

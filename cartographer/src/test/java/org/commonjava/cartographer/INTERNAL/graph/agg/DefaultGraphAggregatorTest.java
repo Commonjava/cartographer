@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.cartographer.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.ViewParams;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleDependencyRelationship;
 import org.commonjava.maven.atlas.graph.rel.SimpleParentRelationship;

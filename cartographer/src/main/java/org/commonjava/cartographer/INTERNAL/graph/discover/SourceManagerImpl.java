@@ -33,7 +33,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
-import org.commonjava.maven.atlas.graph.ViewParams;
+import org.commonjava.cartographer.graph.ViewParams;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.spi.graph.discover.DiscoverySourceManager;
 import org.commonjava.maven.galley.TransferException;

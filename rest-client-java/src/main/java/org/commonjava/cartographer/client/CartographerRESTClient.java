@@ -15,12 +15,7 @@
  */
 package org.commonjava.cartographer.client;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -70,7 +65,7 @@ import org.commonjava.cartographer.result.ProjectListResult;
 import org.commonjava.cartographer.result.ProjectPathsResult;
 import org.commonjava.cartographer.result.SourceAliasMapResult;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
-import org.commonjava.maven.atlas.graph.traverse.model.BuildOrder;
+import org.commonjava.cartographer.graph.traverse.model.BuildOrder;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.propulsor.client.http.ClientHttpException;
 import org.commonjava.propulsor.client.http.ClientHttpResponseErrorDetails;

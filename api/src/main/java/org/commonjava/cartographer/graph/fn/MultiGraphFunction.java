@@ -17,7 +17,7 @@ package org.commonjava.cartographer.graph.fn;
 
 import java.util.Map;
 
-import org.commonjava.maven.atlas.graph.RelationshipGraph;
+import org.commonjava.cartographer.graph.RelationshipGraph;
 import org.commonjava.cartographer.CartoDataException;
 import org.commonjava.cartographer.request.GraphDescription;
 
