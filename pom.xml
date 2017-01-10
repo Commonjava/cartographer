@@ -45,7 +45,7 @@
     <javaVersion>1.8</javaVersion>
     
     <atlasVersion>0.16.2</atlasVersion>
-    <galleyVersion>0.13.2</galleyVersion>
+    <galleyVersion>0.13.4-SNAPSHOT</galleyVersion>
     <partylineVersion>1.9.1-SNAPSHOT</partylineVersion>
 
     <propulsorVersion>1.1</propulsorVersion>
