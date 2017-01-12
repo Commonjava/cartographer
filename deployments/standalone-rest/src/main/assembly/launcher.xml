@@ -23,8 +23,20 @@
   
   <includeBaseDirectory>true</includeBaseDirectory>
   <baseDirectory>cartographer</baseDirectory>
-  
+
   <dependencySets>
+
+    <!-- UI -->
+    <dependencySet>
+      <useProjectArtifact>true</useProjectArtifact>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.commonjava.cartographer:cartographer-ui-layover</include>
+      </includes>
+      <outputDirectory>var/lib/cartographer/ui</outputDirectory>
+      <unpack>true</unpack>
+    </dependencySet>
+
     <!-- this main project artifact -->
     <dependencySet>
       <useProjectArtifact>true</useProjectArtifact>
@@ -56,12 +68,13 @@
       </includes>
       <outputDirectory>lib/thirdparty</outputDirectory>
     </dependencySet>
+
   </dependencySets>
   
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/conf</directory>
-      <outputDirectory>etc</outputDirectory>
+      <outputDirectory>etc/cartographer</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>

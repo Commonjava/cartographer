@@ -24,7 +24,7 @@ THIS=$(cd ${0%/*} && echo $PWD/${0##*/})
 BASEDIR=`dirname ${THIS}`
 BASEDIR=`dirname ${BASEDIR}`
 
-# echo "basedir: ${BASEDIR}"
+echo "Cartographer basedir: ${BASEDIR}"
 
 CARTO_LOCALLIB_DIR=${CARTO_LOCALLIB_DIR:-${BASEDIR}/lib/local}
 CARTO_LOGCONF_DIR=${CARTO_LOGCONF_DIR:-${BASEDIR}/etc/cartographer/logging}
@@ -57,9 +57,9 @@ test -f ${CARTO_ENV} && source ${CARTO_ENV}
 #JAVA_DEBUG_OPTS="-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"
 JAVA_OPTS="$JAVA_OPTS $JAVA_DEBUG_OPTS"
 
-MAIN_CLASS=org.commonjava.propulsor.boot.Booter
+MAIN_CLASS=org.commonjava.cartographer.boot.Main
 
-"$JAVA" ${JAVA_OPTS} -cp "${CP}" -Dcarto.home="${BASEDIR}" -Dcarto.boot.defaults=${BASEDIR}/bin/boot.properties ${MAIN_CLASS} "$@"
+"$JAVA" ${JAVA_OPTS} -cp "${CP}" -Dcarto.home="${BASEDIR}" ${MAIN_CLASS} "$@"
 ret=$?
 if [ $ret == 0 -o $ret == 130 ]; then
   exit 0

@@ -30,8 +30,6 @@ public class CartoResteasyAppConfig
     @Override
     public List<String> getJaxRsMappings()
     {
-        // Just map everything for now...until we have some static content to serve that needs the UI servlet from the
-        // propulsor-undertow module.
-        return asList( "/*" );
+        return asList( "/api*", "/api/*", "/api-docs*", "/api-docs/*", "/swagger.json", "/swagger.yaml" );
     }
 }

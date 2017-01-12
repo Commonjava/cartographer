@@ -15,12 +15,17 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.GraphAnalysisRequest;
 import org.commonjava.cartographer.request.GraphCalculation;
 import org.commonjava.cartographer.request.MultiGraphRequest;
 import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.ctl.CalculatorController;
 import org.commonjava.cartographer.result.GraphDifference;
+import org.commonjava.cartographer.result.SourceAliasMapResult;
 import org.commonjava.maven.atlas.graph.rel.ProjectRelationship;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
@@ -38,6 +43,7 @@ import javax.ws.rs.core.Response;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.application_json;
 
+@Api( value = "Calculator Resource", description = "Calculator Resource." )
 @Path( "/api/depgraph/calc" )
 @Consumes( { "application/json", "application/indy*+json" } )
 @Produces( { "application/json", "application/indy*+json" } )
@@ -51,6 +57,9 @@ public class CalculatorResource
     @Inject
     private CalculatorController controller;
 
+    @ApiOperation( "Get Graph Difference." )
+    @ApiResponses( { @ApiResponse( code = 200, response = GraphDifference.class, message = "Graph Difference" ),
+            @ApiResponse( code = 404, message = "Not found" ) } )
     @Path( "/diff" )
     @POST
     @Produces( application_json )
@@ -69,6 +78,9 @@ public class CalculatorResource
         return null;
     }
 
+    @ApiOperation( "Drift Graph Difference." )
+    @ApiResponses( { @ApiResponse( code = 200, response = GraphDifference.class, message = "Graph Difference" ),
+            @ApiResponse( code = 404, message = "Not found" ) } )
     @Path( "/drift" )
     @POST
     @Produces( application_json )
@@ -87,6 +99,10 @@ public class CalculatorResource
         return null;
     }
 
+    @ApiOperation( "Graph Calculation." )
+    @ApiResponses( { @ApiResponse( code = 200, response = GraphCalculation.class, message = "Graph Calculation" ),
+            @ApiResponse( code = 404, message = "Not found" ) } )
+    @Path( "/calculate" )
     @POST
     @Produces( application_json )
     public GraphCalculation calculate( MultiGraphRequest request )
