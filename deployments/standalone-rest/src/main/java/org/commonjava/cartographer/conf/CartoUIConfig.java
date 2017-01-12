@@ -18,8 +18,6 @@ package org.commonjava.cartographer.conf;
 import org.commonjava.propulsor.deploy.undertow.ui.UIConfiguration;
 import org.commonjava.web.config.annotation.ConfigName;
 import org.commonjava.web.config.annotation.SectionName;
-
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
@@ -34,23 +32,18 @@ public class CartoUIConfig
     implements CartoSubConfig
 {
 
+    public static final File DEFAULT_UI_DIR = new File( System.getProperty( "carto.home", "/" ), "var/lib/cartographer/ui" );
+
     private UIConfiguration config = new UIConfiguration();
 
-    public CartoUIConfig()
-    {
-        // default is disabled...
-        config.setEnabled( false );
-    }
+    public CartoUIConfig() {}
 
-    public File getUIDir()
-    {
-        return config.getUIDir();
-    }
+    public File getUIDir() { return config.getUIDir(); }
 
     @ConfigName( "ui.dir")
-    public void setUIDir( File uiDir )
+    public void setUIDir( final File uiDir )
     {
-        config.setUIDir( uiDir );
+        config.setUIDir(uiDir);
     }
 
     @ConfigName( "enabled" )
@@ -69,6 +62,10 @@ public class CartoUIConfig
     @ApplicationScoped
     public UIConfiguration getUiConfiguration()
     {
+        if ( config.getUIDir() == null )
+        {
+            config.setUIDir( DEFAULT_UI_DIR );
+        }
         return config;
     }
 

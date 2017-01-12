@@ -55,6 +55,10 @@
       <artifactId>cartographer-model-java</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-ui-layover</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.commonjava.indy</groupId>
       <artifactId>indy-client-core-java</artifactId>
     </dependency>
@@ -62,6 +66,14 @@
       <groupId>org.jboss.weld.se</groupId>
       <artifactId>weld-se</artifactId>
       <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-undertow</artifactId>
     </dependency>
   </dependencies>
 

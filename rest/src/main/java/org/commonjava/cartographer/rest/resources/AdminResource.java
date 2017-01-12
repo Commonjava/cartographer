@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.CartoException;
 import org.commonjava.cartographer.Cartographer;
 import org.commonjava.cartographer.request.GraphAnalysisRequest;
@@ -46,6 +50,7 @@ import java.util.Map;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.application_json;
 
+@Api( value = "Admin Resource", description = "Admin Resource." )
 @Path( "/api/admin" )
 @Consumes( { "application/json" } )
 @Produces( { "application/json" } )
@@ -59,6 +64,9 @@ public class AdminResource
     @Inject
     private AdminController controller;
 
+    @ApiOperation( "Retrieve the source aliases." )
+    @ApiResponses( { @ApiResponse( code = 200, response = SourceAliasMapResult.class, message = "Source aliases" ),
+            @ApiResponse( code = 404, message = "Not found" ) } )
     @Path( "/sources/aliases" )
     @GET
     @Produces( application_json )
@@ -76,6 +84,9 @@ public class AdminResource
         return null;
     }
 
+    @ApiOperation( "Add source alias." )
+    @ApiResponses( { @ApiResponse( code = 200, message = "Source alias added" ),
+            @ApiResponse( code = 409, message = "Conflict" ) } )
     @Path( "/sources/aliases" )
     @POST
     @Produces( application_json )
