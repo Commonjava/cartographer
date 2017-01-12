@@ -199,23 +199,23 @@
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-relationships-api</artifactId>
-        <version>0.12.1-SNAPSHOT</version>
+        <version>0.13.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-relationships-driver-jung</artifactId>
-        <version>0.12.1-SNAPSHOT</version>
+        <version>0.13.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-relationships-driver-neo4j-embedded</artifactId>
-        <version>0.12.1-SNAPSHOT</version>
+        <version>0.13.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.cartographer</groupId>
         <artifactId>cartographer-relationships-drivers-tck</artifactId>
-        <version>0.12.1-SNAPSHOT</version>
+        <version>0.13.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
