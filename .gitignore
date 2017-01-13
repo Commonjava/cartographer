@@ -8,3 +8,7 @@ target
 *.iml
 *.iws
 *.ipr
+
+uis/layover/bower_components
+uis/layover/node
+uis/layover/node_modules
