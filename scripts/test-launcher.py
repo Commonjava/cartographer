@@ -40,7 +40,7 @@ if not os.path.isdir(UNPACKED_DIR) or not args.existing:
 
 if args.etc:
 	print "Replacing default etc directory with contents of: %s" % args.etc
-	etcDir = os.path.join(UNPACKED_DIR, 'etc')
+	etcDir = os.path.join(UNPACKED_DIR, 'etc/cartographer')
 	shutil.rmtree(etcDir)
 	shutil.copytree(args.etc, etcDir)
 
