@@ -45,16 +45,16 @@
     <javaVersion>1.8</javaVersion>
     
     <atlasVersion>0.16.3-SNAPSHOT</atlasVersion>
-    <galleyVersion>0.13.4-SNAPSHOT</galleyVersion>
-    <partylineVersion>1.9.1-SNAPSHOT</partylineVersion>
+    <galleyVersion>0.13.5-SNAPSHOT</galleyVersion>
+    <partylineVersion>1.10-SNAPSHOT</partylineVersion>
 
-    <propulsorVersion>1.2-SNAPSHOT</propulsorVersion>
+    <propulsorVersion>1.3-SNAPSHOT</propulsorVersion>
     <configVersion>0.8</configVersion>
     <swaggerVersion>1.5.9</swaggerVersion>
     <!-- <indyVersion>1.1.0-SNAPSHOT</indyVersion> -->
     <indyVersion>1.0.0</indyVersion>
     <jhttpcVersion>1.3</jhttpcVersion>
-    <weftVersion>1.3-SNAPSHOT</weftVersion>
+    <weftVersion>1.4-SNAPSHOT</weftVersion>
 
     <it-skip>true</it-skip>
 
@@ -87,7 +87,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>22-SNAPSHOT</version>
+        <version>23-SNAPSHOT</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.MultiRenderRequest;
 import org.commonjava.cartographer.request.PomRequest;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
@@ -32,6 +36,7 @@ import java.io.File;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
+@Api( value = "Graph Rendering Resource", description = "Graph Rendering Resource." )
 @Path( "/api/depgraph/render" )
 @ApplicationScoped
 public class GraphRenderingResource
@@ -43,6 +48,8 @@ public class GraphRenderingResource
     @Inject
     private RenderingController controller;
 
+    @ApiOperation( "pom." )
+    @ApiResponses( { @ApiResponse( code = 200, response = String.class, message = "pom" ) } )
     @Path( "/pom" )
     @POST
 //    @Produces( application_xml )
@@ -59,6 +66,8 @@ public class GraphRenderingResource
         return null;
     }
 
+    @ApiOperation( "dotfile." )
+    @ApiResponses( { @ApiResponse( code = 200, response = String.class, message = "dotfile" ) } )
     @Path( "/dotfile" )
     @POST
     @Produces( TYPE_GRAPHVIZ )
@@ -75,6 +84,8 @@ public class GraphRenderingResource
         return null;
     }
 
+    @ApiOperation( "tree." )
+    @ApiResponses( { @ApiResponse( code = 200, response = File.class, message = "tree" ) } )
     @Path( "/depTree" )
     @POST
     @Produces( text_plain )
@@ -91,6 +102,8 @@ public class GraphRenderingResource
         return null;
     }
 
+    @ApiOperation( "list." )
+    @ApiResponses( { @ApiResponse( code = 200, response = File.class, message = "file" ) } )
     @Path( "/depList" )
     @POST
     @Produces( text_plain )
