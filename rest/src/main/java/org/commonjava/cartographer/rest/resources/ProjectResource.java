@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.ProjectGraphRelationshipsRequest;
 import org.commonjava.cartographer.request.ProjectGraphRequest;
 import org.commonjava.cartographer.rest.CartoRESTException;
@@ -34,6 +38,7 @@ import javax.ws.rs.Produces;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
+@Api( value = "Project Resource", description = "Project Resource." )
 @Path( "/api/depgraph/project" )
 @Consumes( { application_json } )
 @Produces( { application_json } )
@@ -44,6 +49,8 @@ public class ProjectResource
     @Inject
     private ProjectController controller;
 
+    @ApiOperation( "List projects." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List Result" ) } )
     @Path( "/list" )
     @POST
     public ProjectListResult list( final ProjectGraphRequest recipe )
@@ -61,6 +68,8 @@ public class ProjectResource
         return null;
     }
 
+    @ApiOperation( "Map Project." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MappedProjectResult.class, message = "Mapped Project" ) } )
     @Path( "/parents" )
     @POST
     public MappedProjectResult parentOf( final ProjectGraphRequest recipe )
@@ -77,6 +86,8 @@ public class ProjectResource
         return null;
     }
 
+    @ApiOperation( "Dependencies Of." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MappedProjectRelationshipsResult.class, message = "Mapped Project Relationships" ) } )
     @Path( "/relationships" )
     @POST
     public MappedProjectRelationshipsResult dependenciesOf( final ProjectGraphRelationshipsRequest recipe )
@@ -93,6 +104,8 @@ public class ProjectResource
         return null;
     }
 
+    @ApiOperation( "Relationships Targeting." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MappedProjectRelationshipsResult.class, message = "Mapped Project Relationships" ) } )
     @Path( "/targeting" )
     @POST
     public MappedProjectRelationshipsResult relationshipsTargeting( final ProjectGraphRelationshipsRequest recipe )

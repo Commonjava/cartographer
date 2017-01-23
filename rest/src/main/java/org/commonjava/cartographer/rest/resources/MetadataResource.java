@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.MetadataCollationRequest;
 import org.commonjava.cartographer.request.MetadataExtractionRequest;
 import org.commonjava.cartographer.request.MetadataUpdateRequest;
@@ -36,6 +40,7 @@ import javax.ws.rs.Produces;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
+@Api( value = "Metadata Resource", description = "Metadata Resource." )
 @Path( "/api/depgraph/meta" )
 @Consumes( { application_json } )
 @Produces( { application_json } )
@@ -47,6 +52,8 @@ public class MetadataResource
     @Inject
     private MetadataController controller;
 
+    @ApiOperation( "Batch Update." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List" ) } )
     @Path( "/updates" )
     @POST
     public ProjectListResult batchUpdate( final MetadataUpdateRequest recipe )
@@ -62,6 +69,8 @@ public class MetadataResource
         return null;
     }
 
+    @ApiOperation( "Rescan." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List" ) } )
     @Path( "/rescan" )
     @POST
     public ProjectListResult rescan( final ProjectGraphRequest recipe )
@@ -77,6 +86,8 @@ public class MetadataResource
         return null;
     }
 
+    @ApiOperation( "Get Metadata." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MetadataResult.class, message = "Metadata" ) } )
     @POST
     public MetadataResult getMetadata( final MetadataExtractionRequest recipe )
     {
@@ -92,6 +103,8 @@ public class MetadataResource
         return null;
     }
 
+    @ApiOperation( "Get Collation." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MetadataCollationResult.class, message = "Metadata Collation" ) } )
     @Path( "/collation" )
     @POST
     public MetadataCollationResult getCollation( final MetadataCollationRequest recipe )

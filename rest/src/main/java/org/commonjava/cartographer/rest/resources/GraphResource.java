@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.PathsRequest;
 import org.commonjava.cartographer.request.ProjectGraphRequest;
 import org.commonjava.cartographer.request.SingleGraphRequest;
@@ -40,6 +44,7 @@ import javax.ws.rs.Produces;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
+@Api( value = "Graph Resource", description = "Graph Resource." )
 @Path( "/api/depgraph/graph" )
 @Consumes( { application_json } )
 @Produces( { application_json } )
@@ -52,6 +57,8 @@ public class GraphResource
     @Inject
     private GraphController controller;
 
+    @ApiOperation( "Get Paths." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectPathsResult.class, message = "Project Paths" ) } )
     @Path( "/paths" )
     @POST
     public ProjectPathsResult getPaths( final PathsRequest recipe )
@@ -68,6 +75,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Errors." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectErrors.class, message = "Project Errors" ) } )
     @Path( "/errors" )
     @POST
     public ProjectErrors errors( final ProjectGraphRequest recipe )
@@ -84,6 +93,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Reindex." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List" ) } )
     @Path( "/reindex" )
     @POST
     public ProjectListResult reindex( final ProjectGraphRequest recipe )
@@ -100,6 +111,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Incomplete." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List" ) } )
     @Path( "/incomplete" )
     @POST
     public ProjectListResult incomplete( final ProjectGraphRequest recipe )
@@ -116,6 +129,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Variable." )
+    @ApiResponses( { @ApiResponse( code = 200, response = ProjectListResult.class, message = "Project List" ) } )
     @Path( "/variable" )
     @POST
     public ProjectListResult variable( final ProjectGraphRequest recipe )
@@ -132,6 +147,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Ancestry Of." )
+    @ApiResponses( { @ApiResponse( code = 200, response = MappedProjectsResult.class, message = "Mapped Projects" ) } )
     @Path( "/ancestry" )
     @POST
     public MappedProjectsResult ancestryOf( final ProjectGraphRequest recipe )
@@ -147,6 +164,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Build Order." )
+    @ApiResponses( { @ApiResponse( code = 200, response = BuildOrder.class, message = "Build Order" ) } )
     @Path( "/build-order" )
     @POST
     public BuildOrder buildOrder( final ProjectGraphRequest recipe )
@@ -162,6 +181,8 @@ public class GraphResource
         return null;
     }
 
+    @ApiOperation( "Graph." )
+    @ApiResponses( { @ApiResponse( code = 200, response = GraphExport.class, message = "Graph Export" ) } )
     @Path( "/export" )
     @POST
     public GraphExport graph( final SingleGraphRequest recipe )

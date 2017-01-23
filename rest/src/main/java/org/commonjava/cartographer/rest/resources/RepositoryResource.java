@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.rest.dto.DownlogRequest;
 import org.commonjava.cartographer.request.RepositoryContentRequest;
 import org.commonjava.cartographer.rest.CartoRESTException;
@@ -40,6 +44,7 @@ import javax.ws.rs.core.UriInfo;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.*;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.*;
 
+@Api( value = "Repository Resource", description = "Repository Resource." )
 @Path( "/api/depgraph/repo" )
 @Consumes( { "application/json", "application/indy*+json" } )
 @ApplicationScoped
@@ -52,6 +57,8 @@ public class RepositoryResource
     @Inject
     private RepositoryController controller;
 
+    @ApiOperation( "Get Repo Content Result." )
+    @ApiResponses( { @ApiResponse( code = 200, response = RepoContentResult.class, message = "Repo Content Result" ) } )
     @Path( "/content" )
     @Produces( { "application/json", "application/indy*+json" } )
     @POST
@@ -73,6 +80,8 @@ public class RepositoryResource
         return null;
     }
 
+    @ApiOperation( "Get Url Map Result." )
+    @ApiResponses( { @ApiResponse( code = 200, response = UrlMapResult.class, message = "Url Map Result" ) } )
     @Path( "/urlmap" )
     @Produces( { "application/json", "application/indy*+json" } )
     @POST
@@ -94,6 +103,8 @@ public class RepositoryResource
         return null;
     }
 
+    @ApiOperation( "Get Downlog Result." )
+    @ApiResponses( { @ApiResponse( code = 200, response = DownlogResult.class, message = "Downlog Result" ) } )
     @Path( "/downlog" )
     @POST
     @Produces( text_plain )
@@ -115,6 +126,8 @@ public class RepositoryResource
         return null;
     }
 
+    @ApiOperation( "Get Zip Repository." )
+    @ApiResponses( { @ApiResponse( code = 200, response = StreamingOutput.class, message = "Zip Repository" ) } )
     @Path( "/zip" )
     @POST
     @Produces( application_zip )

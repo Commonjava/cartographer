@@ -15,6 +15,10 @@
  */
 package org.commonjava.cartographer.rest.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.commonjava.cartographer.request.MultiGraphRequest;
 import org.commonjava.cartographer.rest.CartoRESTException;
 import org.commonjava.cartographer.rest.ctl.ResolverController;
@@ -30,6 +34,7 @@ import javax.ws.rs.core.Response;
 import static org.commonjava.cartographer.rest.util.ResponseUtils.throwError;
 import static org.commonjava.propulsor.deploy.undertow.util.StandardApplicationContent.application_json;
 
+@Api( value = "Resolver Resource", description = "Resolver Resource." )
 @Path( "/api/depgraph/graph" )
 @Consumes( { application_json } )
 @ApplicationScoped
@@ -40,6 +45,8 @@ public class ResolverResource
     @Inject
     private ResolverController controller;
 
+    @ApiOperation( "Resolve graph." )
+    @ApiResponses( { @ApiResponse( code = 200, message = "Resolved" ) } )
     @POST
     public Response resolveGraph( final MultiGraphRequest recipe )
     {
