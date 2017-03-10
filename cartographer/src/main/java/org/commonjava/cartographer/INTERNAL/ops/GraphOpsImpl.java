@@ -123,7 +123,7 @@ public class GraphOpsImpl
                 final RelationshipGraph graph = graphMap.get( desc );
                 final ProjectRelationshipFilter filter = desc.filter();
 
-                final PathsTraversal paths = new PathsTraversal( filter, recipe.getTargets() );
+                final PathsTraversal paths = new PathsTraversal( recipe.buildFilter( filter ), recipe.getTargets() );
                 try
                 {
                     graph.traverse( paths, TraversalType.depth_first );
