@@ -19,11 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import org.commonjava.cartographer.graph.mutate.GraphMutator;
 import org.commonjava.cartographer.graph.mutate.ManagedDependencyMutator;
 import org.slf4j.Logger;
@@ -34,9 +30,6 @@ public class MutatorSelector
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    @Inject
-    private Instance<MutatorFactory> mutatorFactoryInstances;
 
     private static Map<String, MutatorFactory> mutatorFactories;
 
@@ -49,12 +42,6 @@ public class MutatorSelector
     }
 
     public MutatorSelector( final Iterable<MutatorFactory> mutatorFactoryInstances )
-    {
-        mapMutators( mutatorFactoryInstances );
-    }
-
-    @PostConstruct
-    public void mapPresets()
     {
         mapMutators( mutatorFactoryInstances );
     }
@@ -96,7 +83,7 @@ public class MutatorSelector
             }
 
             final GraphMutator mutatorInstance = factory.newMutator( mutator );
-            
+
             logger.info( "Returning mutator: {} for ID: {}", mutatorInstance, mutator );
             return mutatorInstance;
         }
