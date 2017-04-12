@@ -24,13 +24,13 @@
       <pattern>[%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
-  
+
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <file>${carto.home}/var/log/cartographer/cartographer.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
         <fileNamePattern>${carto.home}/var/log/cartographer/cartographer.%i.log</fileNamePattern>
 
-        <maxHistory>20</maxHistory>
+        <maxIndex>20</maxIndex>
       </rollingPolicy>
 
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
@@ -53,5 +53,5 @@
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
   </root>
-  
+
 </configuration>
