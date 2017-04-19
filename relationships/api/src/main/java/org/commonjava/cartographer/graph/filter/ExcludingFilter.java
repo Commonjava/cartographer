@@ -114,4 +114,56 @@ public class ExcludingFilter
         return filter.getAllowedTypes();
     }
 
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final ExcludingFilter other = (ExcludingFilter) obj;
+        if ( excludedSubgraphs == null )
+        {
+            if ( other.excludedSubgraphs != null )
+            {
+                return false;
+            }
+        }
+        else if ( !excludedSubgraphs.equals( other.excludedSubgraphs ) )
+        {
+            return false;
+        }
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
+        return true;
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( excludedSubgraphs == null ) ? 0 : excludedSubgraphs.hashCode() );
+        result = prime * result + ( ( filter == null ) ? 0 : filter.hashCode() );
+        return result;
+    }
+
 }

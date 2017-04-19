@@ -40,6 +40,8 @@ public final class NeoDependencyRelationship
 
     private static final long serialVersionUID = 1L;
 
+    private DependencyScope scope;
+
     public NeoDependencyRelationship( final Relationship rel )
     {
         super(rel, RelationshipType.DEPENDENCY);
@@ -48,12 +50,16 @@ public final class NeoDependencyRelationship
     @Override
     public final DependencyScope getScope()
     {
-        final String scopeStr = Conversions.getStringProperty( Conversions.SCOPE, rel );
-        Logger logger = LoggerFactory.getLogger( getClass() );
-        logger.debug("Got scope from relationship: {} of: {}", rel, scopeStr );
+        if (scope == null)
+        {
+            final String scopeStr = Conversions.getStringProperty( Conversions.SCOPE, rel );
+            Logger logger = LoggerFactory.getLogger( getClass() );
+            logger.debug("Got scope from relationship: {} of: {}", rel, scopeStr );
 
-        DependencyScope scope = DependencyScope.getScope( scopeStr );
-        return scope == null ? DependencyScope.compile : scope;
+            scope = DependencyScope.getScope( scopeStr );
+            scope = scope == null ? DependencyScope.compile : scope;
+        }
+        return scope;
     }
 
     @Override
