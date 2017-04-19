@@ -84,6 +84,18 @@ public class PluginRuntimeFilter
     }
 
     @Override
+    public boolean equals( final Object obj )
+    {
+        return obj instanceof PluginRuntimeFilter;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return PluginRuntimeFilter.class.hashCode() + 1;
+    }
+
+    @Override
     public String getCondensedId()
     {
         return getLongId();

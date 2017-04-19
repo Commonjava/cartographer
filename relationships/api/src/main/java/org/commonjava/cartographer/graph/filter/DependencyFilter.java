@@ -90,24 +90,26 @@ public class DependencyFilter
 
         if ( scope != null )
         {
-            if ( useImpliedScopes && !scope.implies( dr.getScope() ) )
+            DependencyScope drScope = dr.getScope();
+            if ( useImpliedScopes && !scope.implies( drScope ) )
             {
 //                logger.debug( "NO (wrong implied scope)" );
                 return false;
             }
-            else if ( !useImpliedScopes && scope != dr.getScope() )
+            else if ( !useImpliedScopes && scope != drScope )
             {
 //                logger.debug( "NO (wrong direct scope)" );
                 return false;
             }
         }
 
-        if ( !includeManagedRelationships() && dr.isManaged() )
+        boolean drManaged = dr.isManaged();
+        if ( !includeManagedRelationships() && drManaged )
         {
 //            logger.debug( "NO (excluding managed)" );
             return false;
         }
-        else if ( !includeConcreteRelationships() && !dr.isManaged() )
+        else if ( !includeConcreteRelationships() && !drManaged )
         {
 //            logger.debug( "NO (excluding concrete)" );
             return false;
