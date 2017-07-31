@@ -1,2 +1,0 @@
-org.foo:consumer:1:pom
-org.bar:bom:1.1:pom

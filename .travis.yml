@@ -1,5 +1,0 @@
-language: java
-
-script: 
-  - 'echo ${TRAVIS_PULL_REQUEST}'
-  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn deploy  -s ./travis-settings.xml -V -Prun-its -B -e || mvn install -s ./travis-settings.xml -V -Prun-its -B -e'
