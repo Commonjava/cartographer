@@ -1,9 +1,9 @@
 package org.commonjava.cartographer.maven;
 
-import org.commonjava.cartographer.data.global.CartoPackageInfo;
-import org.commonjava.cartographer.data.model.PkgId;
-import org.commonjava.cartographer.data.model.PkgVersion;
-import org.commonjava.cartographer.data.user.work.RequestWorkspace;
+import org.commonjava.cartographer.core.data.data.global.CartoPackageInfo;
+import org.commonjava.cartographer.core.data.data.model.PkgId;
+import org.commonjava.cartographer.core.data.data.model.PkgVersion;
+import org.commonjava.cartographer.core.data.data.user.work.RequestWorkspace;
 import org.commonjava.cartographer.proc.select.CartoNodeSelector;
 
 /**

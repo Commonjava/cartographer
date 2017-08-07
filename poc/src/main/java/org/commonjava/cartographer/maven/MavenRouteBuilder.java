@@ -1,6 +1,6 @@
 package org.commonjava.cartographer.maven;
 
-import org.commonjava.cartographer.data.global.CartoPackageInfo;
+import org.commonjava.cartographer.core.data.data.global.CartoPackageInfo;
 import org.commonjava.cartographer.structure.CartoPackageRouter;
 
 import javax.enterprise.context.ApplicationScoped;
