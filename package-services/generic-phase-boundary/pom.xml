@@ -10,20 +10,9 @@
     <version>2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cartographer-svc-maven-selector</artifactId>
+  <artifactId>cartographer-svc-generic-phase-boundary</artifactId>
 
 
-  <name>Cartographer2 Maven Selector Service</name>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.commonjava.cartographer</groupId>
-      <artifactId>cartographer-commons-maven</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
-      <artifactId>atlas-identities</artifactId>
-    </dependency>
-  </dependencies>
+  <name>Cartographer2 Generic BSP-Phase Controller Service</name>
 
 </project>

@@ -16,7 +16,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>generic</module>
     <module>maven</module>
   </modules>
 

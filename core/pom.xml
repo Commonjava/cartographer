@@ -16,6 +16,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-model</artifactId>
+    </dependency>
+    
+    <dependency>
       <groupId>org.commonjava.propulsor</groupId>
       <artifactId>propulsor-core</artifactId>
     </dependency>

@@ -8,6 +8,6 @@ public enum RouteIds
     SELECT,
     RESOLVE,
     TRAVERSE,
-    COLLECT
+    BSP_STEP
     ;
 }

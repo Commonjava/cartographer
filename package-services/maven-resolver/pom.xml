@@ -15,4 +15,15 @@
 
   <name>Cartographer2 Maven Resolver Service</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-commons-maven</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-identities</artifactId>
+    </dependency>
+  </dependencies>
+
 </project>

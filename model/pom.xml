@@ -10,22 +10,14 @@
     <version>2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cartographer-package-services</artifactId>
+  <artifactId>cartographer-model</artifactId>
 
-  <name>Cartographer2 Package-Specific Service Impls</name>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>generic-phase-boundary</module>
-    <module>generic-traverser</module>
-    <module>maven-resolver</module>
-    <module>maven-selector</module>
-  </modules>
+  <name>Cartographer2 Core</name>
 
   <dependencies>
     <dependency>
-      <groupId>org.commonjava.cartographer</groupId>
-      <artifactId>cartographer-core</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
   </dependencies>
 
