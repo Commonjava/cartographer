@@ -12,4 +12,6 @@ public interface WorkManager
 
     WorkItem getWorkItem( WorkId workId )
             throws Exception;
+
+    void addRequestWorkspace( RequestWorkspace ws );
 }

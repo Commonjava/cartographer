@@ -4,10 +4,8 @@ import org.apache.camel.Body;
 import org.apache.camel.Handler;
 import org.apache.camel.OutHeaders;
 import org.commonjava.cartgorapher.model.graph.PkgVersion;
-import org.commonjava.cartographer.core.data.dto.ResolutionResult;
-import org.commonjava.cartographer.core.data.dto.SelectionResult;
 import org.commonjava.cartographer.core.data.work.WorkId;
-import org.commonjava.cartographer.spi.data.CartoPackageInfo;
+import org.commonjava.cartographer.spi.data.pkg.CartoPackageInfo;
 
 import java.util.Map;
 
@@ -27,6 +25,9 @@ import java.util.Map;
  *          Relationship metadata could not be found for the target {@link org.commonjava.cartgorapher.model.graph.PkgVersion}.
  *          <b>NOTE:</b> This is <b>NOT</b> the same as saying the target has no relationships. Rather, it indicates the
  *          metadata for that target cannot be found at all, not even something indicating it has no relationships.</li>
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_AVOIDED}:
+ *          The target was previously marked as resolved in the {@link org.commonjava.cartographer.core.data.db.GraphDB}.
+ *          No further action is required from the resolver.</li>
  *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_DONE}: The
  *          target is ready for traversal.</li>
  * </ul>

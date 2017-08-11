@@ -2,14 +2,12 @@ package org.commonjava.cartographer.spi.route;
 
 import org.apache.camel.model.ChoiceDefinition;
 import org.commonjava.cartographer.core.structure.MessageHeaders;
-import org.commonjava.cartographer.core.structure.Routes;
-import org.commonjava.cartographer.core.structure.RoutingHeaders;
+import org.commonjava.cartographer.spi.data.pkg.CartoPackageInfo;
 import org.commonjava.cartographer.spi.service.NodeResolver;
-import org.commonjava.cartographer.spi.data.CartoPackageInfo;
 import org.commonjava.propulsor.deploy.camel.route.RouteProvider;
 
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_RESOLVER_ERROR;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_TRAVERSE_NODE;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_RESOLVER_ERROR;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_TRAVERSE_NODE;
 
 /**
  * This base class provides the basic wiring for constructing a route to resolve nodes for a particular package type.

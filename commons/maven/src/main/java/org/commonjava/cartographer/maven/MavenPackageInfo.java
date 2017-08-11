@@ -1,6 +1,6 @@
 package org.commonjava.cartographer.maven;
 
-import org.commonjava.cartographer.spi.data.CartoPackageInfo;
+import org.commonjava.cartographer.spi.data.pkg.CartoPackageInfo;
 
 /**
  * Defines the packageType for maven nodes, and provides routes for selecting and resolving them.

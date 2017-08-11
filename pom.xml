@@ -21,9 +21,9 @@
     <module>model</module>
     <module>commons</module>
     <module>core</module>
-    <module>dispatcher</module>
-    <module>package-services</module>
-  </modules>  
+    <module>rest</module>
+    <module>services</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -68,6 +68,16 @@
       <dependency>
         <groupId>org.commonjava.propulsor</groupId>
         <artifactId>propulsor-camel</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.propulsor</groupId>
+        <artifactId>propulsor-undertow</artifactId>
+        <version>${propulsorVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.propulsor</groupId>
+        <artifactId>propulsor-resteasy</artifactId>
         <version>${propulsorVersion}</version>
       </dependency>
 

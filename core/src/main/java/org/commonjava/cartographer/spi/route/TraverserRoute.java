@@ -2,14 +2,12 @@ package org.commonjava.cartographer.spi.route;
 
 import org.apache.camel.model.ChoiceDefinition;
 import org.commonjava.cartographer.core.structure.MessageHeaders;
-import org.commonjava.cartographer.core.structure.RoutingHeaders;
 import org.commonjava.cartographer.spi.service.NodeTraverser;
 import org.commonjava.propulsor.deploy.camel.route.RouteProvider;
 
 import static org.commonjava.cartographer.core.structure.RouteIds.TRAVERSE;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_PHASE_CHECK;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_RECORD_NODE_RESULTS;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_TRAVERSE_NODE;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_PHASE_BOUNDARY;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_TRAVERSE_NODE;
 
 /**
  * This base class provides the basic wiring for constructing a route to traverse nodes after they have been resolved.
@@ -28,7 +26,7 @@ public abstract class TraverserRoute
                                          .choice();
 
         choice.when( header( MessageHeaders.TRAVERSAL_RESULT ).isEqualTo( MessageHeaders.TraversalResult.TRAVERSAL_DONE ) )
-              .to( lookupEndpoint( ROUTE_PHASE_CHECK ) );
+              .to( lookupEndpoint( ROUTE_PHASE_BOUNDARY ) );
     }
 
     protected abstract NodeTraverser getNodeTraverser();

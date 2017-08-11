@@ -50,6 +50,8 @@ public class RequestWorkspace
 
     private Set<WorkId> errors = new HashSet<>();
 
+    private int depth = 0;
+
     public RequestWorkspace( final UserRequest request )
     {
         this.request = request;
@@ -99,5 +101,17 @@ public class RequestWorkspace
         {
             done.add( workItem.getSelected() );
         }
+    }
+
+    public void startNextPhase()
+    {
+        pending.addAll( next );
+        next.clear();
+        depth++;
+    }
+
+    public int getDepth()
+    {
+        return depth;
     }
 }

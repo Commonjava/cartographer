@@ -25,6 +25,12 @@ public class MemoryGraphDB
 {
     private Map<PkgId, TreeSet<PkgVersion>> versionsOfPackages = new HashMap<>();
 
+    /**
+     * In this implementation, presence of a sourceUri for a PkgVersion is used as a proxy for whether that version has
+     * been resolved.
+     */
+    private Map<PkgVersion, String> sourceUris = new HashMap<>();
+
     private Map<RelationshipId, Relationship> relationships = new HashMap<>();
 
     private Map<PkgVersion, List<Relationship>> relationshipsFromVersions = new HashMap<>();
@@ -139,6 +145,12 @@ public class MemoryGraphDB
     public Relationship getRelationship( final RelationshipId relId )
     {
         return relationships.get( relId );
+    }
+
+    @Override
+    public boolean isResolved( final PkgVersion version )
+    {
+        return sourceUris.containsKey( version );
     }
 
 }

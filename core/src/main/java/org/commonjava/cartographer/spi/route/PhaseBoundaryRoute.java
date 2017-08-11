@@ -2,17 +2,14 @@ package org.commonjava.cartographer.spi.route;
 
 import org.apache.camel.model.ChoiceDefinition;
 import org.commonjava.cartographer.core.structure.MessageHeaders;
-import org.commonjava.cartographer.core.structure.RoutingHeaders;
-import org.commonjava.cartographer.spi.service.NodeTraverser;
 import org.commonjava.cartographer.spi.service.BSPBoundaryProcessor;
+import org.commonjava.cartographer.spi.service.NodeTraverser;
 import org.commonjava.propulsor.deploy.camel.route.RouteProvider;
 
-import static org.commonjava.cartographer.core.structure.RouteIds.BSP_STEP;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_END_REQUEST;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_PHASE_CHECK;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_PROGRESS_NODE_TRAVERSED;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_RECORD_NODE_RESULTS;
-import static org.commonjava.cartographer.core.structure.Routes.ROUTE_SELECT_NODE_LOOKUP;
+import static org.commonjava.cartographer.core.structure.RouteIds.BSP_BOUNDARY;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_END_REQUEST;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_PHASE_BOUNDARY;
+import static org.commonjava.cartographer.core.structure.EndpointKeys.ROUTE_SELECT_NODE_LOOKUP;
 
 /**
  * This base class provides the basic wiring for constructing a route to traverse nodes after they have been resolved.
@@ -25,8 +22,8 @@ public abstract class PhaseBoundaryRoute
     @Override
     protected final void configure()
     {
-        ChoiceDefinition choice = route().routeId( BSP_STEP.name() )
-                                         .from( lookupEndpoint( ROUTE_PHASE_CHECK ) )
+        ChoiceDefinition choice = route().routeId( BSP_BOUNDARY.name() )
+                                         .from( lookupEndpoint( ROUTE_PHASE_BOUNDARY ) )
                                          .bean( getBoundaryProcessor() )
                                          .choice();
 

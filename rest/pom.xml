@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.commonjava.cartographer</groupId>
+    <artifactId>cartographer-parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>cartographer-rest</artifactId>
+
+  <name>Cartographer2 REST Interface</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.cartographer</groupId>
+      <artifactId>cartographer-core</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-camel</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-undertow</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.propulsor</groupId>
+      <artifactId>propulsor-resteasy</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>
