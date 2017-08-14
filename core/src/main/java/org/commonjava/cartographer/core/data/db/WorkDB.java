@@ -1,11 +1,14 @@
-package org.commonjava.cartographer.core.data.work;
+package org.commonjava.cartographer.core.data.db;
 
 import org.commonjava.cartgorapher.model.RequestId;
+import org.commonjava.cartographer.core.data.work.RequestWorkspace;
+import org.commonjava.cartographer.core.data.work.WorkId;
+import org.commonjava.cartographer.core.data.work.WorkItem;
 
 /**
  * Manager class responsible for storing / organizing state related to ongoing graph traversals.
  */
-public interface WorkManager
+public interface WorkDB
 {
     RequestWorkspace getWorkspace( RequestId requestId )
             throws Exception;

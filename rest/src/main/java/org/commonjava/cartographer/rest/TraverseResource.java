@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.cartgorapher.model.RequestId;
 import org.commonjava.cartgorapher.model.user.UserRequest;
 import org.commonjava.cartographer.core.data.work.RequestWorkspace;
-import org.commonjava.cartographer.core.data.work.WorkManager;
+import org.commonjava.cartographer.core.data.db.WorkDB;
 import org.commonjava.propulsor.deploy.resteasy.RestResources;
-import org.jboss.resteasy.annotations.Body;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -14,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 /**
@@ -26,10 +24,10 @@ public class TraverseResource
         implements RestResources
 {
     @Inject
-    private WorkManager workManager;
+    private WorkDB workManager;
 
     @Inject
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @POST
     public RequestId startTraverse( @Context HttpServletRequest request )
@@ -39,7 +37,6 @@ public class TraverseResource
         RequestWorkspace ws = new RequestWorkspace( userRequest );
 
         workManager.addRequestWorkspace( ws );
-        // FIXME: Fire off a new exchnage into Camel.
 
         return ws.getRequestId();
     }

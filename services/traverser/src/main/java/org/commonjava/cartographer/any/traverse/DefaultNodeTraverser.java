@@ -10,7 +10,7 @@ import org.commonjava.cartographer.core.data.db.GraphDB;
 import org.commonjava.cartographer.core.data.work.RequestWorkspace;
 import org.commonjava.cartographer.core.data.work.WorkId;
 import org.commonjava.cartographer.core.data.work.WorkItem;
-import org.commonjava.cartographer.core.data.work.WorkManager;
+import org.commonjava.cartographer.core.data.db.WorkDB;
 import org.commonjava.cartographer.core.structure.MessageHeaders;
 import org.commonjava.cartographer.spi.service.NodeTraverser;
 
@@ -34,7 +34,7 @@ public class DefaultNodeTraverser
     private GraphDB graphDB;
 
     @Inject
-    private WorkManager workManager;
+    private WorkDB workManager;
 
     @Handler
     @Override

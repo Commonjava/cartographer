@@ -4,7 +4,7 @@ import org.apache.camel.Body;
 import org.apache.camel.Handler;
 import org.apache.camel.OutHeaders;
 import org.commonjava.cartographer.core.data.work.WorkId;
-import org.commonjava.cartographer.core.data.work.WorkManager;
+import org.commonjava.cartographer.core.data.db.WorkDB;
 import org.commonjava.cartographer.core.structure.MessageHeaders;
 import org.commonjava.cartographer.spi.service.BSPBoundaryProcessor;
 
@@ -22,7 +22,7 @@ public class DefaultBSPBoundaryProcessor
         implements BSPBoundaryProcessor
 {
     @Inject
-    private WorkManager workManager;
+    private WorkDB workManager;
 
     @Override
     @Handler
