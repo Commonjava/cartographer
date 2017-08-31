@@ -1,6 +1,45 @@
 Workflow
 --------
 
+## Contents
+
+<!-- toc -->
+- [Introduction](#introduction)
+- [Route Names & Workflow](#route-names--workflow)
+  * [REGISTER](#register)
+    + [Data Flow](#data-flow)
+    + [Routing Notes](#routing-notes)
+  * [END-DETECT](#end-detect)
+    + [Logic](#logic)
+    + [Data Flow](#data-flow-1)
+  * [SELECT-SYNC (Package-Specific with Default)](#select-sync-package-specific-with-default)
+    + [Logic](#logic-1)
+    + [Package-Specific Variation](#package-specific-variation)
+    + [WARNING: Potential Race Condition!](#warning-potential-race-condition)
+    + [Data Flow](#data-flow-2)
+  * [SELECT (Package-Specific)](#select-package-specific)
+    + [Logic (Most Implementations)](#logic-most-implementations)
+    + [Data Flow](#data-flow-3)
+  * [RESOLVE-SYNC](#resolve-sync)
+    + [WARNING: Synchronization Desired Here!](#warning-synchronization-desired-here)
+    + [Logic](#logic-2)
+    + [Data Flow](#data-flow-4)
+  * [RESOLVE (Package-Specific)](#resolve-package-specific)
+    + [Logic](#logic-3)
+    + [Scoping Relationships](#scoping-relationships)
+    + [Data Flow](#data-flow-5)
+  * [TRAVERSE](#traverse)
+    + [Logic](#logic-4)
+    + [New WorkItem Creation](#new-workitem-creation)
+    + [Scope Manipulations](#scope-manipulations)
+    + [Data Flow](#data-flow-6)
+  * [FORMAT](#format)
+    + [Notes](#notes)
+
+<!-- tocstop -->
+
+## Introduction
+
 Graph discovery and traversal in Cartographer 2.0 is modeled as a series
 of processing queues, with each queue designed to be handled by multiple
 processor nodes, referenced below as services. A service refers to a type of node, and there may be multiple nodes
