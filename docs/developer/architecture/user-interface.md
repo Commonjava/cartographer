@@ -1,6 +1,20 @@
 User Interface
 --------------
 
+## Contents
+
+<!-- toc -->
+
+- [Introduction](#introduction)
+  * [Traversal Scopes](#traversal-scopes)
+  * [Request Statuses](#request-statuses)
+  * [REST Resource & Actions](#rest-resource--actions)
+  * [Traversal Request Format](#traversal-request-format)
+
+<!-- tocstop -->
+
+## Introduction
+
 Work enters the system via a REST interface, which initializes a
 RequestWorkspace (may be virtual depending on WorkDB implementation)
 based on the user's request options (should be a REST POST). This
