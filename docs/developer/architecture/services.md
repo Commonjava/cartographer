@@ -1,6 +1,29 @@
 Services
 --------
 
+## Contents
+
+<!-- toc -->
+
+- [SelectionSynchronizerRecipientList](#selectionsynchronizerrecipientlist)
+- [SelectionSynchronizer (Package-Specific)](#selectionsynchronizer-package-specific)
+  * [Default Implementation](#default-implementation)
+  * [NPM Implementation (Potential)](#npm-implementation-potential)
+- [NodeSelectorRecipientList](#nodeselectorrecipientlist)
+- [NodeSelector (Package-Specific)](#nodeselector-package-specific)
+  * [Maven Implementation](#maven-implementation)
+  * [NPM Implementation](#npm-implementation)
+- [ResolverSynchronizer](#resolversynchronizer)
+- [NodeResolverRecipientList](#noderesolverrecipientlist)
+- [NodeResolver (Package-Specific)](#noderesolver-package-specific)
+  * [Maven Implementation](#maven-implementation-1)
+  * [NPM Implementation](#npm-implementation-1)
+- [NodeTraverser](#nodetraverser)
+- [TraversalEndDetector](#traversalenddetector)
+- [ResultFormatter](#resultformatter)
+
+<!-- tocstop -->
+
 ## SelectionSynchronizerRecipientList
 
 This service will listen on the **SELECT-SYNC** route, and is not
