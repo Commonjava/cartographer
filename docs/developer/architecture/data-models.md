@@ -1,6 +1,35 @@
 Data Models
 -----------
 
+## Contents
+
+<!-- toc -->
+
+- [Introduction](#introduction)
+  * [Graph Data Model](#graph-data-model)
+    + [Diagram](#diagram)
+    + [Package Key (PkgId)](#package-key-pkgid)
+    + [Package Metadata](#package-metadata)
+    + [Package Builds (PkgVersion)](#package-builds-pkgversion)
+    + [Package Version Metadata](#package-version-metadata)
+    + [Version-to-Package Relationship (Relationship)](#version-to-package-relationship-relationship)
+      - [Example: Indy, Galley, and Weft](#example-indy-galley-and-weft)
+    + [Relationship Metadata](#relationship-metadata)
+  * [Traversal Data Model](#traversal-data-model)
+    + [Diagram](#diagram-1)
+    + [RequestWorkspace](#requestworkspace)
+    + [RequestID](#requestid)
+    + [WorkItem](#workitem)
+    + [WorkID](#workid)
+
+<!-- tocstop -->
+
+## Introduction
+
+We have two data models in Cartographer 2.0 that are used operationally (that is, not accessible directly by the user). These are kept mostly separate, with a one-way relationship between them. Specifically, data structures in the WorkDB can reference things in the GraphDB, but not the other way around.
+
+The reason for this is to keep the traversal state from leaking into the database that stores the graph structure itself. In earlier Cartographer designs, this leaking of traversal state into the graph led to users having to discard the graph structure and re-resolve almost every time it was used. While there are still some edge cases we haven't captured, mainly related to rebuilds of existing versions (things that should be VERY tightly scoped from an environmental perspective), most of the graph DB is designed to be immutable so we don't have to re-discover the whole graph each time we run a traverse.
+
 ### Graph Data Model
 
 #### Diagram
