@@ -106,7 +106,7 @@ like this:
         "exclusions": [
             "maven:commons-logging:commons-logging"
          ],
-         "result": "<TODO-result-format-spec>"
+        "result": "<TODO-result-format-spec>"
     } 
 ```
 
