@@ -96,12 +96,12 @@ Let's look at these in some greater detail:
 
 Establish RequestWorkspace in WorkDB, including first WorkItems to traverse, with selected PkgVersions set from user request
 
-*NOTE:* This does not happen as a result of a message sent through the MQ; it is directly tied to the service that handles REST requests.
+**NOTE:** This does not happen as a result of a message sent through the MQ; it is directly tied to the service that handles REST requests.
 
 #### Data Flow
 
-* *Input:* UserRequest (from [User Interface](user-interface.md))
-* *Output:* RequestWorkspace, with RequestId and initial `pending` WorkItems populated
+* **Input:** UserRequest (from [User Interface](user-interface.md))
+* **Output:** RequestWorkspace, with RequestId and initial `pending` WorkItems populated
 
 #### Routing Notes
 
@@ -118,11 +118,11 @@ If any of the criteria for stopping traversal are met, stop. Otherwise, if the R
     - If there are no next nodes awaiting processing
     - If maximum traversal depth is set on the user request, and
         all next nodes are beyond this maximum depth
-2.  *SPLIT:* Otherwise, for each next node, proceed to the **SELECT-SYNC** workflow step
+2.  **SPLIT:** Otherwise, for each next node, proceed to the **SELECT-SYNC** workflow step
 
 #### Data Flow
 
-* *Input:* WorkId
+* **Input:** WorkId
 * *Output:*
     1.  Direct return: List<WorkId>
     2.  @OutHeaders Map entries.
@@ -163,7 +163,7 @@ If we return `UNKNOWN` here, we have to assume the next step is selection. In or
 
 #### Data Flow
 
-* *Input:* WorkId
+* **Input:** WorkId
 * *Output:*
 	1. Direct return: WorkId (unchanged)
 	2. @OutHeaders Map entries:
@@ -189,7 +189,7 @@ Select a PkgVersion for the original target PkgId, some version advice from the 
 
 #### Data Flow
 
-* *Inputs:* WorkId
+* **Inputs:** WorkId
 * *Output:*
 	1. Direct return: WorkId (unchanged)
 	2. @OutHeaders Map entries:
@@ -204,7 +204,7 @@ Select a PkgVersion for the original target PkgId, some version advice from the 
 
 This step attempts to prevent duplication of effort when it comes to resolving the relationships declared by some PkgVersion's accompanying metadata. Because the process involves downloading and parsing metadata, it can be faily expensive to execute. Also, once downloaded, parsed, and stored, there should be no need to do this ever again.
 
-*NOTE:* This step will synchronize activities across active traversals.
+**NOTE:** This step will synchronize activities across active traversals.
 
 #### WARNING: Synchronization Desired Here!
 
@@ -220,7 +220,7 @@ If we return `UNRESOLVED` here, we have to assume the next step is to resolve th
 
 #### Data Flow
 
-* *Inputs:* WorkId
+* **Inputs:** WorkId
 * *Output:*
 	1. Direct return: WorkId (unchanged)
 	2. @OutHeaders Map entries:
@@ -246,7 +246,7 @@ In package types where scope doesn't really exist as a concept, everything shoul
 
 #### Data Flow
 
-* *Inputs:* WorkId
+* **Inputs:** WorkId
 * *Output:*
 	1. Direct return: WorkId (unchanged)
 	2. @OutHeaders Map entries:
@@ -269,7 +269,7 @@ Specifically:
 
 1.  Retrieve the outbound relationships associated with a PkgVersion
 2.  Filter out Relationships we don't want to traverse:
-	* Using traversal scope. If the WorkItem has scope `BUILD_TIME`, then allow `BUILD_TIME` and `RUNTIME`. If the scope is `RUNTIME`, the only allow `RUNTIME` scoped relationships. *NOTE:* We currently only store `EXTRA` scoped relationships, and have no current plan to use them. We want to capture them to avoid having to reparse if we do decide to use them.
+	* Using traversal scope. If the WorkItem has scope `BUILD_TIME`, then allow `BUILD_TIME` and `RUNTIME`. If the scope is `RUNTIME`, the only allow `RUNTIME` scoped relationships. **NOTE:** We currently only store `EXTRA` scoped relationships, and have no current plan to use them. We want to capture them to avoid having to reparse if we do decide to use them.
 	* Using exclusions: If a relationship targets a PkgId that's in the current WorkItem's exclusions set, we don't want to traverse it. 
 3.  Create a new WorkItem for each filtered relationship, using the initial state given below
 4.  Add new WorkItems to the `pending` field in the current RequestWorkspace (via WorkDB methods)
@@ -317,5 +317,5 @@ Pull all of the WorkItems related to a RequestId, and format them according to u
 
 #### Notes
 
-1.  *TODO:* It's not clear how we'll specify an output format...potentially as a series of pre-configured formats, or inlined Groovy (or other spec format) in the user request
+1.  **TODO:** It's not clear how we'll specify an output format...potentially as a series of pre-configured formats, or inlined Groovy (or other spec format) in the user request
 2.  Formatting should allow for path-oriented and node-oriented formats

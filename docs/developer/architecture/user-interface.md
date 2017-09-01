@@ -69,9 +69,9 @@ The Traverse REST interface will consist of the following actions:
     of: `{TRAVERSING, FORMATTING, ERROR, SUCCESS}`
 -   **GET /{requestId}/logs:** Retrieve the log of the current
     traversal. \
-    -   *NOTE:* Allow range specification in the HTTP header for this.
+    -   **NOTE:** Allow range specification in the HTTP header for this.
 -   **GET /{requestId}:** Retrieve the result of the request. \
-    -   *NOTE:* This will return 204 No Content with a HTTP header
+    -   **NOTE:** This will return 204 No Content with a HTTP header
         '`Traverse-State: {TRAVERSING|FORMATTING}`' if the request is
         not done.
 -   **DELETE /{requestId}:** Delete the RequestWorkspace + WorkItems +
