@@ -90,24 +90,24 @@ a JSON that specifies options for the traversal. That format will look
 like this:
 
 ```
-     {
-        "workspaceId": "IPreferThisUniqueId",
-        "roots": [
-            "maven:org.commonjava.indy:indy-core:1.1.8",
-            "maven:org.commonjava.cartographer:cartographer-core:2.0-pre1"
-        ],
-        "scope": "runtime",
-        "depth": 3,
-        "versions" : {
-            "maven:org.commonjava.cdi.util:weft": "1.4.1",
-            "maven:javax.servlet:javax.servlet-api":
-            "maven:org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:1.0.1"
-        },
-        "exclusions": [
-            "maven:commons-logging:commons-logging"
-         ],
-        "result": "<TODO-result-format-spec>"
-    } 
+{
+    "workspaceId": "IPreferThisUniqueId",
+    "roots": [
+        "maven:org.commonjava.indy:indy-core:1.1.8",
+        "maven:org.commonjava.cartographer:cartographer-core:2.0-pre1"
+    ],
+    "scope": "runtime",
+    "depth": 3,
+    "versions" : {
+        "maven:org.commonjava.cdi.util:weft": "1.4.1",
+        "maven:javax.servlet:javax.servlet-api":
+        "maven:org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:1.0.1"
+    },
+    "exclusions": [
+        "maven:commons-logging:commons-logging"
+     ],
+    "result": "<TODO-result-format-spec>"
+} 
 ```
 
 Some notes about the above:
