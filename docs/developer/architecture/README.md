@@ -11,7 +11,7 @@ This series of documents describes the new architecture we'll be using in Cartog
 * [Services](services.md) - Describes the services that execute the workflow steps, including information on how these might vary with package-specific details, and how we handle routing to package-specific implementations as we move through the steps of the workflow
 * [Design TODO](design-todo.md) - Describes known issues that need to be incorporated into the architecture
 * [Open Questions](open-questions.md) - List of known questions that need to be resolved into design TODO or answered in some other way, before the architecture can be considered complete
-
+* [Examples](examples/) - A series of examples that illustrate how the system copes with different use cases
 
 
  
