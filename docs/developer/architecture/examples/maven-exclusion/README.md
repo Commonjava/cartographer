@@ -149,5 +149,5 @@ Cartographer will execute the following steps:
     2. It returns the former contents of the pending set to the END-DETECT route.
 23. *...*
 
-We won't follow the process beyond this, since the main point is to see how the exclusion resolved in **step 10.1** gets folded into the WorkItem in **step 11.3**, which then changes how httpclient relationships get traversed in **step 21.3**.
+We won't follow the process beyond this, since the main point is to see how the exclusion resolved in **step 10.i** gets folded into the WorkItem in **step 11.iii**, which then changes how httpclient relationships get traversed in **step 21.iii**.
 
