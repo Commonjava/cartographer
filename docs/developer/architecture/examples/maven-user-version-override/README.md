@@ -20,16 +20,16 @@ As you look at the POM, it's worth noticing:
 Imaging we submit the following traversal request to Cartographer 2.0:
 
 ```
-	{
-		"roots": [
-	        "maven:org.commonjava.util:jhttpc:1.6"
-	    ],
-	    "versions" [
-	    	"maven:org.apache.httpcomponents:httpclient": "4.5.3-sp1"
-	    ],
-	    "scope": "runtime",
-		"result": "some-format-name"
-	} 
+{
+	"roots": [
+        "maven:org.commonjava.util:jhttpc:1.6"
+    ],
+    "versions" [
+    	"maven:org.apache.httpcomponents:httpclient": "4.5.3-sp1"
+    ],
+    "scope": "runtime",
+	"result": "some-format-name"
+} 
 ```
 This request directs Cartographer to start traversing with the jhttpc POM, resolve the runtime-scoped relationships, and run the results through some format called `some-format-name`.
 
