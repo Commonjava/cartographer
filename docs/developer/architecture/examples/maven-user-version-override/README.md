@@ -109,6 +109,7 @@ Cartographer will execute the following steps:
 	b. Selects the version given by the user, from the selectedVersions map
 	c. Sets the PkgVersion: "maven:org.apache.httpcomponents:httpclient:4.5.3-sp1" in the `selected` field of the WorkItem
 	d. Forwards the httpclient WorkId on to the RESOLVE-SYNC route.
+18. *...*
 
 We won't follow the process beyond this, since the main point is to see how the user-supplied version is passed through the selectedVersions map in RequestWorkspace, in *step 1.a*, then used to select the version for httpclient in *step 17.c*.
 
