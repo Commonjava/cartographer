@@ -92,7 +92,7 @@ like this:
 ```
 {
     "workspaceId": "IPreferThisUniqueId",
-    "roots": [
+    "traverse-from": [
         "maven:org.commonjava.indy:indy-core:1.1.8",
         "maven:org.commonjava.cartographer:cartographer-core:2.0-pre1"
     ],

@@ -165,6 +165,22 @@ complete, WorkItems are used as input to the formatting step, where the
 formatter has access to all of the state accumulated about that node
 during processing.
 
+WorkItems typically start with the target information from the 
+Relationship used to create them: namely, the target PkgId and target 
+version advice. Ordinal is also drawn from the Relationship, while
+depth and parent WorkId are both drawn from the WorkItem whose
+traversal resulted in the creation of this new WorkItem. Exclusions are
+hybridized from the parent WorkItem and the Relationship information.
+
+As the WorkItem proceeds through selection, the target PkgId is
+refined to a "selected" PkgVersion, or a specific, versioned release of
+the PkgId. This selected PkgVersion is used during the resolution and
+traversal steps, where the process repeats.
+
+Obviously, there are many more details involved with traversing the 
+package-relationship graph. For more information, see the section on
+[Workflow](workflow.html).
+
 #### WorkID
 
 WorkIDs uniquely identify a piece of work moving through the system.

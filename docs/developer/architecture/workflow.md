@@ -79,14 +79,18 @@ the user.
 
 The general workflow for a traverse is as follows:
 
-1. Register
-2. End-Detect
-3. Select-Sync
-4. Select
-5. Resolve-Sync
-6. Resolve
-7. Traverse
-8. Format
+```
+Register
+while ( End-Detect return false ) do
+{
+    Select-Sync
+    Select
+    Resolve-Sync
+    Resolve
+    Traverse
+}
+Format
+```
 
 Understanding, of course, that End-Detect occurs at the very beginning of the traversal, then again after each node's Traverse step.
 
