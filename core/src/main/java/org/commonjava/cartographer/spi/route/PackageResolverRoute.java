@@ -28,11 +28,11 @@ public abstract class PackageResolverRoute
                 route().from( lookupEndpoint( pkgInfo.getResolverRoute() ) ).bean( getNodeResolver() ).choice();
 
 
-        choice.when( header( MessageHeaders.RESOLUTION_RESULT ).isEqualTo( MessageHeaders.ResolutionResult.RESOLUTION_DONE ) )
+        choice.when( header( MessageHeaders.RESOLUTION_RESULT ).isEqualTo( MessageHeaders.ResolutionResult.DONE ) )
                .to( lookupEndpoint( ROUTE_TRAVERSE_NODE ) );
 
-        choice.when( header( MessageHeaders.RESOLUTION_RESULT ).in( MessageHeaders.ResolutionResult.RESOLUTION_ERROR,
-                                                                    MessageHeaders.ResolutionResult.RESOLUTION_FAILED ) )
+        choice.when( header( MessageHeaders.RESOLUTION_RESULT ).in( MessageHeaders.ResolutionResult.ERROR,
+                                                                    MessageHeaders.ResolutionResult.FAILED ) )
               .to( lookupEndpoint( ROUTE_RESOLVER_ERROR ) );
     }
 

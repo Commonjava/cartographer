@@ -18,17 +18,17 @@ import java.util.Map;
  * {@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult} as follows:
  *
  * <ul>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_ERROR}:
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#ERROR}:
  *          An error occurred while attempting to resolve the relationship metadata for the target
  *          {@link org.commonjava.cartgorapher.model.graph.PkgVersion}</li>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_FAILED}:
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#FAILED}:
  *          Relationship metadata could not be found for the target {@link org.commonjava.cartgorapher.model.graph.PkgVersion}.
  *          <b>NOTE:</b> This is <b>NOT</b> the same as saying the target has no relationships. Rather, it indicates the
  *          metadata for that target cannot be found at all, not even something indicating it has no relationships.</li>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_AVOIDED}:
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#AVOIDED}:
  *          The target was previously marked as resolved in the {@link org.commonjava.cartographer.core.data.db.GraphDB}.
  *          No further action is required from the resolver.</li>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#RESOLUTION_DONE}: The
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.ResolutionResult#DONE}: The
  *          target is ready for traversal.</li>
  * </ul>
  *

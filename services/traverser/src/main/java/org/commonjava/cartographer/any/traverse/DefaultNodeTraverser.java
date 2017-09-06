@@ -52,7 +52,7 @@ public class DefaultNodeTraverser
                .forEach( rel -> processRelationship( rel, workId, count, workItem, nextItems ) );
 
         workspace.markDone( workItem );
-        workspace.addNextItems( nextItems );
+        workspace.addWorkItems( nextItems );
 
         outHeaders.put( MessageHeaders.TRAVERSAL_RESULT, MessageHeaders.TraversalResult.TRAVERSAL_DONE );
     }

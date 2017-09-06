@@ -2,7 +2,6 @@ package org.commonjava.cartographer.core.data.work;
 
 import org.commonjava.cartgorapher.model.graph.PkgId;
 import org.commonjava.cartgorapher.model.graph.PkgVersion;
-import org.commonjava.cartgorapher.model.graph.RelationshipId;
 import org.commonjava.cartgorapher.model.user.TraverseScope;
 
 import java.util.Collections;
@@ -25,7 +24,11 @@ public class WorkItem
 {
     private final WorkId workId;
 
-    private final WorkId fromWorkId;
+    private final int ordinal;
+
+    private final int depth;
+
+    private final WorkId parentId;
 
     private final PkgId target;
 
@@ -40,23 +43,20 @@ public class WorkItem
     private Exception error;
 
     public WorkItem( WorkId workId, PkgId target, String targetVersionAdvice, TraverseScope scope,
-                     Set<PkgId> exclusions )
+                     Set<PkgId> exclusions, int ordinal )
     {
-        this.workId = workId;
-        this.targetVersionAdvice = targetVersionAdvice;
-        this.exclusions = exclusions;
-        this.fromWorkId = null;
-        this.target = target;
-        this.scope = scope;
+        this( workId, target, targetVersionAdvice, scope, exclusions, null, ordinal );
     }
 
     public WorkItem( WorkId workId, PkgId target, String targetVersionAdvice, TraverseScope scope,
-                     Set<PkgId> exclusions, WorkId fromWorkId )
+                     Set<PkgId> exclusions, WorkItem parent, int ordinal )
     {
         this.workId = workId;
         this.targetVersionAdvice = targetVersionAdvice;
         this.exclusions = exclusions;
-        this.fromWorkId = fromWorkId;
+        this.ordinal = ordinal;
+        this.parentId = parent == null ? null : parent.getWorkId();
+        this.depth = parent == null ? 0 : parent.getDepth()+1;
         this.target = target;
         this.scope = scope;
     }
@@ -64,6 +64,16 @@ public class WorkItem
     public WorkId getWorkId()
     {
         return workId;
+    }
+
+    public int getOrdinal()
+    {
+        return ordinal;
+    }
+
+    public int getDepth()
+    {
+        return depth;
     }
 
     public PkgId getTarget()
@@ -91,9 +101,9 @@ public class WorkItem
         return exclusions == null ? Collections.emptySet() : exclusions;
     }
 
-    public WorkId getFromWorkId()
+    public WorkId getParentId()
     {
-        return fromWorkId;
+        return parentId;
     }
 
     public String getTargetVersionAdvice()

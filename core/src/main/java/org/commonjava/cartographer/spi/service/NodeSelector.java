@@ -17,20 +17,20 @@ import java.util.Map;
  * {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult} as follows:
  *
  * <ul>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#SELECTION_AVOIDED}:
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#AVOIDED}:
  *          The incoming {@link org.commonjava.cartographer.core.data.work.WorkItem} already contains a fully
  *          selected {@link org.commonjava.cartgorapher.model.graph.PkgVersion}. This will happen with the initial
  *          BSP phase from a user request, since the user normally will have specified the version for the root
  *          nodes of the traverse.</li>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#SELECTION_DONE}: Resolved the
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#DONE}: Resolved the
  *          {@link org.commonjava.cartgorapher.model.graph.PkgId} to a {@link org.commonjava.cartgorapher.model.graph.PkgVersion},
  *          which is now ready to resolve.</li>
- *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#SELECTION_FAILED}:
+ *     <li>{@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#FAILED}:
  *          Could not find a valid {@link org.commonjava.cartgorapher.model.graph.PkgVersion} selection for the given
  *          {@link org.commonjava.cartgorapher.model.graph.PkgId} that satisfied version constraints.</li>
  * </ul>
  *
- * If {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#SELECTION_FAILED} is returned,
+ * If {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#FAILED} is returned,
  * another header called {@link org.commonjava.cartographer.core.structure.MessageHeaders#SELECTION_FAILURE_REASON} will
  * be set with a value from {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionFailureReason} as
  * follows:
@@ -53,7 +53,7 @@ import java.util.Map;
  * {@link org.commonjava.cartgorapher.model.graph.PkgVersion}), which come directly from the user request. When the
  * inbound WorkItem already contains a selected {@link org.commonjava.cartgorapher.model.graph.PkgVersion}, this
  * processor should pass through to the
- * {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#SELECTION_DONE} result.
+ * {@link org.commonjava.cartographer.core.structure.MessageHeaders.SelectionResult#DONE} result.
  */
 public interface NodeSelector
 {

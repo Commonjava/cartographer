@@ -1,5 +1,8 @@
 package org.commonjava.cartographer.core.structure;
 
+import org.commonjava.cartographer.core.data.work.RequestWorkspace;
+import org.commonjava.cartographer.core.data.work.WorkItem;
+
 /**
  * Created by jdcasey on 7/17/17.
  */
@@ -15,6 +18,16 @@ public final class MessageHeaders
 
     public static final String TRAVERSAL_RESULT = "traversal-result";
 
+    public static final String SELECT_STATUS = "select-status";
+
+    public static final String RESOLVE_STATUS = "resolve-status";
+
+    // TODO: This is for node selection steps where the target is already being selected. Figure out how to park them for later.
+    public static final String ROUTE_WAIT_SELECTOR = "selector-wait";
+
+    // TODO: This is for node resolution steps where the target is already being resolved. Figure out how to park them for later.
+    public static final String ROUTE_WAIT_RESOLVER = "resolver-wait";
+
     public enum TraversalResult
     {
         TRAVERSAL_DONE;
@@ -28,22 +41,22 @@ public final class MessageHeaders
         /**
          * Resolution failed because metadata couldn't be parsed, or repo server gave non-recoverable error response.
          */
-        RESOLUTION_ERROR,
+        ERROR,
         /**
          * Resolution failed to find the metadata on the server (or locally), or repo server gave recoverable error
          * response.
          */
-        RESOLUTION_FAILED,
+        FAILED,
         /**
          * Resolution result was already available in the
          * {@link org.commonjava.cartographer.core.data.db.GraphDB}
          */
-        RESOLUTION_AVOIDED,
+        AVOIDED,
         /**
          * Resolution succeeded normally, and results are now available in the
          * {@link org.commonjava.cartographer.core.data.db.GraphDB}
          */
-        RESOLUTION_DONE;
+        DONE;
     }
 
     /**
@@ -71,6 +84,20 @@ public final class MessageHeaders
     }
 
     /**
+     * Contains possible states of resolution for {@link org.commonjava.cartgorapher.model.graph.PkgVersion} nodes.
+     * These are used to avoid re-resolving (or entering a race to resolve) package versions.
+     */
+    public enum ResolutionState
+    {
+        /** It's already in the {@link org.commonjava.cartographer.core.data.db.GraphDB}; don't resolve. */
+        DONE,
+        /** We're in the process of resolving; don't attempt to resolve. */
+        RESOLVING,
+        /** Resolution hasn't happened (or started). Proceed. */
+        UNRESOLVED;
+    }
+
+    /**
      * Possible result states for the {@link org.commonjava.cartographer.spi.service.NodeSelector} processor.
      */
     public enum SelectionResult
@@ -80,16 +107,16 @@ public final class MessageHeaders
          * {@link org.commonjava.cartgorapher.model.graph.PkgVersion}, as will be the case in the first BSP phase,
          * when the user provides a concrete root node for the traverse.
          */
-        SELECTION_AVOIDED,
+        AVOIDED,
         /**
          * Selection succeeded normally.
          */
-        SELECTION_DONE,
+        DONE,
         /**
          * Failed to select a {@link org.commonjava.cartgorapher.model.graph.PkgVersion} given the
          * {@link org.commonjava.cartgorapher.model.graph.PkgId} and available version advice.
          */
-        SELECTION_FAILED;
+        FAILED;
     }
 
     /**
@@ -135,4 +162,20 @@ public final class MessageHeaders
     }
 
     private MessageHeaders(){}
+
+    /**
+     * States used to synchronize {@link org.commonjava.cartographer.spi.service.NodeSelector} work. This allows breaking
+     * the BSP architecture into a free-flowing resolution of the graph, since it will only synchronize / block selection of
+     * nodes when another {@link WorkItem} exists in the {@link RequestWorkspace} which is set to select a version for that
+     * {@link org.commonjava.cartgorapher.model.graph.PkgId}.
+     */
+    public static enum SelectStatus
+    {
+        /** Not yet tracked in this {@link RequestWorkspace} */
+        UNKNOWN,
+        /** Selection is pending in this {@link RequestWorkspace} */
+        SELECTING,
+        /** Selection has been performed in this {@link RequestWorkspace} */
+        DONE;
+    }
 }

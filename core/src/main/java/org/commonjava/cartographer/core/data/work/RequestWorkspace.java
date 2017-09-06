@@ -15,6 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This workspace contains state (accumulated and initial, from the user request) specific to this request.
+ * <br/>
+ * <b>NOTE:</b> This class may not need to exist explicitly. We will provide access to all of this information
+ * via {@link org.commonjava.cartographer.core.data.db.WorkDB} to keep options open.
  */
 public class RequestWorkspace
 {
@@ -31,14 +34,9 @@ public class RequestWorkspace
     private final int maxDepth;
 
     /**
-     * Next batch of nodes to process, in the next BSP phase
-     */
-    private Set<WorkItem> next = new HashSet<>();
-
-    /**
      * Current batch of packages being resolved in the current BSP phase.
      */
-    private Set<WorkItem> pending = new HashSet<>();
+    private Set<WorkId> pending = new HashSet<>();
 
     /**
      * All packages that have been processed, INCLUDING both traversed and discarded.
@@ -48,9 +46,13 @@ public class RequestWorkspace
 
     private final Map<PkgId, PkgVersion> selectedVersions;
 
-    private Set<WorkId> errors = new HashSet<>();
+    /**
+     * Set of {@link PkgId} waiting for node selection to happen. Once selected, the pkgId gets removed from
+     * here and mapped to a {@link PkgVersion} in {@link #selectedVersions}.
+     */
+    private final Set<PkgId> pendingSelection = new HashSet<>();
 
-    private int depth = 0;
+    private Set<WorkId> errors = new HashSet<>();
 
     public RequestWorkspace( final UserRequest request )
     {
@@ -84,9 +86,9 @@ public class RequestWorkspace
         return selectedVersions.computeIfAbsent( id, pkgId -> version );
     }
 
-    public void addNextItems( final List<WorkItem> nextItems )
+    public void addWorkItems( final List<WorkItem> nextItems )
     {
-        next.addAll( nextItems );
+        nextItems.forEach( item->pending.add(item.getWorkId()) );
     }
 
     public void markDone( WorkItem workItem )
@@ -103,15 +105,8 @@ public class RequestWorkspace
         }
     }
 
-    public void startNextPhase()
+    public boolean isPendingSelection( PkgId pkgId )
     {
-        pending.addAll( next );
-        next.clear();
-        depth++;
-    }
-
-    public int getDepth()
-    {
-        return depth;
+        return pendingSelection.contains( pkgId );
     }
 }
