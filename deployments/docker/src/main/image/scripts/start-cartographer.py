@@ -23,14 +23,14 @@ import sys
 
 # import tarfile
 import shutil
-import fnmatch
+# import fnmatch
 
-try:
-    # Python 2
-    from urllib2 import urlopen
-except ImportError:
-    # Python 3
-    from urllib.request import urlopen
+# try:
+#     # Python 2
+#     from urllib2 import urlopen
+# except ImportError:
+#     # Python 3
+#     from urllib.request import urlopen
 
 def run(cmd, fail_message='Error running command', fail=True):
   cmd += " 2>&1"
